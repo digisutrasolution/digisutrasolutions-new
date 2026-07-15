@@ -1,183 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createElement, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { withBase } from "@/lib/base-path";
 import { animate, motion, useMotionValue } from "framer-motion";
-import type { LucideIcon } from "lucide-react";
-import {
-  Award,
-  BadgeCheck,
-  Bot,
-  BookOpen,
-  Brain,
-  Briefcase,
-  Building2,
-  Calculator,
-  CalendarDays,
-  ChartColumn,
-  ChartLine,
-  Clapperboard,
-  Cpu,
-  Earth,
-  FilePen,
-  FileSearch,
-  FileSpreadsheet,
-  FileText,
-  HeartHandshake,
-  Images,
-  Layers,
-  Lightbulb,
-  Lock,
-  Mail,
-  MapPin,
-  MessageCircle,
-  MicVocal,
-  MonitorSmartphone,
-  Newspaper,
-  Palette,
-  PenTool,
-  QrCode,
-  Repeat,
-  ScrollText,
-  Search,
-  Share2,
-  ShieldCheck,
-  Smartphone,
-  Sparkles,
-  Sprout,
-  Star,
-  Target,
-  Timer,
-  TrendingUp,
-  Trophy,
-  Tv,
-  Users,
-  WandSparkles,
-  Wrench,
-} from "lucide-react";
+import { navIcon } from "@/components/nav-icons";
+import type { FeaturedPost, NavChild, NavNode } from "@/lib/menu";
 
 const ORANGE = "#F26419";
-
-type MenuItem = { label: string; href: string; icon: LucideIcon };
-type NavItem = {
-  label: string;
-  href: string;
-  tagline?: string;
-  cols?: number;
-  panelImage?: string;
-  dropdown?: MenuItem[];
-};
-
-const NAV: NavItem[] = [
-  {
-    label: "About",
-    href: "/about",
-    tagline: "15+ years. 100+ brands. 7 regions globally.\nBuilt on trust, driven by results.",
-    cols: 2,
-    panelImage: "/menu-images/about-digisutrasolution.webp",
-    dropdown: [
-      { label: "Who We Are", href: "/about", icon: Building2 },
-      { label: "Why Choose Us", href: "/about/why-choose-us", icon: BadgeCheck },
-      { label: "Global Presence", href: "/about/global-presence", icon: Earth },
-      { label: "Technology & Innovation", href: "/about/technology", icon: Cpu },
-      { label: "Certifications & Partners", href: "/about/certifications", icon: ShieldCheck },
-      { label: "Trust Center", href: "/trust-center", icon: Lock },
-      { label: "Life At Digisutra", href: "/about/life", icon: HeartHandshake },
-      { label: "CSR & Community Impact", href: "/about/csr", icon: Sprout },
-    ],
-  },
-  {
-    label: "Services",
-    href: "/services",
-    tagline: "Full-spectrum digital marketing.\n18 services, one growth partner.",
-    cols: 3,
-    panelImage: "/menu-images/services.webp",
-    dropdown: [
-      { label: "AI Development", href: "/services/ai-development", icon: Cpu },
-      { label: "AI Marketing", href: "/services/ai-marketing", icon: Brain },
-      { label: "AI Automation", href: "/services/ai-automation", icon: Bot },
-      { label: "White Label Development", href: "/services/white-label-development", icon: Layers },
-      { label: "White Label Marketing", href: "/services/white-label-marketing", icon: Repeat },
-      { label: "White Label AI", href: "/services/white-label-ai", icon: Sparkles },
-      { label: "SEO & Content Marketing", href: "/services/seo", icon: Search },
-      { label: "Pay-Per-Click (PPC)", href: "/services/ppc", icon: TrendingUp },
-      { label: "Social Media Marketing", href: "/services/social-media", icon: Share2 },
-      { label: "Web Design & Development", href: "/services/web-design", icon: MonitorSmartphone },
-      { label: "Email Marketing", href: "/services/email-marketing", icon: Mail },
-      { label: "Video Marketing", href: "/services/video-marketing", icon: Clapperboard },
-      { label: "Brand Identity & Design", href: "/services/branding", icon: Palette },
-      { label: "Performance Analytics", href: "/services/analytics", icon: ChartColumn },
-      { label: "Influencer Marketing", href: "/services/influencer-marketing", icon: Star },
-      { label: "WhatsApp Marketing", href: "/services/whatsapp-marketing", icon: MessageCircle },
-      { label: "SMS Marketing", href: "/services/sms-marketing", icon: Smartphone },
-      { label: "Jio Hotstar Advertising", href: "/services/jio-hotstar-ads", icon: Tv },
-    ],
-  },
-  {
-    label: "Work",
-    href: "/work",
-    tagline: "100+ brands. $1B+ revenue\ngenerated for clients.",
-    cols: 2,
-    panelImage: "/menu-images/work.webp",
-    dropdown: [
-      { label: "Our Clients", href: "/work/clients", icon: Users },
-      { label: "Case Studies", href: "/work/case-studies", icon: Briefcase },
-      { label: "Results", href: "/work/results", icon: Trophy },
-      { label: "Portfolio", href: "/work/portfolio", icon: Images },
-      { label: "Strategy & Consulting", href: "/work/strategy-consulting", icon: Target },
-      { label: "Solutions", href: "/solutions", icon: Building2 },
-    ],
-  },
-  {
-    label: "Resources",
-    href: "/resources",
-    tagline: "132 free tools live.\nUse them. Grow. No account needed.",
-    cols: 3,
-    panelImage: "/menu-images/resources.webp",
-    dropdown: [
-      { label: "SEO Audit", href: "/resources/seo-audit", icon: FileSearch },
-      { label: "SSL Checker", href: "/resources/ssl-checker", icon: Lock },
-      { label: "QR Code Generator", href: "/resources/qr-code-generator", icon: QrCode },
-      { label: "GST Calculator", href: "/resources/gst-calculator", icon: Calculator },
-      { label: "Invoice Generator", href: "/resources/invoice-generator", icon: FileText },
-      { label: "Privacy Policy Generator", href: "/resources/privacy-policy-generator", icon: ScrollText },
-      { label: "Pomodoro Timer", href: "/resources/pomodoro-timer", icon: Timer },
-      { label: "Resume Builder", href: "/resources/resume-builder", icon: FilePen },
-      { label: "AI Blog Writer", href: "/resources/ai-blog-writer", icon: PenTool },
-      { label: "Keyword Research", href: "/resources/keyword-ideas", icon: Search },
-      { label: "Domain Authority Checker", href: "/resources/domain-authority-checker", icon: Award },
-      { label: "Google Business Profile Audit", href: "/resources/google-business-profile-audit", icon: MapPin },
-      { label: "ROI Calculator", href: "/resources/roi-calculator", icon: TrendingUp },
-      { label: "Business Name Generator", href: "/resources/brand-name-generator", icon: WandSparkles },
-      { label: "AI Chatbot Builder", href: "/resources/ai-chatbot-builder", icon: Bot },
-      { label: "Google Review Link Generator", href: "/resources/google-review-link", icon: Star },
-      { label: "KPI Dashboard", href: "/resources/kpi-dashboard", icon: ChartColumn },
-      { label: "CSV Cleaner", href: "/resources/csv-cleaner", icon: FileSpreadsheet },
-      { label: "→ View All 132 Free Tools", href: "/resources", icon: Wrench },
-    ],
-  },
-  {
-    label: "Newsroom",
-    href: "/news-media",
-    tagline: "Insights, trends & stories\nfrom the world of digital marketing.",
-    cols: 2,
-    panelImage: "/menu-images/newsroom.webp",
-    dropdown: [
-      { label: "Blog", href: "/news-media/blog", icon: BookOpen },
-      { label: "Latest News", href: "/news-media/latest-news", icon: Newspaper },
-      { label: "Industry Insights", href: "/news-media/industry-insights", icon: Lightbulb },
-      { label: "Marketing Trends", href: "/news-media/marketing-trends", icon: ChartLine },
-      { label: "Podcasts & Interviews", href: "/news-media/podcasts", icon: MicVocal },
-      { label: "Events & Webinars", href: "/news-media/events", icon: CalendarDays },
-      { label: "Awards & Recognition", href: "/news-media/awards", icon: Award },
-    ],
-  },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Career", href: "/career" },
-  { label: "Referral", href: "/referral-program" },
-];
 
 const SOCIALS: { label: string; href: string; viewBox: string; path: string }[] = [
   {
@@ -534,33 +365,68 @@ function LogoMark() {
   );
 }
 
-/* One row inside a mega menu: icon chip + label. */
+/* NEW / HOT / custom badge pill on a menu row. */
+function MenuBadge({ badge }: { badge: string }) {
+  const tone =
+    badge.toUpperCase() === "HOT"
+      ? "bg-[#E1F5EE] text-[#085041]"
+      : badge.toUpperCase() === "NEW"
+        ? "bg-[#FFE3CC] text-orange-900"
+        : "bg-gray-100 text-gray-600";
+  return (
+    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${tone}`}>
+      {badge}
+    </span>
+  );
+}
+
+/* One row inside a mega menu: icon chip + label (+ optional badge). */
 function MegaLink({
-  label,
-  href,
-  icon: Icon,
+  child,
   index,
   onNavigate,
-}: MenuItem & { index: number; onNavigate: () => void }) {
+}: {
+  child: NavChild;
+  index: number;
+  onNavigate: () => void;
+}) {
   return (
     <Link
-      href={href}
+      href={child.href}
       onClick={onNavigate}
+      target={child.newTab ? "_blank" : undefined}
       className="mega-link group flex items-center gap-2.5 rounded-lg p-2 no-underline transition-colors hover:bg-[#FEF3EC]"
       style={{ animationDelay: `${0.12 + index * 0.028}s` }}
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-colors group-hover:bg-[#FFE5CC] group-hover:text-[#F26419]">
-        <Icon size={18} />
+        {createElement(navIcon(child.icon), { size: 18 })}
       </span>
       <span className="text-[0.95rem] font-medium leading-snug text-gray-800 transition-colors group-hover:text-[#F26419]">
-        {label}
+        {child.label}
       </span>
+      {child.badge && <MenuBadge badge={child.badge} />}
     </Link>
   );
 }
 
-/* Full-width dropdown panel with edge-to-edge image and icon grid. */
-function MegaPanel({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
+/* Full-width dropdown panel — Sample 1 "mega panel v2": duotone stock image
+   edge-to-edge left, grouped link columns, live featured Journal card, and a
+   utility bar along the bottom. Ungrouped menus keep the plain cols grid. */
+function MegaPanel({
+  item,
+  featuredPost,
+  onNavigate,
+}: {
+  item: NavNode;
+  featuredPost: FeaturedPost | null;
+  onNavigate: () => void;
+}) {
+  const children = item.children ?? [];
+  const groups = children.some((c) => c.group)
+    ? [...new Set(children.map((c) => c.group ?? ""))]
+    : null;
+  const showFeatured = Boolean(item.featured && featuredPost);
+
   return (
     <div className="mega-panel absolute left-0 right-0 top-full z-[200] border-t-2 border-[#F26419] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.13),0_2px_8px_rgba(0,0,0,0.05)]">
       {item.panelImage && (
@@ -575,6 +441,11 @@ function MegaPanel({ item, onNavigate }: { item: NavItem; onNavigate: () => void
             sizes="420px"
             loading="eager"
             className="object-cover object-center"
+            aria-hidden
+          />
+          <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
+          <span
+            className="absolute inset-0 bg-[linear-gradient(160deg,rgba(124,45,18,0.28),rgba(18,12,8,0.28))] mix-blend-multiply"
             aria-hidden
           />
           <div
@@ -599,18 +470,107 @@ function MegaPanel({ item, onNavigate }: { item: NavItem; onNavigate: () => void
       )}
       <div className="relative mx-auto flex max-w-[1280px]" style={{ zIndex: 1 }}>
         <div className="w-[252px] shrink-0 self-stretch" />
-        <div
-          className="flex-1 bg-white p-4"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${item.cols ?? 2}, 1fr)`,
-            gap: "0.1rem",
-            alignContent: "start",
-          }}
-        >
-          {item.dropdown?.map((sub, i) => (
-            <MegaLink key={sub.href} {...sub} index={i} onNavigate={onNavigate} />
-          ))}
+        {groups ? (
+          <div
+            className="flex-1 bg-white p-4"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${groups.length}, 1fr)`,
+              gap: "0 0.75rem",
+              alignContent: "start",
+            }}
+          >
+            {groups.map((g) => (
+              <div key={g || "_"}>
+                {g && (
+                  <p className="mega-link px-2 pb-1 pt-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-800">
+                    {g}
+                  </p>
+                )}
+                {children
+                  .filter((c) => (c.group ?? "") === g)
+                  .map((sub, i) => (
+                    <MegaLink key={sub.href + sub.label} child={sub} index={i} onNavigate={onNavigate} />
+                  ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="flex-1 bg-white p-4"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${item.cols ?? 2}, 1fr)`,
+              gap: "0.1rem",
+              alignContent: "start",
+            }}
+          >
+            {children.map((sub, i) => (
+              <MegaLink key={sub.href + sub.label} child={sub} index={i} onNavigate={onNavigate} />
+            ))}
+          </div>
+        )}
+        {showFeatured && featuredPost && (
+          <div className="mega-link hidden w-[248px] shrink-0 self-start p-4 pl-0 xl:block">
+            <Link
+              href={`/blog/${featuredPost.slug}`}
+              onClick={onNavigate}
+              className="group flex h-full flex-col overflow-hidden rounded-2xl bg-stone-900 no-underline"
+            >
+              <span className="relative block h-24 overflow-hidden">
+                {featuredPost.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={withBase(featuredPost.coverUrl)}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <span className="absolute inset-0 bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400" />
+                )}
+                <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
+              </span>
+              <span className="flex flex-1 flex-col p-4">
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FDBA74]">
+                  From the Journal
+                </span>
+                <span className="mt-1.5 line-clamp-2 text-[0.92rem] font-bold leading-snug text-white">
+                  {featuredPost.title}
+                </span>
+                <span className="mt-2 inline-flex items-center gap-1 text-[0.8rem] font-bold text-[#FDBA74]">
+                  Read article <ArrowRightIcon size={11} />
+                </span>
+              </span>
+            </Link>
+          </div>
+        )}
+      </div>
+      {/* Utility bar */}
+      <div className="relative border-t border-[#FFE3CC] bg-[#FFF6EF]" style={{ zIndex: 1 }}>
+        <div className="mx-auto flex max-w-[1280px] items-center gap-4 px-4 py-2">
+          <Link
+            href="/#audit"
+            onClick={onNavigate}
+            className="whitespace-nowrap text-[0.85rem] font-semibold text-orange-950 no-underline transition-colors hover:text-[#F26419]"
+          >
+            Free 15-page audit in 48h
+          </Link>
+          <span className="h-3.5 w-px bg-[#F0D9C4]" aria-hidden />
+          <a
+            href="https://wa.me/919953900123"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="whitespace-nowrap text-[0.85rem] font-medium text-orange-900/80 no-underline transition-colors hover:text-[#F26419]"
+          >
+            WhatsApp +91-9953-900123
+          </a>
+          <Link
+            href={item.href}
+            onClick={onNavigate}
+            className="ml-auto inline-flex items-center gap-1 whitespace-nowrap text-[0.85rem] font-bold text-[#F26419] no-underline hover:text-orange-700"
+          >
+            All {item.label.toLowerCase()} <ArrowRightIcon size={11} />
+          </Link>
         </div>
       </div>
     </div>
@@ -618,10 +578,11 @@ function MegaPanel({ item, onNavigate }: { item: NavItem; onNavigate: () => void
 }
 
 /* Mobile accordion row inside the drawer. */
-function DrawerItem({ item, onClose }: { item: NavItem; onClose: () => void }) {
+function DrawerItem({ item, onClose }: { item: NavNode; onClose: () => void }) {
   const [open, setOpen] = useState(false);
+  const children = item.children;
 
-  if (!item.dropdown) {
+  if (!children || children.length === 0) {
     return (
       <Link
         href={item.href}
@@ -656,7 +617,7 @@ function DrawerItem({ item, onClose }: { item: NavItem; onClose: () => void }) {
       </button>
       <div
         className="overflow-hidden bg-gray-50 transition-[max-height] duration-300 ease-in-out"
-        style={{ maxHeight: open ? 52 * item.dropdown.length + 52 : 0 }}
+        style={{ maxHeight: open ? 44 * children.length + 120 : 0 }}
       >
         <Link
           href={item.href}
@@ -665,19 +626,24 @@ function DrawerItem({ item, onClose }: { item: NavItem; onClose: () => void }) {
         >
           View all {item.label} <ArrowRightIcon size={11} />
         </Link>
-        {item.dropdown.map((sub) => (
-          <Link
-            key={sub.href}
-            href={sub.href}
-            onClick={onClose}
-            className="flex items-center gap-3 px-6 py-2 no-underline"
-          >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-              <sub.icon size={15} />
-            </span>
-            <span className="text-[0.95rem] font-medium text-gray-800">{sub.label}</span>
-          </Link>
-        ))}
+        {children.map((sub) => {
+          const Icon = navIcon(sub.icon);
+          return (
+            <Link
+              key={sub.href + sub.label}
+              href={sub.href}
+              onClick={onClose}
+              target={sub.newTab ? "_blank" : undefined}
+              className="flex items-center gap-3 px-6 py-2 no-underline"
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                <Icon size={15} />
+              </span>
+              <span className="text-[0.95rem] font-medium text-gray-800">{sub.label}</span>
+              {sub.badge && <MenuBadge badge={sub.badge} />}
+            </Link>
+          );
+        })}
         <div className="h-2" />
       </div>
     </div>
@@ -685,7 +651,15 @@ function DrawerItem({ item, onClose }: { item: NavItem; onClose: () => void }) {
 }
 
 /* Full-screen slide-in mobile menu. */
-function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+function MobileDrawer({
+  nav,
+  open,
+  onClose,
+}: {
+  nav: NavNode[];
+  open: boolean;
+  onClose: () => void;
+}) {
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -728,8 +702,8 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
           </button>
         </div>
         <nav className="flex-1" aria-label="Mobile">
-          {NAV.map((item) => (
-            <DrawerItem key={item.href} item={item} onClose={onClose} />
+          {nav.map((item) => (
+            <DrawerItem key={item.href + item.label} item={item} onClose={onClose} />
           ))}
         </nav>
         <div className="bg-gray-50 px-6 py-5">
@@ -793,7 +767,13 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-export default function Navbar() {
+export default function Navbar({
+  nav,
+  featuredPost,
+}: {
+  nav: NavNode[];
+  featuredPost: FeaturedPost | null;
+}) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -842,7 +822,7 @@ export default function Navbar() {
 
   useEffect(() => () => cancelClose(), [cancelClose]);
 
-  const openItem = NAV.find((n) => n.label === openMenu && n.dropdown);
+  const openItem = nav.find((n) => n.label === openMenu && n.children?.length);
 
   return (
     <div className="font-condensed">
@@ -861,8 +841,8 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <nav aria-label="Main" className="hidden flex-1 items-center justify-center lg:flex">
-            {NAV.map((item) =>
-              item.dropdown ? (
+            {nav.map((item) =>
+              item.children?.length ? (
                 <div key={item.label} onMouseEnter={() => openFor(item.label)}>
                   <Link
                     href={item.href}
@@ -946,10 +926,12 @@ export default function Navbar() {
           </div>
         </div>
 
-        {openItem && <MegaPanel item={openItem} onNavigate={closeNow} />}
+        {openItem && (
+          <MegaPanel item={openItem} featuredPost={featuredPost} onNavigate={closeNow} />
+        )}
       </header>
 
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <MobileDrawer nav={nav} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </div>
   );
 }

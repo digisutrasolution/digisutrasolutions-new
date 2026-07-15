@@ -379,3 +379,39 @@ model SiteSetting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+/* Dynamic navigation. MenuItem rows are the DRAFT tree the admin edits;
+   the public site renders the last published snapshot (SiteSetting key
+   "menu:<location>:live"), so half-finished edits never leak. */
+model MenuItem {
+  id         String   @id @default(cuid())
+  location   String   @default("HEADER")
+  parentId   String?
+  parent     MenuItem?  @relation("MenuTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children   MenuItem[] @relation("MenuTree")
+  label      String
+  href       String   @default("#")
+  icon       String?
+  group      String?
+  badge      String?
+  order      Int      @default(0)
+  visible    Boolean  @default(true)
+  newTab     Boolean  @default(false)
+  panelImage String?
+  tagline    String?
+  featured   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([location, parentId, order])
+}
+
+model MenuVersion {
+  id         String   @id @default(cuid())
+  location   String
+  snapshot   Json
+  authorName String?
+  createdAt  DateTime @default(now())
+
+  @@index([location, createdAt])
+}
