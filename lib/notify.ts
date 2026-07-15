@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { SITE_URL } from "@/lib/site";
 import type { Role } from "@prisma/client";
 
 type NotificationInput = {
@@ -41,7 +42,7 @@ export async function notifyUsers(
       to: users.map((u) => u.email),
       subject: `[DigiSutra CMS] ${input.title}`,
       text: `${input.title}\n\n${input.body ?? ""}\n\n${
-        input.link ? `Open: https://digisutra-alpha.vercel.app${input.link}` : ""
+        input.link ? `Open: ${SITE_URL}${input.link}` : ""
       }`.trim(),
     });
   } catch (err) {

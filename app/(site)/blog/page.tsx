@@ -10,7 +10,7 @@ import { BLOG_CATEGORIES, categoryByDb } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = "https://digisutra-alpha.vercel.app";
+import { SITE_URL } from "@/lib/site";
 const PAGE_SIZE = 10;
 
 export const metadata: Metadata = {

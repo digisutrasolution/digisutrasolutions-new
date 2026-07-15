@@ -18,7 +18,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = "https://digisutra-alpha.vercel.app";
+import { SITE_URL } from "@/lib/site";
 
 const getPost = cache(async (slug: string) => {
   return db.blogPost.findUnique({ where: { slug } });

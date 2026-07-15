@@ -1,3 +1,7 @@
+/* ISR: journal/ads/social data refreshes without a rebuild — critical on
+   self-hosted deploys where the build runs before the DB is reachable. */
+export const revalidate = 300;
+
 import HeroCarousel from "@/components/HeroCarousel";
 import Ticker from "@/components/Ticker";
 import Clients from "@/components/Clients";

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 
-const SITE_URL = "https://digisutra-alpha.vercel.app";
+import { SITE_URL } from "@/lib/site";
 
 const esc = (s: string) =>
   s

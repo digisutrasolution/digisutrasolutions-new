@@ -5,6 +5,7 @@ import {
   Playfair_Display,
   Roboto_Condensed,
 } from "next/font/google";
+import { NOINDEX, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,7 +32,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://digisutra-alpha.vercel.app"),
+  metadataBase: new URL(SITE_URL),
+  ...(NOINDEX ? { robots: { index: false, follow: false } } : {}),
   title: {
     default: "DigiSutra Solutions — Digital Marketing, Software & AI",
     template: "%s | DigiSutra Solutions",
@@ -54,7 +56,7 @@ export const metadata: Metadata = {
     title: "DigiSutra Solutions — Digital Marketing, Software & AI",
     description:
       "Campaigns, code and AI under one roof — engineered to move revenue, not just pixels.",
-    url: "https://digisutra-alpha.vercel.app",
+    url: SITE_URL,
     siteName: "DigiSutra Solutions",
     type: "website",
   },
@@ -78,7 +80,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "DigiSutra Solutions",
-              url: "https://digisutra-alpha.vercel.app",
+              url: SITE_URL,
               slogan: "Your growth, our sutra",
               email: "Info@digisutrasolutions.com",
               telephone: "+91-120-475-1400",

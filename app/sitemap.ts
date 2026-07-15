@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { BLOG_CATEGORIES } from "@/lib/blog";
 import { db } from "@/lib/db";
+import { SITE_URL } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://digisutra-alpha.vercel.app";
+  const base = SITE_URL;
 
   const [pages, posts] = await Promise.all([
     db.page

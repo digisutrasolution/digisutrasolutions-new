@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: digisutra_cms
+      POSTGRES_USER: digisutra
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # First boot only: imports the content snapshot (posts, pages, users…).
+      - ./deploy/db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U digisutra -d digisutra_cms"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+
+  app:
+    build:
+      context: .
+      args:
+        SITE_URL: ${SITE_URL}
+        SITE_NOINDEX: ${SITE_NOINDEX:-0}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://digisutra:${DB_PASSWORD}@db:5432/digisutra_cms
+      AUTH_SECRET: ${AUTH_SECRET}
+      SITE_URL: ${SITE_URL}
+      SITE_NOINDEX: ${SITE_NOINDEX:-0}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-}
+      CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      # Loopback only — Apache reverse-proxies the public side.
+      - "127.0.0.1:${APP_PORT:-3105}:3000"
+    volumes:
+      # Media uploads survive image rebuilds.
+      - uploads:/app/public/uploads
+
+volumes:
+  db-data:
+  uploads:

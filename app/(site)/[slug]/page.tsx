@@ -9,7 +9,7 @@ import SectionRenderer from "@/components/sections/SectionRenderer";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = "https://digisutra-alpha.vercel.app";
+import { SITE_URL } from "@/lib/site";
 
 export async function generateMetadata({
   params,
