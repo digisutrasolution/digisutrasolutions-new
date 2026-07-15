@@ -14,10 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl \
 # hosts' bridge networks reset long registry downloads (ECONNRESET).
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
+# --include=dev: NODE_ENV=production would otherwise skip devDependencies,
+# but the build needs them (tailwind, typescript, prisma CLI).
 RUN npm config set fetch-retries 5 \
   && npm config set fetch-retry-maxtimeout 120000 \
   && npm config set fetch-timeout 600000 \
-  && npm ci
+  && npm ci --include=dev
 
 COPY . .
 
