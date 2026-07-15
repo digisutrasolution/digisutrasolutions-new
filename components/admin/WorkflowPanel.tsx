@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bug, CheckCircle2, MessageSquare, Send } from "lucide-react";
@@ -64,7 +66,7 @@ export default function WorkflowPanel({ pageId }: { pageId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/pages/${pageId}/workflow`);
+    const res = await fetch(withBase(`/api/pages/${pageId}/workflow`));
     const json = await res.json().catch(() => ({}));
     if (json.ok) setData(json);
   }, [pageId]);
@@ -83,7 +85,7 @@ export default function WorkflowPanel({ pageId }: { pageId: string }) {
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch(path, {
+      const res = await fetch(withBase(path), {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

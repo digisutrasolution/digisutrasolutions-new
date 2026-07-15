@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -15,7 +17,7 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
   // valid, restore the session silently instead of asking for a password.
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/auth/refresh", { method: "POST" })
+    fetch(withBase("/api/auth/refresh"), { method: "POST" })
       .then((res) => {
         if (res.ok && !cancelled) {
           router.replace(nextPath);
@@ -34,7 +36,7 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
     setBusy(true);
     const data = new FormData(e.currentTarget);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(withBase("/api/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

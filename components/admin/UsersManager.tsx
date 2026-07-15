@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserPlus, KeyRound, Trash2 } from "lucide-react";
@@ -36,7 +38,7 @@ export default function UsersManager({
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch(path, {
+      const res = await fetch(withBase(path), {
         headers: { "Content-Type": "application/json" },
         ...init,
       });

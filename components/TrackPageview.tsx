@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
@@ -14,8 +16,8 @@ export default function TrackPageview() {
       referrer: document.referrer || undefined,
     });
     // sendBeacon survives navigation; fetch keepalive is the fallback.
-    if (!navigator.sendBeacon?.("/api/track", new Blob([payload], { type: "application/json" }))) {
-      void fetch("/api/track", {
+    if (!navigator.sendBeacon?.(withBase("/api/track"), new Blob([payload], { type: "application/json" }))) {
+      void fetch(withBase("/api/track"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: payload,

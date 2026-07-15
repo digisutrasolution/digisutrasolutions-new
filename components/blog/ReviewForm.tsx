@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { ShieldCheck, Star } from "lucide-react";
 
@@ -25,7 +27,7 @@ export default function ReviewForm({ postSlug }: { postSlug: string }) {
     setState("sending");
     setError("");
     try {
-      const res = await fetch("/api/comments", {
+      const res = await fetch(withBase("/api/comments"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

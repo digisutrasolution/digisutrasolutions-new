@@ -12,6 +12,9 @@ export const ACCESS_COOKIE = "ds_access";
 export const REFRESH_COOKIE = "ds_refresh";
 
 const isProd = process.env.NODE_ENV === "production";
+// Under a subpath deploy the browser only sends the refresh cookie if its
+// path matches the real (prefixed) URL of /api/auth.
+const REFRESH_PATH = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/auth`;
 
 export type SessionUser = {
   id: string;
@@ -36,7 +39,7 @@ export async function setSessionCookies(
     httpOnly: true,
     secure: isProd,
     sameSite: "lax",
-    path: "/api/auth",
+    path: REFRESH_PATH,
     maxAge: REFRESH_TOKEN_TTL_SEC,
   });
 }
@@ -44,7 +47,7 @@ export async function setSessionCookies(
 export async function clearSessionCookies(): Promise<void> {
   const store = await cookies();
   store.set(ACCESS_COOKIE, "", { path: "/", maxAge: 0 });
-  store.set(REFRESH_COOKIE, "", { path: "/api/auth", maxAge: 0 });
+  store.set(REFRESH_COOKIE, "", { path: REFRESH_PATH, maxAge: 0 });
 }
 
 /**

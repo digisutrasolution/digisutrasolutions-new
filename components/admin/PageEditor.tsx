@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -109,7 +111,7 @@ export default function PageEditor({
     setMessage(null);
     setBusy(true);
     try {
-      const res = await fetch(path, {
+      const res = await fetch(withBase(path), {
         headers: { "Content-Type": "application/json" },
         ...init,
       });

@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { Copy, Sparkles } from "lucide-react";
 import { AI_KINDS, type AiKind } from "@/lib/ai-kinds";
@@ -40,7 +42,7 @@ export default function AiAssist({
         setError("Add some context first (topic, draft, or notes).");
         return;
       }
-      const res = await fetch("/api/ai/generate", {
+      const res = await fetch(withBase("/api/ai/generate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kind, context: ctx }),

@@ -14,15 +14,22 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get(ACCESS_COOKIE)?.value;
   const payload = token ? await verifyAccessToken(token) : null;
 
+  // Clone nextUrl (not new URL(..., request.url)) so basePath survives
+  // in redirects on subpath deployments.
   if (pathname.startsWith("/admin/login")) {
     if (payload) {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin";
+      url.search = "";
+      return NextResponse.redirect(url);
     }
     return NextResponse.next();
   }
 
   if (!payload) {
-    const login = new URL("/admin/login", request.url);
+    const login = request.nextUrl.clone();
+    login.pathname = "/admin/login";
+    login.search = "";
     login.searchParams.set("next", pathname);
     return NextResponse.redirect(login);
   }

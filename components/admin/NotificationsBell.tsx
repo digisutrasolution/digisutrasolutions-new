@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
@@ -31,7 +33,7 @@ export default function NotificationsBell() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/notifications");
+      const res = await fetch(withBase("/api/notifications"));
       const json = await res.json().catch(() => ({}));
       if (json.ok) {
         setItems(json.items);
@@ -64,7 +66,7 @@ export default function NotificationsBell() {
   }, [open]);
 
   async function markAllRead() {
-    await fetch("/api/notifications", {
+    await fetch(withBase("/api/notifications"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -73,7 +75,7 @@ export default function NotificationsBell() {
   }
 
   function openItem(item: NotificationItem) {
-    void fetch("/api/notifications", {
+    void fetch(withBase("/api/notifications"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: [item.id] }),

@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Trash2, Upload } from "lucide-react";
@@ -42,7 +44,7 @@ export default function MediaManager({
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/media", { method: "POST", body: fd });
+      const res = await fetch(withBase("/api/media"), { method: "POST", body: fd });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.ok) {
         setError(json.error ?? "Upload failed.");
@@ -58,7 +60,7 @@ export default function MediaManager({
   }
 
   async function saveAlt(id: string, alt: string) {
-    await fetch(`/api/media/${id}`, {
+    await fetch(withBase(`/api/media/${id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ alt }),
@@ -68,7 +70,7 @@ export default function MediaManager({
   async function remove(asset: Asset) {
     if (!window.confirm(`Delete ${asset.originalName}? Pages using it will show a broken image.`)) return;
     setBusy(true);
-    const res = await fetch(`/api/media/${asset.id}`, { method: "DELETE" });
+    const res = await fetch(withBase(`/api/media/${asset.id}`), { method: "DELETE" });
     setBusy(false);
     if (res.ok) router.refresh();
   }

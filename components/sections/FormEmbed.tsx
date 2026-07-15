@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useEffect, useState } from "react";
 import type { FormField } from "@/lib/cms/forms";
 
@@ -15,7 +17,7 @@ export default function FormEmbed({ slug }: { slug: string }) {
 
   useEffect(() => {
     if (!slug) return;
-    fetch(`/api/form-submissions?slug=${encodeURIComponent(slug)}`)
+    fetch(withBase(`/api/form-submissions?slug=${encodeURIComponent(slug)}`))
       .then((r) => r.json())
       .then((json) => {
         if (json.ok) setFields(json.form.fields);
@@ -34,7 +36,7 @@ export default function FormEmbed({ slug }: { slug: string }) {
       if (typeof value === "string") data[key] = value;
     }
     try {
-      const res = await fetch("/api/form-submissions", {
+      const res = await fetch(withBase("/api/form-submissions"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug, data, website: data.website }),

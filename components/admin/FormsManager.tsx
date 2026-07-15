@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Inbox, Plus, Trash2 } from "lucide-react";
@@ -113,7 +115,7 @@ export default function FormsManager({ forms }: { forms: FormRow[] }) {
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch(path, {
+      const res = await fetch(withBase(path), {
         headers: { "Content-Type": "application/json" },
         ...init,
       });
@@ -157,7 +159,7 @@ export default function FormsManager({ forms }: { forms: FormRow[] }) {
     }
     setExpanded(form.id);
     if (!submissions[form.id]) {
-      const res = await fetch(`/api/forms/${form.id}/submissions`);
+      const res = await fetch(withBase(`/api/forms/${form.id}/submissions`));
       const json = await res.json().catch(() => ({}));
       if (json.ok) {
         setSubmissions((s) => ({ ...s, [form.id]: json.submissions }));

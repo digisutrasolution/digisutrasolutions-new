@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -64,7 +66,7 @@ export default function AdminShell({
     let cancelled = false;
     async function refresh() {
       try {
-        const res = await fetch("/api/auth/refresh", { method: "POST" });
+        const res = await fetch(withBase("/api/auth/refresh"), { method: "POST" });
         if (!res.ok && !cancelled) {
           router.push("/admin/login");
         }
@@ -102,7 +104,7 @@ export default function AdminShell({
   }
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    await fetch(withBase("/api/auth/logout"), { method: "POST" }).catch(() => {});
     document.documentElement.classList.remove("dark");
     router.push("/admin/login");
     router.refresh();

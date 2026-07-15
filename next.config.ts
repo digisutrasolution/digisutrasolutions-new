@@ -19,7 +19,19 @@ const securityHeaders = [
   },
 ];
 
+/* Subpath deploys: SITE_URL like https://host/inhouse/site sets basePath
+   automatically; a root-domain SITE_URL leaves it unset. */
+let basePath: string | undefined;
+try {
+  const p = new URL(process.env.SITE_URL ?? "").pathname.replace(/\/+$/, "");
+  basePath = p && p !== "/" ? p : undefined;
+} catch {
+  basePath = undefined;
+}
+
 const nextConfig: NextConfig = {
+  ...(basePath ? { basePath } : {}),
+  env: { NEXT_PUBLIC_BASE_PATH: basePath ?? "" },
   poweredByHeader: false,
   async headers() {
     return [

@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,7 +52,7 @@ export default function BlogList({
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch("/api/posts", {
+      const res = await fetch(withBase("/api/posts"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, slug }),
@@ -71,7 +73,7 @@ export default function BlogList({
   async function publishToggle(post: PostRow) {
     setBusy(true);
     const action = post.status === "PUBLISHED" ? "unpublish" : "publish";
-    const res = await fetch(`/api/posts/${post.id}/publish`, {
+    const res = await fetch(withBase(`/api/posts/${post.id}/publish`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import type { AdPlacement } from "@prisma/client";
+import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
 
 /* Managed sponsor slot: newest active banner for the placement (schedule-
@@ -31,7 +32,7 @@ export default async function AdSlot({ placement }: { placement: AdPlacement }) 
         Sponsored
       </p>
       <a
-        href={`/api/ads/${ad.id}/click`}
+        href={withBase(`/api/ads/${ad.id}/click`)}
         target="_blank"
         rel="sponsored noopener"
         className="group mt-3 block overflow-hidden rounded-2xl border border-stone-200 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-[#F26419]"

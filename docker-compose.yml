@@ -19,6 +19,9 @@ services:
   app:
     build:
       context: .
+      # Host network during build sidesteps bridge MTU/DNS issues that
+      # break npm downloads on some servers.
+      network: host
       args:
         SITE_URL: ${SITE_URL}
         SITE_NOINDEX: ${SITE_NOINDEX:-0}

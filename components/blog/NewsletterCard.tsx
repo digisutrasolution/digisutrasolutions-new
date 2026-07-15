@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { Mail, Send } from "lucide-react";
 
@@ -16,7 +18,7 @@ export default function NewsletterCard({ source = "blog" }: { source?: string })
     if (state === "sending") return;
     setState("sending");
     try {
-      const res = await fetch("/api/newsletter", {
+      const res = await fetch(withBase("/api/newsletter"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, source, hp }),

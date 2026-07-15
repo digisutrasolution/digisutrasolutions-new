@@ -10,10 +10,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl \
   && rm -rf /var/lib/apt/lists/*
 
 # Install deps first for layer caching. postinstall runs `prisma generate`,
-# so the schema must be present before npm ci.
+# so the schema must be present before npm ci. Aggressive retries: some
+# hosts' bridge networks reset long registry downloads (ECONNRESET).
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
-RUN npm ci
+RUN npm config set fetch-retries 5 \
+  && npm config set fetch-retry-maxtimeout 120000 \
+  && npm config set fetch-timeout 600000 \
+  && npm ci
 
 COPY . .
 

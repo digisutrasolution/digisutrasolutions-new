@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
 
@@ -36,7 +38,7 @@ export default function SocialLinksManager({ initial }: { initial: SocialLink[] 
     setState("saving");
     setError(null);
     try {
-      const res = await fetch("/api/settings/social", {
+      const res = await fetch(withBase("/api/settings/social"), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ links }),

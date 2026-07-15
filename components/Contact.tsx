@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import Reveal from "@/components/Reveal";
@@ -42,7 +44,7 @@ export default function Contact() {
     setError(null);
     setSending(true);
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch(withBase("/api/contact"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -1,5 +1,7 @@
 "use client";
 
+import { withBase } from "@/lib/base-path";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Trash2 } from "lucide-react";
@@ -25,7 +27,7 @@ export default function SubscribersManager({
     setError(null);
     setBusy(true);
     try {
-      const res = await fetch(`/api/newsletter-subscribers/${id}`, {
+      const res = await fetch(withBase(`/api/newsletter-subscribers/${id}`), {
         method: "DELETE",
       });
       const json = await res.json().catch(() => ({}));
@@ -49,7 +51,7 @@ export default function SubscribersManager({
         </p>
         <button
           onClick={() => {
-            window.location.href = "/api/newsletter-subscribers?format=csv";
+            window.location.href = withBase("/api/newsletter-subscribers?format=csv");
           }}
           className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
         >
