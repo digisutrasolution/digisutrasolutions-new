@@ -1,26 +1,674 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-sora);
+  --font-serif-accent: var(--font-playfair);
 }
 
-@media (prefers-color-scheme: dark) {
+:root {
+  /* Height of the fixed announcement bar; header sits directly below it. */
+  --topbar-h: 5rem;
+}
+
+@media (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --topbar-h: 2.75rem;
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--topbar-h) + 68px + 1rem);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #fffdfb;
+  color: #292524;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: #ffedd5;
+  color: #7c2d12;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.font-condensed {
+  font-family: var(--font-roboto-condensed), "Roboto Condensed", sans-serif;
+}
+
+.anb-track {
+  animation: anbScroll 28s linear infinite;
+}
+
+.anb-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes anbScroll {
+  0% {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Hero headline: each line rises out of an overflow mask (delays inline),
+   then the gradient line gets a one-time highlight sweep. */
+.hl-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.hl-line > span {
+  display: block;
+  transform: translateY(112%);
+  animation: hlRise 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes hlRise {
+  to {
+    transform: translateY(0);
+  }
+}
+
+.grad-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    #ea580c 0%,
+    #f59e0b 35%,
+    #ffe0b3 50%,
+    #f59e0b 65%,
+    #ea580c 100%
+  );
+  background-size: 230% auto;
+  animation: gradShimmer 1.3s ease-in-out 0.85s 1 both;
+}
+
+@keyframes gradShimmer {
+  from {
+    background-position: 115% center;
+  }
+  to {
+    background-position: 0% center;
+  }
+}
+
+/* Hero card intros (delays inline): chart line draws in, terminal types,
+   chat bubbles pop, store bars grow from the baseline. */
+.draw-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: drawLine 1.4s ease-out forwards;
+}
+
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.term-type {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: 0;
+  animation: termType 0.9s steps(22, end) 0.5s forwards;
+}
+
+@keyframes termType {
+  to {
+    width: 100%;
+  }
+}
+
+.term-line {
+  opacity: 0;
+  animation: termShow 0.35s ease-out forwards;
+}
+
+@keyframes termShow {
+  to {
+    opacity: 1;
+  }
+}
+
+.chat-pop {
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  animation: chatPop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes chatPop {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.bar-grow {
+  transform: scaleY(0);
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: barGrow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes barGrow {
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Process pipeline: active step's bar fills in real time, confetti falls,
+   congratulations card pops in. */
+.step-bar-run {
+  width: 0;
+  animation: stepBarFill 1.15s linear forwards;
+}
+
+@keyframes stepBarFill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.confetti-piece {
+  animation-name: confettiFall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confettiFall {
+  to {
+    transform: translateY(110px) rotate(240deg);
+    opacity: 0;
+  }
+}
+
+.congrats-pop {
+  animation: congratsPop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes congratsPop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Service catalog: glass cards drift idly, gradient orbs float behind
+   (per-card delay/duration inline). */
+.card-drift {
+  animation: cardDrift 5.2s ease-in-out infinite;
+}
+
+@keyframes cardDrift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.orb-float {
+  animation: orbFloat 7s ease-in-out infinite;
+}
+
+.glow-pulse {
+  animation: glowPulse 4.2s ease-in-out infinite;
+}
+
+/* Service catalog expanding panels: on desktop the hovered/focused panel
+   grows while siblings compress; items stagger in. Mobile shows full cards. */
+.vtext {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.xpanel .xmini {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .xpanel {
+    flex: 1 1 0%;
+    min-width: 0;
+    transition: flex 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .xpanel:hover,
+  .xpanel:focus-within {
+    flex: 3.2 1 0%;
+  }
+  .xpanel .xmini {
+    display: flex;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+  .xpanel:hover .xmini,
+  .xpanel:focus-within .xmini {
+    opacity: 0;
+  }
+  .xpanel .xfull {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .xpanel:hover .xfull,
+  .xpanel:focus-within .xfull {
+    opacity: 1;
+    transition-delay: 0.12s;
+  }
+  .xpanel .xitem {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+  }
+  .xpanel:hover .xitem,
+  .xpanel:focus-within .xitem {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .xpanel:hover .xitem:nth-child(1),
+  .xpanel:focus-within .xitem:nth-child(1) {
+    transition-delay: 0.16s;
+  }
+  .xpanel:hover .xitem:nth-child(2),
+  .xpanel:focus-within .xitem:nth-child(2) {
+    transition-delay: 0.2s;
+  }
+  .xpanel:hover .xitem:nth-child(3),
+  .xpanel:focus-within .xitem:nth-child(3) {
+    transition-delay: 0.24s;
+  }
+  .xpanel:hover .xitem:nth-child(4),
+  .xpanel:focus-within .xitem:nth-child(4) {
+    transition-delay: 0.28s;
+  }
+  .xpanel:hover .xitem:nth-child(5),
+  .xpanel:focus-within .xitem:nth-child(5) {
+    transition-delay: 0.32s;
+  }
+  .xpanel:hover .xitem:nth-child(6),
+  .xpanel:focus-within .xitem:nth-child(6) {
+    transition-delay: 0.36s;
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes orbFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+  }
+}
+
+/* Mega menu entrance: panel drops in, image slides from the left,
+   labels/links/CTA stagger in (delays set inline per item). */
+@keyframes megaPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scaleY(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes megaImageIn {
+  from {
+    opacity: 0;
+    transform: translateX(-28px) scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes megaLabelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes megaLinkIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes megaCtaIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mega-panel {
+  transform-origin: top;
+  animation: megaPanelIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mega-image {
+  animation: megaImageIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.mega-label {
+  animation: megaLabelIn 0.3s ease-out 0.1s both;
+}
+
+.mega-link {
+  animation: megaLinkIn 0.32s ease-out both;
+}
+
+.mega-cta {
+  animation: megaCtaIn 0.28s ease-out 0.2s both;
+}
+
+@keyframes aurora {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(28px, 18px) scale(1.2);
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(249, 115, 22, 0);
+  }
+}
+
+@keyframes gradient-pan {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.7) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(20deg);
+  }
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.14);
+  }
+}
+
+@keyframes shine {
+  to {
+    transform: translateX(260%) skewX(-18deg);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 22s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee 26s linear infinite reverse;
+}
+
+.animate-aurora {
+  animation: aurora 9s ease-in-out infinite;
+}
+
+.animate-aurora-slow {
+  animation: aurora 12s ease-in-out infinite reverse;
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 2.8s linear infinite;
+}
+
+.animate-float-y {
+  animation: float-y 5s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.animate-gradient-pan {
+  background-size: 300% 300%;
+  animation: gradient-pan 9s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 14s linear infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+
+.animate-kenburns {
+  animation: kenburns 16s ease-in-out infinite alternate;
+}
+
+.shine-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-sweep::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  transform: translateX(-150%) skewX(-18deg);
+  pointer-events: none;
+}
+
+.shine-sweep:hover::after {
+  animation: shine 0.9s ease;
+}
+
+.bg-dots-dark {
+  background-image: radial-gradient(
+    rgba(124, 45, 18, 0.13) 1px,
+    transparent 1.5px
+  );
+  background-size: 22px 22px;
+}
+
+.bg-dots-light {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.14) 1px,
+    transparent 1.5px
+  );
+  background-size: 22px 22px;
+}
+
+.text-outline-dark {
+  -webkit-text-stroke: 1.5px #57534e;
+  color: transparent;
+}
+
+.text-outline-cream {
+  -webkit-text-stroke: 1px #ffedd5;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .anb-track,
+  .mega-panel,
+  .mega-image,
+  .mega-label,
+  .mega-link,
+  .mega-cta,
+  .animate-marquee,
+  .animate-marquee-reverse,
+  .animate-aurora,
+  .animate-aurora-slow,
+  .animate-shimmer,
+  .animate-float-y,
+  .animate-pulse-ring,
+  .animate-gradient-pan,
+  .animate-blink,
+  .animate-spin-slow,
+  .animate-twinkle,
+  .animate-kenburns {
+    animation: none;
+  }
+  .shine-sweep:hover::after {
+    animation: none;
+  }
+  .hl-line > span,
+  .grad-shimmer,
+  .draw-line,
+  .term-type,
+  .term-line,
+  .chat-pop,
+  .bar-grow,
+  .card-drift,
+  .orb-float,
+  .glow-pulse,
+  .step-bar-run,
+  .confetti-piece,
+  .congrats-pop {
+    animation: none;
+  }
+  .step-bar-run {
+    width: 100%;
+  }
+  .confetti-piece {
+    opacity: 0;
+  }
+  .hl-line > span,
+  .chat-pop,
+  .bar-grow {
+    transform: none;
+  }
+  .draw-line {
+    stroke-dashoffset: 0;
+  }
+  .term-type {
+    width: 100%;
+  }
+  .term-line,
+  .chat-pop {
+    opacity: 1;
+  }
+  .xpanel,
+  .xpanel .xmini,
+  .xpanel .xfull,
+  .xpanel .xitem {
+    transition: none;
+  }
 }

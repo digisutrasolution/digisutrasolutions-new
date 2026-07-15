@@ -1,0 +1,381 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  DEVELOPER
+  TESTER
+  SEO_MANAGER
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(DEVELOPER)
+  isActive      Boolean        @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  pagesCreated  Page[]         @relation("PageCreatedBy")
+  pagesUpdated  Page[]         @relation("PageUpdatedBy")
+}
+
+enum PageStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum WorkflowStage {
+  DRAFT
+  TESTING
+  SEO_REVIEW
+  APPROVAL
+  APPROVED
+}
+
+enum BugSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BugStatus {
+  OPEN
+  RESOLVED
+  WONT_FIX
+}
+
+model Page {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  status         PageStatus    @default(DRAFT)
+  sections       Json          @default("[]")
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+  ogImage        String?
+  noIndex        Boolean       @default(false)
+  schemaJson     Json?
+  publishedAt    DateTime?
+  scheduledAt    DateTime?
+  createdBy      User?         @relation("PageCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById    String?
+  updatedBy      User?         @relation("PageUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  workflowStage  WorkflowStage @default(DRAFT)
+  versions       PageVersion[]
+  transitions    WorkflowTransition[]
+  comments       PageComment[]
+  bugs           BugReport[]
+
+  @@index([status, publishedAt])
+  @@index([workflowStage])
+}
+
+model WorkflowTransition {
+  id        String        @id @default(cuid())
+  page      Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageId    String
+  from      WorkflowStage
+  to        WorkflowStage
+  note      String?
+  byId      String?
+  byName    String?
+  createdAt DateTime      @default(now())
+
+  @@index([pageId, createdAt])
+}
+
+model PageComment {
+  id          String        @id @default(cuid())
+  page        Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageId      String
+  body        String
+  stageAtTime WorkflowStage
+  authorId    String?
+  authorName  String?
+  createdAt   DateTime      @default(now())
+
+  @@index([pageId, createdAt])
+}
+
+model BugReport {
+  id             String      @id @default(cuid())
+  page           Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageId         String
+  title          String
+  description    String
+  severity       BugSeverity @default(MEDIUM)
+  status         BugStatus   @default(OPEN)
+  screenshotUrl  String?
+  reportedById   String?
+  reportedByName String?
+  resolvedById   String?
+  resolvedByName String?
+  resolvedAt     DateTime?
+  createdAt      DateTime    @default(now())
+
+  @@index([pageId, status])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String?
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt, createdAt])
+}
+
+model MediaAsset {
+  id             String   @id @default(cuid())
+  filename       String   @unique
+  originalName   String
+  mimeType       String
+  size           Int
+  width          Int?
+  height         Int?
+  alt            String   @default("")
+  url            String
+  uploadedById   String?
+  uploadedByName String?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model BlogPost {
+  id             String     @id @default(cuid())
+  title          String
+  slug           String     @unique
+  excerpt        String     @default("")
+  body           String     @default("")
+  category       String     @default("General")
+  tags           String[]   @default([])
+  coverUrl       String?
+  status         PageStatus @default(DRAFT)
+  publishedAt    DateTime?
+  scheduledAt    DateTime?
+  readingMinutes Int        @default(1)
+  seoTitle       String?
+  seoDescription String?
+  noIndex        Boolean    @default(false)
+  authorId       String?
+  authorName     String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  comments       BlogComment[]
+
+  @@index([status, publishedAt])
+  @@index([category])
+}
+
+model Form {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  fields      Json             @default("[]")
+  notifyEmail String?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  submissions FormSubmission[]
+}
+
+model FormSubmission {
+  id        String   @id @default(cuid())
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId    String
+  data      Json
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([formId, createdAt])
+}
+
+enum VideoProvider {
+  YOUTUBE
+  VIMEO
+  FILE
+}
+
+model Video {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  provider       VideoProvider
+  videoId        String
+  description    String        @default("")
+  category       String        @default("General")
+  thumbnailUrl   String?
+  durationSec    Int?
+  featured       Boolean       @default(false)
+  uploadedByName String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([featured])
+}
+
+model Redirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique
+  toPath    String
+  permanent Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path, createdAt])
+}
+
+model AiGeneration {
+  id          String   @id @default(cuid())
+  userId      String?
+  userName    String?
+  kind        String
+  model       String
+  inputChars  Int
+  outputChars Int
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model PageVersion {
+  id            String   @id @default(cuid())
+  page          Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageId        String
+  version       Int
+  title         String
+  sections      Json
+  seoSnapshot   Json
+  note          String?
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime @default(now())
+
+  @@unique([pageId, version])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, createdAt])
+  @@index([userId, createdAt])
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SPAM
+}
+
+enum AdPlacement {
+  BLOG_SIDEBAR
+  ARTICLE_SIDEBAR
+  BLOG_INLINE
+}
+
+model AdBanner {
+  id          String      @id @default(cuid())
+  title       String
+  description String      @default("")
+  imageUrl    String?
+  targetUrl   String
+  placement   AdPlacement @default(BLOG_SIDEBAR)
+  active      Boolean     @default(true)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  impressions Int         @default(0)
+  clicks      Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([placement, active])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("blog")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model BlogComment {
+  id        String        @id @default(cuid())
+  post      BlogPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  name      String
+  email     String
+  body      String
+  rating    Int?
+  status    CommentStatus @default(PENDING)
+  reply     String?
+  repliedAt DateTime?
+  ipHash    String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([postId, status])
+  @@index([status, createdAt])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
