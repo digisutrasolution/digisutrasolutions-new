@@ -40,7 +40,7 @@ export default async function AdSlot({ placement }: { placement: AdPlacement }) 
         {ad.imageUrl && (
           <div className="relative h-28 overflow-hidden bg-stone-900">
             <Image
-              src={ad.imageUrl}
+              src={withBase(ad.imageUrl)}
               alt={ad.title}
               fill
               sizes="320px"

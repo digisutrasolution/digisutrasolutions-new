@@ -131,7 +131,7 @@ export default function MediaManager({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={asset.url}
+                src={withBase(asset.url)}
                 alt={asset.alt || asset.originalName}
                 loading="lazy"
                 className="h-32 w-full bg-stone-100 object-cover dark:bg-stone-800"

@@ -9,7 +9,7 @@ import SectionRenderer from "@/components/sections/SectionRenderer";
 
 export const dynamic = "force-dynamic";
 
-import { SITE_URL } from "@/lib/site";
+import { absUrl, SITE_URL } from "@/lib/site";
 
 export async function generateMetadata({
   params,
@@ -31,7 +31,7 @@ export async function generateMetadata({
       description: page.seoDescription ?? undefined,
       url: `${SITE_URL}/${page.slug}`,
       type: "website",
-      ...(page.ogImage ? { images: [{ url: page.ogImage }] } : {}),
+      ...(page.ogImage ? { images: [{ url: absUrl(page.ogImage) }] } : {}),
     },
     twitter: {
       card: "summary_large_image",

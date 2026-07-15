@@ -3,6 +3,7 @@ import { Mail, Newspaper } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import { db } from "@/lib/db";
 import { BLOG_POSTS } from "@/lib/data";
+import { withBase } from "@/lib/base-path";
 
 const FALLBACK_COVERS = [
   "/blog/lead-generation.jpg",
@@ -113,7 +114,7 @@ export default async function Blog() {
                 {featured.coverUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={featured.coverUrl}
+                    src={withBase(featured.coverUrl)}
                     alt=""
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
                   />
@@ -171,7 +172,7 @@ export default async function Blog() {
                   {post.coverUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={post.coverUrl}
+                      src={withBase(post.coverUrl)}
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />

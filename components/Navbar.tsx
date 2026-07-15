@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { withBase } from "@/lib/base-path";
 import { animate, motion, useMotionValue } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -520,7 +521,7 @@ function LogoMark() {
       <motion.div style={{ x, y, scale, willChange: "transform" }}>
         <Link href="/" aria-label="Digisutra Solutions — home">
           <Image
-            src="/logo.png"
+            src={withBase("/logo.png")}
             alt="Digisutra Solutions"
             width={200}
             height={70}
@@ -568,7 +569,7 @@ function MegaPanel({ item, onNavigate }: { item: NavItem; onNavigate: () => void
           style={{ width: "max(252px, calc((100% - 1280px) / 2 + 252px))", zIndex: 0 }}
         >
           <Image
-            src={item.panelImage}
+            src={withBase(item.panelImage)}
             alt=""
             fill
             sizes="420px"
@@ -709,7 +710,7 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
         <div className="flex items-center justify-between border-b border-black/[0.07] px-5 py-3.5">
           <Link href="/" onClick={onClose}>
             <Image
-              src="/logo.png"
+              src={withBase("/logo.png")}
               alt="Digisutra Solutions"
               width={120}
               height={40}

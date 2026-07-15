@@ -227,7 +227,7 @@ export default function BlogEditor({
               <input id="be-cover" value={form.coverUrl} onChange={(e) => set("coverUrl", e.target.value)} className={inputCls} placeholder="/uploads/… (copy from Media)" />
               {form.coverUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={form.coverUrl} alt="" className="mt-2 h-24 w-full rounded-lg object-cover" />
+                <img src={withBase(form.coverUrl)} alt="" className="mt-2 h-24 w-full rounded-lg object-cover" />
               )}
             </div>
           </div>

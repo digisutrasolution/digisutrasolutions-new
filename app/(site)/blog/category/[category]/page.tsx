@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Newspaper } from "lucide-react";
+import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
 import { BLOG_CATEGORIES, categoryBySlug } from "@/lib/blog";
 
@@ -113,7 +114,7 @@ export default async function BlogCategoryPage({
               <div className="relative h-44 overflow-hidden rounded-2xl bg-stone-900">
                 {post.coverUrl ? (
                   <Image
-                    src={post.coverUrl}
+                    src={withBase(post.coverUrl)}
                     alt=""
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"

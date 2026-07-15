@@ -5,3 +5,8 @@ export const SITE_URL = (
 ).replace(/\/+$/, "");
 
 export const NOINDEX = process.env.SITE_NOINDEX === "1";
+
+/** Absolute URL for SEO surfaces (og:image, JSON-LD) — includes basePath
+    because SITE_URL carries it on subpath deploys. */
+export const absUrl = (path: string) =>
+  path.startsWith("/") ? `${SITE_URL}${path}` : path;

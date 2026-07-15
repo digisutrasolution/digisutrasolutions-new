@@ -156,7 +156,7 @@ export default function VideosManager({
             <div key={v.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
               {v.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={v.thumbnailUrl} alt="" loading="lazy" className="aspect-video w-full bg-stone-100 object-cover dark:bg-stone-800" />
+                <img src={withBase(v.thumbnailUrl)} alt="" loading="lazy" className="aspect-video w-full bg-stone-100 object-cover dark:bg-stone-800" />
               ) : (
                 <div className="flex aspect-video items-center justify-center bg-stone-100 text-xs text-stone-400 dark:bg-stone-800">
                   {v.provider}

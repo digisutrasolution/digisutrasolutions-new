@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { withBase } from "@/lib/base-path";
 
 const SERVICES_LINKS = [
   { label: "SEO & Content Marketing", href: "/services/seo" },
@@ -110,7 +111,7 @@ function PaymentChips({ compact }: { compact?: boolean }) {
           }`}
         >
           <Image
-            src={`/payment-methods/${m.file}`}
+            src={withBase(`/payment-methods/${m.file}`)}
             alt={m.label}
             width={44}
             height={24}
@@ -160,7 +161,7 @@ export default function Footer() {
             <div>
               <div className="mb-6">
                 <Image
-                  src="/footer-logo.webp"
+                  src={withBase("/footer-logo.webp")}
                   alt="Digisutra Solutions"
                   width={260}
                   height={90}

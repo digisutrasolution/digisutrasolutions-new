@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Award, Check, Megaphone, Code2, Palette, Sparkles } from "lucide-react";
 import Reveal from "@/components/Reveal";
+import { withBase } from "@/lib/base-path";
 import { CERTS, SERVICE_CATEGORIES } from "@/lib/data";
 
 const ICONS = {
@@ -76,7 +77,7 @@ export default function ServiceCatalog() {
               >
                 {/* Stock photo + brand duotone grade */}
                 <Image
-                  src={p.image}
+                  src={withBase(p.image)}
                   alt=""
                   fill
                   sizes="(min-width: 1024px) 45vw, 100vw"

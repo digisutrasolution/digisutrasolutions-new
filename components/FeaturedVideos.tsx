@@ -1,4 +1,5 @@
 import Reveal from "@/components/Reveal";
+import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
 import { embedUrl } from "@/lib/cms/videos";
 
@@ -36,9 +37,9 @@ export default async function FeaturedVideos() {
                 <video
                   controls
                   preload="metadata"
-                  poster={video.thumbnailUrl ?? undefined}
+                  poster={video.thumbnailUrl ? withBase(video.thumbnailUrl) : undefined}
                   className="aspect-video w-full"
-                  src={video.videoId}
+                  src={withBase(video.videoId)}
                 />
               ) : (
                 <iframe

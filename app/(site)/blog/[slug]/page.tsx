@@ -8,6 +8,7 @@ import AdSlot from "@/components/blog/AdSlot";
 import ArticleToc from "@/components/blog/ArticleToc";
 import Reviews from "@/components/blog/Reviews";
 import ShareRail from "@/components/blog/ShareRail";
+import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
 import {
   categoryByDb,
@@ -18,7 +19,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-import { SITE_URL } from "@/lib/site";
+import { absUrl, SITE_URL } from "@/lib/site";
 
 const getPost = cache(async (slug: string) => {
   return db.blogPost.findUnique({ where: { slug } });
@@ -42,7 +43,7 @@ export async function generateMetadata({
       description: post.seoDescription ?? post.excerpt ?? undefined,
       url: `${SITE_URL}/blog/${post.slug}`,
       type: "article",
-      ...(post.coverUrl ? { images: [{ url: post.coverUrl }] } : {}),
+      ...(post.coverUrl ? { images: [{ url: absUrl(post.coverUrl) }] } : {}),
     },
   };
 }
@@ -150,7 +151,7 @@ export default async function BlogPostPage({
         author: { "@type": "Person", name: post.authorName ?? "DigiSutra Solutions" },
         publisher: { "@type": "Organization", name: "DigiSutra Solutions" },
         mainEntityOfPage: url,
-        ...(post.coverUrl ? { image: post.coverUrl } : {}),
+        ...(post.coverUrl ? { image: absUrl(post.coverUrl) } : {}),
         ...(avgRating != null
           ? {
               aggregateRating: {
@@ -270,7 +271,7 @@ export default async function BlogPostPage({
           {post.coverUrl && (
             <div className="relative mt-6 h-64 overflow-hidden rounded-3xl sm:h-80">
               <Image
-                src={post.coverUrl}
+                src={withBase(post.coverUrl)}
                 alt=""
                 fill
                 priority
@@ -343,7 +344,7 @@ export default async function BlogPostPage({
                   <div className="relative h-28 overflow-hidden bg-stone-900">
                     {r.coverUrl ? (
                       <Image
-                        src={r.coverUrl}
+                        src={withBase(r.coverUrl)}
                         alt=""
                         fill
                         sizes="(max-width: 640px) 100vw, 360px"

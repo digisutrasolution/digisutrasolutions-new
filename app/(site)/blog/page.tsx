@@ -5,6 +5,7 @@ import { ArrowRight, Bot, ChevronDown, Megaphone, Newspaper, Search } from "luci
 import AdSlot from "@/components/blog/AdSlot";
 import NewsletterCard from "@/components/blog/NewsletterCard";
 import SocialFollow from "@/components/blog/SocialFollow";
+import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
 import { BLOG_CATEGORIES, categoryByDb } from "@/lib/blog";
 
@@ -201,7 +202,7 @@ export default async function BlogIndexPage({
                 <span className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-stone-900">
                   {post.coverUrl ? (
                     <Image
-                      src={post.coverUrl}
+                      src={withBase(post.coverUrl)}
                       alt=""
                       fill
                       sizes="96px"
