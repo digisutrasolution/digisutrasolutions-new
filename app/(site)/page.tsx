@@ -4,7 +4,7 @@ export const revalidate = 300;
 
 import HeroCarousel from "@/components/HeroCarousel";
 import Ticker from "@/components/Ticker";
-import Clients from "@/components/Clients";
+import ClientsBar from "@/components/ClientsBar";
 import ServiceCatalog from "@/components/ServiceCatalog";
 import CaseStudies from "@/components/CaseStudies";
 import PartnerProof from "@/components/PartnerProof";
@@ -16,9 +16,9 @@ import AuditCta from "@/components/AuditCta";
 export default function Home() {
   return (
     <>
+      <ClientsBar />
       <HeroCarousel />
       <Ticker />
-      <Clients />
       <ServiceCatalog />
       <CaseStudies />
       <PartnerProof />
