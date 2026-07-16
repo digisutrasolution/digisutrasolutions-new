@@ -218,57 +218,53 @@ function ScrollProgress() {
   );
 }
 
+/* Contact chips — pill treatment per the "structured split" topbar. */
+const chipCls =
+  "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-[#E7DDD2] bg-white px-2.5 py-1 text-[0.78rem] font-semibold text-stone-700 no-underline transition-colors hover:border-[#F26419] hover:text-[#F26419] max-md:px-2 max-md:text-[0.65rem]";
+
 const TOPBAR_CONTACTS = (
   <>
     <a
       href="https://wa.me/919953900123"
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative inline-flex items-center gap-1.5 whitespace-nowrap text-[0.92rem] font-semibold text-black/75 no-underline max-md:gap-1 max-md:text-[0.65rem]"
+      className={chipCls}
     >
       <WhatsAppSquareIcon />
       +91-9953-900123
-      <span
-        className="absolute -bottom-0.5 left-0 hidden h-[1.5px] w-full origin-left scale-x-0 rounded-full bg-[#F26419] transition-transform duration-200 group-hover:scale-x-100 md:block"
-        aria-hidden
-      />
     </a>
-    <span className="h-4 w-px shrink-0 bg-black/15" />
     <a
       href="tel:+18886445402"
-      className="group relative hidden items-center gap-1.5 whitespace-nowrap text-[0.92rem] font-semibold text-black/75 no-underline max-md:inline-flex max-md:gap-1 max-md:text-[0.65rem] max-[480px]:hidden lg:inline-flex"
+      className={`${chipCls} hidden max-md:inline-flex max-[480px]:hidden lg:inline-flex`}
     >
       <UsFlagIcon />
       +1-888-644-5402
-      <span
-        className="absolute -bottom-0.5 left-0 hidden h-[1.5px] w-full origin-left scale-x-0 rounded-full bg-[#F26419] transition-transform duration-200 group-hover:scale-x-100 md:block"
-        aria-hidden
-      />
     </a>
-    <span className="hidden h-4 w-px shrink-0 bg-black/15 lg:block" />
-    <a
-      href="tel:+911204751400"
-      className="group relative inline-flex items-center gap-1.5 whitespace-nowrap text-[0.92rem] font-semibold text-black/75 no-underline max-md:gap-1 max-md:text-[0.65rem]"
-    >
+    <a href="tel:+911204751400" className={chipCls}>
       <IndiaFlagIcon />
       +91-120-475-1400
-      <span
-        className="absolute -bottom-0.5 left-0 hidden h-[1.5px] w-full origin-left scale-x-0 rounded-full bg-[#F26419] transition-transform duration-200 group-hover:scale-x-100 md:block"
-        aria-hidden
-      />
     </a>
   </>
 );
 
-/* Fixed announcement bar above the header: marquee + contact numbers. */
+/* Fixed announcement bar — "structured split": UPDATES label zone, a clipped
+   single-stream marquee lane (slow, pause on hover), and contact chips in
+   their own zone. Mobile keeps the two-row stack. */
 function AnnouncementBar() {
   const marqueeItem = (
-    <span className="inline-flex items-center px-8">
-      <span className="mx-2 inline-flex items-center whitespace-nowrap rounded-[4px] bg-gradient-to-r from-[#E31837] to-[#F26419] px-[0.65rem] py-[0.18rem] text-[0.85rem] font-black tracking-[0.07em] text-white">
-        📺 Now Advertising on JioHotstar Smart TV.
+    <span className="inline-flex items-center gap-3 pr-16">
+      <span className="inline-flex items-center whitespace-nowrap rounded-[5px] bg-gradient-to-r from-[#E31837] to-[#F26419] px-2.5 py-[0.18rem] text-[0.78rem] font-black tracking-[0.05em] text-white">
+        📺 JioHotstar Smart TV Ads
       </span>
-      <span className="whitespace-nowrap text-[0.92rem] font-normal text-black/60">
-        Grow Beyond Search with AI SEO • GEO • Smart TV Ads
+      <span className="whitespace-nowrap text-[0.85rem] font-normal text-black/55">
+        Grow beyond search — AI SEO · GEO · Smart TV
+      </span>
+      <span className="h-3 w-px shrink-0 bg-black/10" aria-hidden />
+      <span className="inline-flex items-center whitespace-nowrap rounded-[5px] bg-[#E1F5EE] px-2.5 py-[0.18rem] text-[0.78rem] font-bold text-[#085041]">
+        ⚡ Free 15-page audit in 48h
+      </span>
+      <span className="whitespace-nowrap text-[0.85rem] font-normal text-black/55">
+        Every enquiry gets one — no strings
       </span>
     </span>
   );
@@ -276,23 +272,32 @@ function AnnouncementBar() {
   return (
     <div
       aria-label="Announcement bar"
-      className="fixed left-0 right-0 top-0 z-[150] flex flex-col overflow-hidden border-b border-black/[0.08] bg-white/[0.98] backdrop-blur-[24px] md:flex-row md:items-center"
+      className="fixed left-0 right-0 top-0 z-[150] flex flex-col overflow-hidden border-b-2 border-[#F26419] bg-white/[0.98] backdrop-blur-[24px] md:flex-row md:items-stretch"
       style={{ height: "var(--topbar-h)" }}
     >
       <div className="flex w-full items-center md:contents">
-        <div className="hidden h-full shrink-0 items-center border-r border-black/[0.08] pr-3 md:flex">
-          <span className="inline-flex items-center whitespace-nowrap px-3 text-[0.8rem] font-black uppercase tracking-[0.14em] text-[#F26419]">
-            Announcement:
+        <div className="hidden shrink-0 items-center gap-2 border-r border-[#FFE3CC] bg-[#FFF6EF] px-4 md:flex">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#F26419]" aria-hidden />
+          <span className="whitespace-nowrap text-[0.7rem] font-black uppercase tracking-[0.16em] text-orange-800">
+            Updates
           </span>
         </div>
-        <div className="relative flex h-[2.5rem] flex-1 items-center overflow-hidden border-b border-black/[0.06] md:h-full md:border-b-0">
-          <div className="anb-track flex h-full w-max items-center">
+        <div className="relative flex h-[2.5rem] flex-1 items-center overflow-hidden border-b border-black/[0.06] md:h-auto md:border-b-0">
+          <div className="anb-track flex h-full w-max items-center pl-4">
             {marqueeItem}
             {marqueeItem}
           </div>
+          <span
+            className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white to-transparent"
+            aria-hidden
+          />
+          <span
+            className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white to-transparent"
+            aria-hidden
+          />
         </div>
       </div>
-      <div className="flex h-[2.5rem] flex-1 items-center justify-around gap-2 px-3 sm:px-6 md:h-full md:flex-none md:justify-start md:border-l md:border-black/[0.08]">
+      <div className="flex h-[2.5rem] flex-1 items-center justify-around gap-1.5 bg-[#FAFAF9] px-3 sm:px-4 md:h-auto md:flex-none md:justify-start md:gap-2 md:border-l md:border-black/[0.06]">
         {TOPBAR_CONTACTS}
       </div>
     </div>
