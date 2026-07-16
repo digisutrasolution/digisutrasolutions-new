@@ -4,15 +4,19 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
-import { MENU_LOCATION, liveKey, type NavNode } from "@/lib/menu";
-import { markDirty } from "@/lib/menu-admin";
+import { liveKey, type NavNode } from "@/lib/menu";
+import { markDirty, parseLocation } from "@/lib/menu-admin";
 import { clientIp } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(req: Request) {
   const { error } = await requirePermission("menus.manage");
   if (error) return error;
+  const location = parseLocation(new URL(req.url).searchParams.get("location"));
+  if (!location) {
+    return NextResponse.json({ ok: false, error: "Unknown menu location." }, { status: 400 });
+  }
   const versions = await db.menuVersion.findMany({
-    where: { location: MENU_LOCATION },
+    where: { location },
     orderBy: { createdAt: "desc" },
     take: 20,
     select: { id: true, authorName: true, createdAt: true },
@@ -34,12 +38,12 @@ export async function POST(req: Request) {
   }
 
   const version = await db.menuVersion.findUnique({ where: { id: parsed.data.versionId } });
-  if (!version || version.location !== MENU_LOCATION) {
+  const location = version ? parseLocation(version.location) : null;
+  if (!version || !location) {
     return NextResponse.json({ ok: false, error: "Version not found." }, { status: 404 });
   }
 
   const tree = version.snapshot as unknown as NavNode[];
-  const location = version.location;
 
   await db.siteSetting.upsert({
     where: { key: liveKey(location) },
@@ -74,6 +78,7 @@ export async function POST(req: Request) {
           icon: c.icon ?? null,
           group: c.group ?? null,
           badge: c.badge ?? null,
+          description: c.description ?? null,
           newTab: c.newTab ?? false,
         })),
       });

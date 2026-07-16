@@ -389,11 +389,12 @@ model MenuItem {
   parentId   String?
   parent     MenuItem?  @relation("MenuTree", fields: [parentId], references: [id], onDelete: Cascade)
   children   MenuItem[] @relation("MenuTree")
-  label      String
-  href       String   @default("#")
-  icon       String?
-  group      String?
-  badge      String?
+  label       String
+  href        String  @default("#")
+  icon        String?
+  group       String?
+  badge       String?
+  description String?
   order      Int      @default(0)
   visible    Boolean  @default(true)
   newTab     Boolean  @default(false)

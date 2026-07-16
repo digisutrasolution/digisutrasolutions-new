@@ -1,5 +1,6 @@
 import type { MenuItem } from "@prisma/client";
 import { db } from "@/lib/db";
+import { MENU_LOCATIONS, type MenuLocation } from "@/lib/menu-locations";
 
 /* Dynamic navigation. Admin edits MenuItem rows (the draft tree); publishing
    serializes them into SiteSetting "menu:<location>:live", which is what the
@@ -7,7 +8,10 @@ import { db } from "@/lib/db";
    AND the bootstrap used to seed MenuItem rows the first time /admin/menus
    loads — navigation can never come up empty. */
 
+export { MENU_LOCATIONS, type MenuLocation };
+
 export const MENU_LOCATION = "HEADER";
+
 export const liveKey = (location: string) => `menu:${location}:live`;
 export const dirtyKey = (location: string) => `menu:${location}:dirty`;
 
@@ -17,6 +21,7 @@ export type NavChild = {
   icon?: string;
   group?: string;
   badge?: string;
+  description?: string;
   newTab?: boolean;
 };
 
@@ -142,6 +147,56 @@ export const DEFAULT_NAV: NavNode[] = [
   { label: "Referral", href: "/referral-program" },
 ];
 
+/* Footer columns — mirrors the previously hardcoded Footer lists. A column's
+   own href powers its "See All … →" link (use "#" to skip it). */
+export const DEFAULT_FOOTER_NAV: NavNode[] = [
+  {
+    label: "Services",
+    href: "/services",
+    children: [
+      { label: "SEO & Content Marketing", href: "/services/seo" },
+      { label: "Pay-Per-Click (PPC)", href: "/services/ppc" },
+      { label: "Social Media Marketing", href: "/services/social-media" },
+      { label: "Web Design & Development", href: "/services/web-design" },
+      { label: "Branding & Identity", href: "/services/branding" },
+      { label: "Influencer Marketing", href: "/services/influencer-marketing" },
+      { label: "WhatsApp Marketing", href: "/services/whatsapp-marketing" },
+      { label: "Performance Analytics", href: "/services/analytics" },
+    ],
+  },
+  {
+    label: "Company",
+    href: "#",
+    children: [
+      { label: "About Us", href: "/about" },
+      { label: "Our Work", href: "/work/portfolio" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Career", href: "/career" },
+      { label: "Referral Program", href: "/referral-program" },
+      { label: "Payment Options", href: "/payment" },
+      { label: "Blog", href: "/blog" },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+];
+
+export const DEFAULT_FOOTER_LEGAL_NAV: NavNode[] = [
+  { label: "Locations", href: "/about/global-presence" },
+  { label: "Trust Center", href: "/trust-center" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms", href: "/terms-and-conditions" },
+  { label: "Cookie Policy", href: "/cookie-policy" },
+  { label: "Refund Policy", href: "/refund-policy" },
+  { label: "Disclaimer", href: "/disclaimer" },
+  { label: "Sitemap", href: "/sitemap" },
+];
+
+export const DEFAULT_NAV_BY_LOCATION: Record<MenuLocation, NavNode[]> = {
+  HEADER: DEFAULT_NAV,
+  FOOTER: DEFAULT_FOOTER_NAV,
+  FOOTER_LEGAL: DEFAULT_FOOTER_LEGAL_NAV,
+};
+
 /** Draft MenuItem rows → NavNode tree (admin preview + publish source). */
 export function itemsToTree(items: MenuItem[], opts?: { includeHidden?: boolean }): NavNode[] {
   const keep = (i: MenuItem) => opts?.includeHidden || i.visible;
@@ -161,6 +216,7 @@ export function itemsToTree(items: MenuItem[], opts?: { includeHidden?: boolean 
           ...(c.icon ? { icon: c.icon } : {}),
           ...(c.group ? { group: c.group } : {}),
           ...(c.badge ? { badge: c.badge } : {}),
+          ...(c.description ? { description: c.description } : {}),
           ...(c.newTab ? { newTab: true } : {}),
         }));
       return {
@@ -175,8 +231,10 @@ export function itemsToTree(items: MenuItem[], opts?: { includeHidden?: boolean 
     });
 }
 
-/** Published nav for the public header — snapshot first, defaults otherwise. */
-export async function getLiveNav(location = MENU_LOCATION): Promise<NavNode[]> {
+/** Published nav for a location — snapshot first, defaults otherwise. */
+export async function getLiveNav(
+  location: MenuLocation = MENU_LOCATION,
+): Promise<NavNode[]> {
   try {
     const row = await db.siteSetting.findUnique({ where: { key: liveKey(location) } });
     const nav = row?.value as NavNode[] | undefined;
@@ -184,7 +242,7 @@ export async function getLiveNav(location = MENU_LOCATION): Promise<NavNode[]> {
   } catch {
     /* DB down → static nav keeps the site navigable */
   }
-  return DEFAULT_NAV;
+  return DEFAULT_NAV_BY_LOCATION[location] ?? [];
 }
 
 export type FeaturedPost = {

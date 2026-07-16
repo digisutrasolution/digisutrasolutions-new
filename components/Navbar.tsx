@@ -401,10 +401,17 @@ function MegaLink({
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 transition-colors group-hover:bg-[#FFE5CC] group-hover:text-[#F26419]">
         {createElement(navIcon(child.icon), { size: 18 })}
       </span>
-      <span className="text-[0.95rem] font-medium leading-snug text-gray-800 transition-colors group-hover:text-[#F26419]">
-        {child.label}
+      <span className="min-w-0">
+        <span className="flex items-center gap-1.5 text-[0.95rem] font-medium leading-snug text-gray-800 transition-colors group-hover:text-[#F26419]">
+          {child.label}
+          {child.badge && <MenuBadge badge={child.badge} />}
+        </span>
+        {child.description && (
+          <span className="mt-0.5 block truncate text-[0.78rem] leading-snug text-gray-400">
+            {child.description}
+          </span>
+        )}
       </span>
-      {child.badge && <MenuBadge badge={child.badge} />}
     </Link>
   );
 }

@@ -6,6 +6,7 @@ import { createElement, useCallback, useEffect, useMemo, useState } from "react"
 import {
   ChevronDown,
   ChevronRight,
+  Copy,
   GripVertical,
   History,
   Pencil,
@@ -15,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { NAV_ICONS, navIcon } from "@/components/nav-icons";
+import { MENU_LOCATIONS, type MenuLocation } from "@/lib/menu-locations";
 
 type Item = {
   id: string;
@@ -24,6 +26,7 @@ type Item = {
   icon: string | null;
   group: string | null;
   badge: string | null;
+  description: string | null;
   order: number;
   visible: boolean;
   newTab: boolean;
@@ -66,25 +69,29 @@ function Toggle({
   );
 }
 
-/* Inline edit form for one item (top-level items expose panel fields). */
+/* Inline edit form for one item (header top-level items expose panel fields). */
 function ItemForm({
   item,
   isTop,
+  location,
   onSaved,
   onCancel,
 }: {
   item: Partial<Item> & { parentId: string | null };
   isTop: boolean;
+  location: MenuLocation;
   onSaved: () => void;
   onCancel: () => void;
 }) {
   const isNew = !item.id;
+  const showPanelFields = isTop && location === "HEADER";
   const [f, setF] = useState({
     label: item.label ?? "",
     href: item.href ?? "/",
     icon: item.icon ?? "",
     group: item.group ?? "",
     badge: item.badge ?? "",
+    description: item.description ?? "",
     panelImage: item.panelImage ?? "",
     tagline: item.tagline ?? "",
     featured: item.featured ?? false,
@@ -103,11 +110,12 @@ function ItemForm({
       icon: f.icon || null,
       group: f.group || null,
       badge: f.badge || null,
+      description: f.description || null,
       panelImage: f.panelImage || null,
       tagline: f.tagline || null,
       featured: f.featured,
       newTab: f.newTab,
-      ...(isNew ? { parentId: item.parentId } : {}),
+      ...(isNew ? { parentId: item.parentId, location } : {}),
     };
     try {
       const res = await fetch(
@@ -163,9 +171,13 @@ function ItemForm({
               <label className={labelCls}>Badge</label>
               <input value={f.badge} onChange={(e) => set("badge", e.target.value)} className={inputCls} placeholder="NEW / HOT" maxLength={12} />
             </div>
+            <div>
+              <label className={labelCls}>Description (shown under the label)</label>
+              <input value={f.description} onChange={(e) => set("description", e.target.value)} className={inputCls} placeholder="One short line" maxLength={200} />
+            </div>
           </>
         )}
-        {isTop && (
+        {showPanelFields && (
           <>
             <div>
               <label className={labelCls}>Panel image URL</label>
@@ -179,7 +191,7 @@ function ItemForm({
         )}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-4">
-        {isTop && (
+        {showPanelFields && (
           <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-stone-600 dark:text-stone-300">
             <input type="checkbox" checked={f.featured} onChange={(e) => set("featured", e.target.checked)} />
             Show latest Journal post card
@@ -208,6 +220,7 @@ function ItemForm({
 }
 
 export default function MenusManager() {
+  const [location, setLocation] = useState<MenuLocation>("HEADER");
   const [items, setItems] = useState<Item[]>([]);
   const [dirty, setDirty] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -220,18 +233,23 @@ export default function MenusManager() {
   const [versions, setVersions] = useState<Version[] | null>(null);
 
   const reload = useCallback(async () => {
-    const res = await fetch(withBase("/api/menus"));
+    const res = await fetch(withBase(`/api/menus?location=${location}`));
     const data = await res.json();
     if (data.ok) {
       setItems(data.items);
       setDirty(data.dirty);
     }
     setLoading(false);
-  }, []);
+  }, [location]);
 
   useEffect(() => {
     // Defer past the first paint — repo convention for initial fetches.
-    const t = setTimeout(() => void reload(), 0);
+    const t = setTimeout(() => {
+      setLoading(true);
+      setVersions(null);
+      setEditing(null);
+      void reload();
+    }, 0);
     return () => clearTimeout(t);
   }, [reload]);
 
@@ -268,19 +286,59 @@ export default function MenusManager() {
     if (!dragId || dragId === target.id) return;
     const dragged = items.find((i) => i.id === dragId);
     setDragId(null);
-    if (!dragged || dragged.parentId !== target.parentId) return; // reorder within same level only
+    if (!dragged) return;
+
+    const draggedHasKids = items.some((i) => i.parentId === dragged.id);
+
+    if (dragged.parentId === target.parentId) {
+      // Same level: reorder.
+      const siblings = items
+        .filter((i) => i.parentId === target.parentId)
+        .sort((a, b) => a.order - b.order)
+        .filter((i) => i.id !== dragged.id);
+      const idx = siblings.findIndex((s) => s.id === target.id);
+      await patch(dragged.id, { moveTo: idx < 0 ? siblings.length : idx });
+      return;
+    }
+
+    // Cross-parent: only leaf items can move under another parent.
+    if (draggedHasKids) {
+      setNotice("Items with sub-items can only be reordered at the top level.");
+      return;
+    }
+    if (!target.parentId) {
+      // Dropped onto a top-level row → append as its last child.
+      await patch(dragged.id, { parentId: target.id });
+      setExpanded((s) => new Set(s).add(target.id));
+      return;
+    }
+    // Dropped onto a child of another parent → insert at its position.
     const siblings = items
-      .filter((i) => i.parentId === target.parentId)
-      .sort((a, b) => a.order - b.order)
-      .filter((i) => i.id !== dragged.id);
+      .filter((i) => i.parentId === target.parentId && i.id !== dragged.id)
+      .sort((a, b) => a.order - b.order);
     const idx = siblings.findIndex((s) => s.id === target.id);
-    await patch(dragged.id, { moveTo: idx < 0 ? siblings.length : idx });
+    await patch(dragged.id, {
+      parentId: target.parentId,
+      moveTo: idx < 0 ? siblings.length : idx,
+    });
+  };
+
+  const duplicate = async (item: Item) => {
+    const res = await fetch(withBase(`/api/menus/${item.id}/duplicate`), { method: "POST" });
+    const data = await res.json();
+    if (!data.ok) setNotice(data.error ?? "Duplicate failed.");
+    else setNotice(`Duplicated "${item.label}" — the copy starts hidden.`);
+    await reload();
   };
 
   const publish = async () => {
     setPublishing(true);
     setNotice("");
-    const res = await fetch(withBase("/api/menus/publish"), { method: "POST" });
+    const res = await fetch(withBase("/api/menus/publish"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ location }),
+    });
     const data = await res.json();
     setPublishing(false);
     if (data.ok) {
@@ -296,7 +354,7 @@ export default function MenusManager() {
       setVersions(null);
       return;
     }
-    const res = await fetch(withBase("/api/menus/versions"));
+    const res = await fetch(withBase(`/api/menus/versions?location=${location}`));
     const data = await res.json();
     if (data.ok) setVersions(data.versions);
   };
@@ -336,6 +394,21 @@ export default function MenusManager() {
 
   return (
     <div>
+      <div className="mb-4 flex gap-1 rounded-xl bg-stone-100 p-1 dark:bg-stone-800 sm:w-fit">
+        {MENU_LOCATIONS.map((loc) => (
+          <button
+            key={loc.key}
+            onClick={() => setLocation(loc.key)}
+            className={`cursor-pointer rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              location === loc.key
+                ? "bg-white text-stone-900 shadow-sm dark:bg-stone-950 dark:text-stone-100"
+                : "text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
+            }`}
+          >
+            {loc.label}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-wrap items-center gap-3">
         {dirty ? (
           <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
@@ -430,6 +503,9 @@ export default function MenusManager() {
                   <button onClick={() => setEditing(editing === top.id ? null : top.id)} className="cursor-pointer text-stone-400 hover:text-orange-600" aria-label="Edit">
                     {editing === top.id ? <X size={14} /> : <Pencil size={14} />}
                   </button>
+                  <button onClick={() => void duplicate(top)} className="cursor-pointer text-stone-400 hover:text-orange-600" aria-label="Duplicate" title="Duplicate (copy starts hidden)">
+                    <Copy size={14} />
+                  </button>
                   <button onClick={() => void remove(top)} className="cursor-pointer text-stone-400 hover:text-red-600" aria-label="Delete">
                     <Trash2 size={14} />
                   </button>
@@ -437,7 +513,7 @@ export default function MenusManager() {
                 </div>
               </div>
               {editing === top.id && (
-                <ItemForm item={top} isTop onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
+                <ItemForm item={top} isTop location={location} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
               )}
               {isOpen && (
                 <div className="mb-1 ml-9 border-l border-stone-100 pl-2 dark:border-stone-800">
@@ -469,6 +545,9 @@ export default function MenusManager() {
                             <button onClick={() => setEditing(editing === kid.id ? null : kid.id)} className="cursor-pointer text-stone-400 hover:text-orange-600" aria-label="Edit">
                               {editing === kid.id ? <X size={13} /> : <Pencil size={13} />}
                             </button>
+                            <button onClick={() => void duplicate(kid)} className="cursor-pointer text-stone-400 hover:text-orange-600" aria-label="Duplicate" title="Duplicate (copy starts hidden)">
+                              <Copy size={13} />
+                            </button>
                             <button onClick={() => void remove(kid)} className="cursor-pointer text-stone-400 hover:text-red-600" aria-label="Delete">
                               <Trash2 size={13} />
                             </button>
@@ -476,13 +555,13 @@ export default function MenusManager() {
                           </div>
                         </div>
                         {editing === kid.id && (
-                          <ItemForm item={kid} isTop={false} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
+                          <ItemForm item={kid} isTop={false} location={location} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
                         )}
                       </div>
                     );
                   })}
                   {editing === `new:${top.id}` ? (
-                    <ItemForm item={{ parentId: top.id }} isTop={false} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
+                    <ItemForm item={{ parentId: top.id }} isTop={false} location={location} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
                   ) : (
                     <button
                       onClick={() => setEditing(`new:${top.id}`)}
@@ -497,7 +576,7 @@ export default function MenusManager() {
           );
         })}
         {editing === "new:top" ? (
-          <ItemForm item={{ parentId: null }} isTop onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
+          <ItemForm item={{ parentId: null }} isTop location={location} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
         ) : (
           <button
             onClick={() => setEditing("new:top")}

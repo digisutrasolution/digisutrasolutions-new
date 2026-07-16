@@ -2,14 +2,17 @@ import { NextResponse } from "next/server";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
-import { MENU_LOCATION, dirtyKey } from "@/lib/menu";
-import { ItemSchema, bootstrapIfEmpty, markDirty } from "@/lib/menu-admin";
+import { dirtyKey } from "@/lib/menu";
+import { ItemSchema, bootstrapIfEmpty, markDirty, parseLocation } from "@/lib/menu-admin";
 import { clientIp } from "@/lib/rate-limit";
 
 export async function GET(req: Request) {
   const { error } = await requirePermission("menus.manage");
   if (error) return error;
-  const location = new URL(req.url).searchParams.get("location") ?? MENU_LOCATION;
+  const location = parseLocation(new URL(req.url).searchParams.get("location"));
+  if (!location) {
+    return NextResponse.json({ ok: false, error: "Unknown menu location." }, { status: 400 });
+  }
 
   await bootstrapIfEmpty(location);
   const [items, dirty] = await Promise.all([
@@ -35,13 +38,18 @@ export async function POST(req: Request) {
     );
   }
   const d = parsed.data;
-  const location = MENU_LOCATION;
+  const location = parseLocation(
+    (body as { location?: string } | null)?.location ?? null,
+  );
+  if (!location) {
+    return NextResponse.json({ ok: false, error: "Unknown menu location." }, { status: 400 });
+  }
 
   if (d.parentId) {
     const parent = await db.menuItem.findUnique({ where: { id: d.parentId } });
-    if (!parent || parent.parentId) {
+    if (!parent || parent.parentId || parent.location !== location) {
       return NextResponse.json(
-        { ok: false, error: "Parent must be a top-level menu item." },
+        { ok: false, error: "Parent must be a top-level item in the same menu." },
         { status: 400 },
       );
     }
@@ -60,6 +68,7 @@ export async function POST(req: Request) {
       icon: d.icon ?? null,
       group: d.group ?? null,
       badge: d.badge ?? null,
+      description: d.description ?? null,
       visible: d.visible ?? true,
       newTab: d.newTab ?? false,
       panelImage: d.panelImage ?? null,

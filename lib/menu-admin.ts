@@ -1,6 +1,21 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { DEFAULT_NAV, dirtyKey, itemsToTree, liveKey } from "@/lib/menu";
+import {
+  DEFAULT_NAV_BY_LOCATION,
+  MENU_LOCATIONS,
+  type MenuLocation,
+  dirtyKey,
+  itemsToTree,
+  liveKey,
+} from "@/lib/menu";
+
+const LOCATION_KEYS = MENU_LOCATIONS.map((l) => l.key) as [MenuLocation, ...MenuLocation[]];
+export const LocationSchema = z.enum(LOCATION_KEYS);
+
+export function parseLocation(value: string | null): MenuLocation | null {
+  const parsed = LocationSchema.safeParse(value ?? "HEADER");
+  return parsed.success ? parsed.data : null;
+}
 
 /* Server-side helpers shared by the /api/menus routes. */
 
@@ -22,6 +37,7 @@ export const ItemSchema = z.object({
   icon: z.string().trim().max(40).nullable().optional(),
   group: z.string().trim().max(60).nullable().optional(),
   badge: z.string().trim().max(12).nullable().optional(),
+  description: z.string().trim().max(200).nullable().optional(),
   visible: z.boolean().optional(),
   newTab: z.boolean().optional(),
   panelImage: z.string().trim().max(600).nullable().optional(),
@@ -37,12 +53,13 @@ export async function markDirty(location: string, dirty = true) {
   });
 }
 
-/** Seed draft rows from DEFAULT_NAV the first time the builder loads. */
-export async function bootstrapIfEmpty(location: string) {
+/** Seed draft rows from the location's defaults the first time it loads. */
+export async function bootstrapIfEmpty(location: MenuLocation) {
   const count = await db.menuItem.count({ where: { location } });
   if (count > 0) return;
-  for (let i = 0; i < DEFAULT_NAV.length; i++) {
-    const top = DEFAULT_NAV[i];
+  const defaults = DEFAULT_NAV_BY_LOCATION[location] ?? [];
+  for (let i = 0; i < defaults.length; i++) {
+    const top = defaults[i];
     const parent = await db.menuItem.create({
       data: {
         location,
@@ -65,6 +82,7 @@ export async function bootstrapIfEmpty(location: string) {
           icon: c.icon ?? null,
           group: c.group ?? null,
           badge: c.badge ?? null,
+          description: c.description ?? null,
         })),
       });
     }

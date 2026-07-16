@@ -1,39 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { withBase } from "@/lib/base-path";
-
-const SERVICES_LINKS = [
-  { label: "SEO & Content Marketing", href: "/services/seo" },
-  { label: "Pay-Per-Click (PPC)", href: "/services/ppc" },
-  { label: "Social Media Marketing", href: "/services/social-media" },
-  { label: "Web Design & Development", href: "/services/web-design" },
-  { label: "Branding & Identity", href: "/services/branding" },
-  { label: "Influencer Marketing", href: "/services/influencer-marketing" },
-  { label: "WhatsApp Marketing", href: "/services/whatsapp-marketing" },
-  { label: "Performance Analytics", href: "/services/analytics" },
-];
-
-const COMPANY_LINKS = [
-  { label: "About Us", href: "/about" },
-  { label: "Our Work", href: "/work/portfolio" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Career", href: "/career" },
-  { label: "Referral Program", href: "/referral-program" },
-  { label: "Payment Options", href: "/payment" },
-  { label: "Blog", href: "/news-media/blog" },
-  { label: "Contact Us", href: "/contact" },
-];
-
-const LEGAL_LINKS = [
-  { label: "Locations", href: "/about/global-presence" },
-  { label: "Trust Center", href: "/trust-center" },
-  { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Terms", href: "/terms-and-conditions" },
-  { label: "Cookie Policy", href: "/cookie-policy" },
-  { label: "Refund Policy", href: "/refund-policy" },
-  { label: "Disclaimer", href: "/disclaimer" },
-  { label: "Sitemap", href: "/sitemap" },
-];
+import { getLiveNav, type NavNode } from "@/lib/menu";
 
 const PAYMENT_METHODS = [
   { label: "Visa", file: "visa.webp" },
@@ -124,7 +92,11 @@ function PaymentChips({ compact }: { compact?: boolean }) {
   );
 }
 
-export default function Footer() {
+export default async function Footer() {
+  const [columns, legal] = await Promise.all([
+    getLiveNav("FOOTER"),
+    getLiveNav("FOOTER_LEGAL"),
+  ]);
   return (
     <footer className="font-condensed relative bg-stone-800">
       <div className="h-[3px] bg-[#F26419]" />
@@ -156,7 +128,14 @@ export default function Footer() {
         </div>
 
         <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-16 sm:px-6">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-10">
+          <div
+            className="footer-grid grid grid-cols-1 gap-8 sm:grid-cols-2 lg:gap-10"
+            style={
+              {
+                "--footer-cols": `1.5fr ${"1fr ".repeat(columns.length)}1fr`,
+              } as React.CSSProperties
+            }
+          >
             {/* Brand column */}
             <div>
               <div className="mb-6">
@@ -205,41 +184,31 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Services column */}
-            <div>
-              <h3 className="mb-5 text-[1rem] font-black uppercase tracking-wide text-[#F26419]">
-                Services
-              </h3>
-              <ul className="space-y-3">
-                {SERVICES_LINKS.map((l) => (
-                  <li key={l.href}>
-                    <FooterLink {...l} />
-                  </li>
-                ))}
-                <li className="pt-1">
-                  <Link
-                    href="/services"
-                    className="inline-flex items-center gap-1.5 text-[0.88rem] font-bold text-[#F26419] no-underline transition-colors duration-200 hover:text-white"
-                  >
-                    See All Services <span>→</span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company column */}
-            <div>
-              <h3 className="mb-5 text-[1rem] font-black uppercase tracking-wide text-[#F26419]">
-                Company
-              </h3>
-              <ul className="space-y-3">
-                {COMPANY_LINKS.map((l) => (
-                  <li key={l.href}>
-                    <FooterLink {...l} />
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* CMS-managed link columns */}
+            {columns.map((col: NavNode) => (
+              <div key={col.label}>
+                <h3 className="mb-5 text-[1rem] font-black uppercase tracking-wide text-[#F26419]">
+                  {col.label}
+                </h3>
+                <ul className="space-y-3">
+                  {(col.children ?? []).map((l) => (
+                    <li key={l.href + l.label}>
+                      <FooterLink label={l.label} href={l.href} />
+                    </li>
+                  ))}
+                  {col.href && col.href !== "#" && (
+                    <li className="pt-1">
+                      <Link
+                        href={col.href}
+                        className="inline-flex items-center gap-1.5 text-[0.88rem] font-bold text-[#F26419] no-underline transition-colors duration-200 hover:text-white"
+                      >
+                        See All {col.label} <span>→</span>
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ))}
 
             {/* Contact column */}
             <div>
@@ -341,8 +310,8 @@ export default function Footer() {
           <span className="whitespace-nowrap text-[0.92rem] font-medium text-white">
             © {new Date().getFullYear()} – Digisutra Solutions
           </span>
-          {LEGAL_LINKS.map((l) => (
-            <span key={l.href} className="flex items-center text-[0.92rem] text-white">
+          {legal.map((l) => (
+            <span key={l.href + l.label} className="flex items-center text-[0.92rem] text-white">
               <span className="mx-2 text-white/30">/</span>
               <a
                 href={l.href}

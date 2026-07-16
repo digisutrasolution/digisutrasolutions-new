@@ -672,3 +672,10 @@ body {
     transition: none;
   }
 }
+
+/* Footer columns come from the CMS — grid adapts to however many exist. */
+@media (min-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: var(--footer-cols, 1.5fr 1fr 1fr 1fr);
+  }
+}
