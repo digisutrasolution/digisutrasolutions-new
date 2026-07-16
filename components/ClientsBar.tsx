@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/* Slim trust bar under the header: inline label, one compact wordmark
+/* Slim trust bar just above the footer: inline label, one compact wordmark
    marquee (clipped lane with edge fades, pause on hover), key stats right.
    Replaces the full Clients section that used to sit mid-page. */
 
@@ -26,7 +26,7 @@ export default function ClientsBar() {
   return (
     <div
       aria-label="Trusted by our clients"
-      className="flex items-center border-b border-stone-200/70 bg-white"
+      className="flex items-center border-t border-stone-200/70 bg-white"
     >
       <div className="hidden shrink-0 items-center gap-2 self-stretch border-r border-[#FFE3CC] bg-[#FFF6EF] px-5 sm:flex">
         <span className="h-1.5 w-1.5 rounded-full bg-[#F26419]" aria-hidden />

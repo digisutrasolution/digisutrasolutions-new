@@ -16,7 +16,6 @@ import AuditCta from "@/components/AuditCta";
 export default function Home() {
   return (
     <>
-      <ClientsBar />
       <HeroCarousel />
       <Ticker />
       <ServiceCatalog />
@@ -26,6 +25,7 @@ export default function Home() {
       <Faq />
       <Blog />
       <AuditCta />
+      <ClientsBar />
     </>
   );
 }
