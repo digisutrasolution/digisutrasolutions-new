@@ -12,6 +12,9 @@ import {
   FileText,
   Gauge,
   Image as ImageIcon,
+  Inbox,
+  IndianRupee,
+  LayoutGrid,
   Mail,
   Megaphone,
   MenuSquare,
@@ -33,6 +36,9 @@ import NotificationsBell from "@/components/admin/NotificationsBell";
 
 const NAV = [
   { label: "Dashboard", href: "/admin", icon: Gauge, permission: null },
+  { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage" },
+  { label: "Services", href: "/admin/services", icon: LayoutGrid, permission: "services.manage" },
+  { label: "Pricing", href: "/admin/pricing", icon: IndianRupee, permission: "pricing.manage" },
   { label: "Pages", href: "/admin/pages", icon: FileText, permission: "pages.view" },
   { label: "Blog", href: "/admin/blog", icon: Newspaper, permission: "blog.manage" },
   { label: "Media", href: "/admin/media", icon: ImageIcon, permission: "pages.view" },

@@ -422,6 +422,21 @@ export default function MenusManager() {
         {notice && <span className="text-xs text-stone-500">{notice}</span>}
         <div className="ml-auto flex items-center gap-2">
           <button
+            onClick={async () => {
+              if (!confirm("Replace this menu's DRAFT with the built-in defaults? The live site keeps the current menu until you publish.")) return;
+              await fetch(withBase("/api/menus/reset"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ location }),
+              });
+              setNotice("Draft reset to defaults — review and publish when ready.");
+              await reload();
+            }}
+            className="cursor-pointer rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:border-orange-400 dark:border-stone-700 dark:text-stone-300"
+          >
+            Load defaults
+          </button>
+          <button
             onClick={loadVersions}
             className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:border-orange-400 dark:border-stone-700 dark:text-stone-300"
           >

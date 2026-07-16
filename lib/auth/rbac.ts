@@ -27,6 +27,9 @@ export const PERMISSIONS = {
   "newsletter.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "comments.moderate": ["SUPER_ADMIN", "SEO_MANAGER"],
   "menus.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
+  "services.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
+  "pricing.manage": ["SUPER_ADMIN"],
+  "leads.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSIONS;

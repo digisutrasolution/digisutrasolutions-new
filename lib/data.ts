@@ -68,15 +68,17 @@ export const WORK_ITEMS: WorkItem[] = [
 ];
 
 export const TICKER_ITEMS = [
-  "SEO",
+  "SEO + AI SEARCH",
   "PPC",
-  "WEB APPS",
+  "AEO · GEO",
   "EMAIL MARKETING",
   "AI CHATBOTS",
   "BRANDING",
   "LEAD GENERATION",
   "E-COMMERCE",
-  "SMS MARKETING",
+  "WHATSAPP MARKETING",
+  "MOBILE APPS",
+  "CRM & LEADS",
   "AI AUTOMATION AGENTS",
 ];
 
@@ -94,17 +96,30 @@ export const CERTS = [
   "ISO 27001",
 ];
 
+/* Home "studios" panels — 4 lanes mapping the 7 service categories. */
 export const SERVICE_CATEGORIES = [
   {
-    title: "Digital marketing",
+    title: "Marketing",
     icon: "megaphone",
     items: [
-      "SEO & local SEO",
-      "PPC · Google & Meta Ads",
-      "Social media marketing",
+      "SEO + AI Search (AEO · GEO)",
+      "Google · Meta · LinkedIn Ads",
+      "WhatsApp marketing",
       "Email & SMS marketing",
       "Lead generation",
-      "Marketing automation",
+      "Google Business Profile",
+    ],
+  },
+  {
+    title: "AI & Systems",
+    icon: "sparkles",
+    items: [
+      "AI chatbots",
+      "WhatsApp automation",
+      "CRM setup & automation",
+      "Lead qualification AI",
+      "Appointment booking bots",
+      "Sales automation",
     ],
   },
   {
@@ -112,35 +127,23 @@ export const SERVICE_CATEGORIES = [
     icon: "code",
     items: [
       "Business websites",
+      "Next.js / React builds",
       "E-commerce stores",
-      "Web applications",
-      "AI automation agents",
-      "Landing pages & funnels",
-      "API integrations",
+      "Custom web applications",
+      "Mobile apps · Flutter & RN",
+      "Speed & maintenance",
     ],
   },
   {
     title: "Design",
     icon: "palette",
     items: [
-      "UI design",
-      "UX research",
-      "Branding",
-      "Graphic design",
-      "Landing pages",
+      "Logo design",
+      "Brand identity",
+      "UI/UX design",
+      "Wireframes",
       "Design systems",
-    ],
-  },
-  {
-    title: "AI solutions",
-    icon: "sparkles",
-    items: [
-      "AI chatbots",
-      "Workflow automation",
-      "AI integration",
-      "Voice agents",
-      "Knowledge assistants",
-      "Cloud services",
+      "Landing pages",
     ],
   },
 ] as const;

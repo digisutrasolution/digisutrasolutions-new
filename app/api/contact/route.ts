@@ -1,6 +1,8 @@
+import { createHash } from "node:crypto";
 import { appendFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
@@ -75,6 +77,27 @@ export async function POST(req: Request) {
       { ok: false, error: "Enter a valid email address." },
       { status: 400 },
     );
+  }
+
+  // Mirror the enquiry into the leads queue (best-effort — email still
+  // goes out even if the DB write fails). Audit-band submissions have a
+  // WhatsApp number; classic contact-form ones may be email-only.
+  if (whatsapp) {
+    db.lead
+      .create({
+        data: {
+          name,
+          whatsapp: whatsapp.replace(/[\s-]/g, ""),
+          email: email || null,
+          website: siteUrl || null,
+          services: body.service ? [body.service.trim().slice(0, 80)] : [],
+          budget: (body.budget ?? "").trim().slice(0, 60) || null,
+          message,
+          source: "AUDIT",
+          ipHash: createHash("sha256").update(ip).digest("hex").slice(0, 24),
+        },
+      })
+      .catch(() => {});
   }
 
   const record = {
