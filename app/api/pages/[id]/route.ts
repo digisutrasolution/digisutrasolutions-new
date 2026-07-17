@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/guards";
 import { can } from "@/lib/auth/rbac";
-import { RESERVED_SLUGS, SLUG_REGEX } from "@/lib/cms/pages";
+import { PAGE_SLUG_REGEX, isReservedSlug } from "@/lib/cms/pages";
 import { SectionsSchema } from "@/lib/cms/sections";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
@@ -29,8 +29,11 @@ const UpdatePageSchema = z
       .trim()
       .toLowerCase()
       .min(2)
-      .max(120)
-      .regex(SLUG_REGEX, "Slug may contain lowercase letters, numbers and hyphens.")
+      .max(160)
+      .regex(
+        PAGE_SLUG_REGEX,
+        "Slug segments may contain lowercase letters, numbers and hyphens, separated by /.",
+      )
       .optional(),
     sections: SectionsSchema.optional(),
     seoTitle: z.string().trim().max(200).nullable().optional(),
@@ -114,7 +117,7 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 
   if (parsed.data.slug && parsed.data.slug !== page.slug) {
-    if (RESERVED_SLUGS.has(parsed.data.slug)) {
+    if (isReservedSlug(parsed.data.slug)) {
       return NextResponse.json(
         { ok: false, error: "That slug is reserved by the system." },
         { status: 409 },

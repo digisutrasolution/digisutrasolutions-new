@@ -14,9 +14,10 @@ import { absUrl, SITE_URL } from "@/lib/site";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: slugParts } = await params;
+  const slug = slugParts.join("/");
   const page = await getPageBySlug(slug);
   if (!page || !isLive(page)) return {};
   return {
@@ -45,15 +46,16 @@ export default async function CmsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
   searchParams: Promise<{ preview?: string }>;
 }) {
-  const { slug } = await params;
+  const { slug: slugParts } = await params;
+  const slug = slugParts.join("/");
   const { preview } = await searchParams;
 
   let page = await getPageBySlug(slug);
   if (!page) {
-    // Redirects manager: single-segment paths resolve here before 404.
+    // Redirects manager: unmatched paths resolve here before 404.
     const rule = await db.redirect.findUnique({ where: { fromPath: `/${slug}` } });
     if (rule?.isActive) {
       db.redirect
@@ -80,19 +82,28 @@ export default async function CmsPage({
     .flatMap((s) => (s.type === "faq" ? s.items : []))
     .filter((i) => i.q && i.a);
 
+  // Nested slugs get their live parent page as an intermediate crumb.
+  const crumbs: { name: string; item: string }[] = [
+    { name: "Home", item: SITE_URL },
+  ];
+  if (slugParts.length > 1) {
+    const parent = await getPageBySlug(slugParts.slice(0, -1).join("/"));
+    if (parent && isLive(parent)) {
+      crumbs.push({ name: parent.title, item: `${SITE_URL}/${parent.slug}` });
+    }
+  }
+  crumbs.push({ name: page.title, item: `${SITE_URL}/${page.slug}` });
+
   const jsonLd: object[] = [
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: page.title,
-          item: `${SITE_URL}/${page.slug}`,
-        },
-      ],
+      itemListElement: crumbs.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        item: c.item,
+      })),
     },
   ];
   if (faqItems.length > 0) {

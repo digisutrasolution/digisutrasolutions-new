@@ -1,0 +1,1196 @@
+{
+  "categories": [
+    {
+      "slug": "website-development",
+      "name": "Website Development",
+      "blurb": "Fast, SEO-ready websites — WordPress, Next.js and custom builds.",
+      "intro": "Websites built to convert: business sites, WordPress and modern Next.js/React builds with speed, SEO and conversion engineered in from day one. Business sites start at ₹35,000; the Indian market charges ₹40,000–₹1,50,000 for the same scope.",
+      "icon": "monitorSmartphone",
+      "badge": null,
+      "image": "/services-pages/website-design-development.jpg",
+      "stat": "<2s",
+      "statLabel": "load time target, every build",
+      "priceFrom": "from ₹35,000",
+      "marketNote": "market: ₹40k–₹1.5L for a custom SMB site",
+      "offers": [
+        {
+          "name": "Business Websites",
+          "blurb": "A credible, lead-generating site live in weeks",
+          "highlight": false
+        },
+        {
+          "name": "WordPress Development",
+          "blurb": "Custom WordPress you can edit yourself",
+          "highlight": false
+        },
+        {
+          "name": "Next.js/React Websites",
+          "blurb": "App-grade speed and SEO",
+          "highlight": true
+        },
+        {
+          "name": "Custom Web Applications",
+          "blurb": "Portals, dashboards and tools built to your workflow",
+          "highlight": false
+        },
+        {
+          "name": "Landing Pages",
+          "blurb": "Single pages engineered for one job: conversion",
+          "highlight": false
+        },
+        {
+          "name": "Website Speed Optimization",
+          "blurb": "Core Web Vitals into the green",
+          "highlight": false
+        }
+      ]
+    },
+    {
+      "slug": "ecommerce-development",
+      "name": "Ecommerce Development",
+      "blurb": "Shopify, WooCommerce and custom stores engineered for conversion.",
+      "intro": "Full-stack e-commerce builds that are ready to take orders: Shopify and WooCommerce stores, custom storefronts, UPI-first checkout and product pages designed to sell. Launch-ready stores start at ₹60,000; the market sweet spot is ₹75,000–₹2,00,000.",
+      "icon": "shoppingCart",
+      "badge": "Hot",
+      "image": "/services-pages/ecommerce-development.jpg",
+      "stat": "UPI",
+      "statLabel": "first checkout on every store",
+      "priceFrom": "from ₹60,000",
+      "marketNote": "market: ₹75k–₹2L launch-ready",
+      "offers": [
+        {
+          "name": "Shopify Stores",
+          "blurb": "Launch fast on the world's biggest commerce stack",
+          "highlight": true
+        },
+        {
+          "name": "WooCommerce Stores",
+          "blurb": "WordPress-native selling you fully own",
+          "highlight": false
+        },
+        {
+          "name": "Custom E-commerce",
+          "blurb": "Bespoke storefronts when templates hold you back",
+          "highlight": false
+        },
+        {
+          "name": "Payments & UPI Integration",
+          "blurb": "Razorpay, UPI and cards wired end to end",
+          "highlight": false
+        },
+        {
+          "name": "Conversion-Ready Product Pages",
+          "blurb": "Pages built to move stock, not just list it",
+          "highlight": false
+        },
+        {
+          "name": "Store Migrations",
+          "blurb": "Re-platform without losing SEO or orders",
+          "highlight": false
+        }
+      ]
+    },
+    {
+      "slug": "website-maintenance-security",
+      "name": "Website Maintenance & Security",
+      "blurb": "Updates, backups, monitoring and security — your site, handled.",
+      "intro": "Keep your sites, apps and infrastructure running and secure: updates, daily backups, uptime and security monitoring, malware cleanup and a retainer for small changes — so problems get fixed before customers notice. Care plans start at ₹8,000/month.",
+      "icon": "shieldCheck",
+      "badge": null,
+      "image": "/services-pages/website-maintenance-security.jpg",
+      "stat": "24/7",
+      "statLabel": "uptime & security monitoring",
+      "priceFrom": "from ₹8,000/mo",
+      "marketNote": "typical AMC: ₹10k–₹25k/mo",
+      "offers": [
+        {
+          "name": "Updates & Backups",
+          "blurb": "Core, plugin and daily backup discipline",
+          "highlight": false
+        },
+        {
+          "name": "Security Monitoring",
+          "blurb": "Threats caught before they become incidents",
+          "highlight": true
+        },
+        {
+          "name": "Malware Cleanup",
+          "blurb": "Hacked site recovered, hardened and re-listed",
+          "highlight": false
+        },
+        {
+          "name": "Uptime Monitoring",
+          "blurb": "Minutes-level alerts when anything goes down",
+          "highlight": false
+        },
+        {
+          "name": "Speed Audits",
+          "blurb": "Quarterly Core Web Vitals check-ups",
+          "highlight": false
+        },
+        {
+          "name": "Small Changes Retainer",
+          "blurb": "Edits and tweaks handled within the plan",
+          "highlight": false
+        }
+      ]
+    },
+    {
+      "slug": "content-marketing",
+      "name": "Content Marketing",
+      "blurb": "Content that ranks, converts and retains — mapped to buyer searches.",
+      "intro": "Create content that ranks, converts and retains: strategy, SEO blog writing, landing page copy and case studies mapped to the searches your buyers actually make — written answer-first so Google and AI assistants cite you. Programs start at ₹15,000/month.",
+      "icon": "penTool",
+      "badge": null,
+      "image": "/services-pages/content-marketing.jpg",
+      "stat": "AEO",
+      "statLabel": "answer-first, AI-citable copy",
+      "priceFrom": "from ₹15,000/mo",
+      "marketNote": "market: ₹15k–₹40k/mo for SMB programs",
+      "offers": [
+        {
+          "name": "Content Strategy",
+          "blurb": "A calendar mapped to buyer-intent keywords",
+          "highlight": false
+        },
+        {
+          "name": "SEO Blog Writing",
+          "blurb": "Answer-first articles Google and AI cite",
+          "highlight": true
+        },
+        {
+          "name": "Landing Page Copy",
+          "blurb": "Words engineered for one action",
+          "highlight": false
+        },
+        {
+          "name": "Case Studies & Whitepapers",
+          "blurb": "Proof assets that close deals",
+          "highlight": false
+        },
+        {
+          "name": "Content Calendars",
+          "blurb": "A predictable publishing rhythm",
+          "highlight": false
+        },
+        {
+          "name": "Content Refresh & Optimization",
+          "blurb": "Old posts updated to win new rankings",
+          "highlight": false
+        }
+      ]
+    },
+    {
+      "slug": "direct-marketing",
+      "name": "Direct Marketing",
+      "blurb": "Owned-channel marketing — Email, SMS and WhatsApp that pay back.",
+      "intro": "Owned channels your competitors can't outbid: email, SMS and WhatsApp campaigns with segmentation, drip sequences and deliverability done right — revenue from the audience you already have. Programs start at ₹10,000/month plus platform costs.",
+      "icon": "mail",
+      "badge": "New",
+      "image": "/services-pages/mobile-app-development.jpg",
+      "stat": "90%+",
+      "statLabel": "WhatsApp open rates vs ~20% email",
+      "priceFrom": "from ₹10,000/mo",
+      "marketNote": "market: ₹12k–₹35k/mo + platform fees",
+      "offers": [
+        {
+          "name": "Email Campaigns",
+          "blurb": "Newsletters and promos that get opened",
+          "highlight": false
+        },
+        {
+          "name": "SMS Campaigns",
+          "blurb": "Time-sensitive offers straight to the pocket",
+          "highlight": false
+        },
+        {
+          "name": "WhatsApp Broadcasts",
+          "blurb": "The channel Indian customers actually read",
+          "highlight": true
+        },
+        {
+          "name": "Drip & Nurture Sequences",
+          "blurb": "Follow-ups that run themselves",
+          "highlight": false
+        },
+        {
+          "name": "List Building & Segmentation",
+          "blurb": "The right message to the right slice",
+          "highlight": false
+        },
+        {
+          "name": "Deliverability Setup",
+          "blurb": "SPF, DKIM and warm-up so you land in inboxes",
+          "highlight": false
+        }
+      ]
+    },
+    {
+      "slug": "influencer-marketing",
+      "name": "Influencer Marketing",
+      "blurb": "Authentic voices, real audiences, measurable impact.",
+      "intro": "Creator campaigns measured like a paid channel: discovery and vetting, campaign strategy, micro-influencer programs and UGC rights — authentic voices with real audiences and tracked results. Campaigns start at ₹25,000; creator fees vary by tier.",
+      "icon": "star",
+      "badge": "Hot",
+      "image": "/services-pages/influencer-marketing.jpg",
+      "stat": "UGC",
+      "statLabel": "content you keep and reuse",
+      "priceFrom": "campaigns from ₹25,000",
+      "marketNote": "creator fees vary by tier + management",
+      "offers": [
+        {
+          "name": "Creator Discovery & Vetting",
+          "blurb": "Real audiences, not bought followers",
+          "highlight": false
+        },
+        {
+          "name": "Campaign Strategy",
+          "blurb": "Briefs, deliverables and timelines that stick",
+          "highlight": false
+        },
+        {
+          "name": "Micro-Influencer Programs",
+          "blurb": "Many small voices, better ROI than one big one",
+          "highlight": true
+        },
+        {
+          "name": "Content Collaborations",
+          "blurb": "Co-created posts, reels and reviews",
+          "highlight": false
+        },
+        {
+          "name": "Performance Tracking",
+          "blurb": "Reach, clicks and conversions per creator",
+          "highlight": false
+        },
+        {
+          "name": "UGC Rights Management",
+          "blurb": "Reuse creator content in your own ads",
+          "highlight": false
+        }
+      ]
+    },
+    {
+      "slug": "ai-development",
+      "name": "AI Development",
+      "blurb": "Custom AI systems built to solve real business problems.",
+      "intro": "Beyond off-the-shelf bots: custom AI chatbots, RAG knowledge assistants trained on your data, AI API integrations and automation models built into your workflows. Custom builds start at ₹75,000; the market prices comparable SMB systems at ₹1,00,000–₹4,00,000.",
+      "icon": "brain",
+      "badge": null,
+      "image": "/services-pages/ai-automation.jpg",
+      "stat": "RAG",
+      "statLabel": "assistants trained on YOUR data",
+      "priceFrom": "from ₹75,000",
+      "marketNote": "market: ₹1L–₹4L for custom SMB builds",
+      "offers": [
+        {
+          "name": "Custom AI Chatbots",
+          "blurb": "Purpose-built agents, not template bots",
+          "highlight": false
+        },
+        {
+          "name": "RAG Knowledge Assistants",
+          "blurb": "AI that answers from your documents",
+          "highlight": true
+        },
+        {
+          "name": "AI API Integrations",
+          "blurb": "Claude/GPT wired into your existing tools",
+          "highlight": false
+        },
+        {
+          "name": "Process Automation Models",
+          "blurb": "Decisions and busywork handled by AI",
+          "highlight": false
+        },
+        {
+          "name": "AI Dashboards & Insights",
+          "blurb": "Your data, summarized and explained",
+          "highlight": false
+        },
+        {
+          "name": "Fine-tuned Workflows",
+          "blurb": "Prompts and pipelines tuned to your domain",
+          "highlight": false
+        }
+      ]
+    },
+    {
+      "slug": "ai-customer-support",
+      "name": "AI Customer Support",
+      "blurb": "AI-powered chatbots and virtual assistants for round-the-clock support.",
+      "intro": "First-line support that never sleeps: AI agents on your website and WhatsApp answering from your real knowledge base, with clean human handoff when it matters — most queries resolved instantly, your team kept for the hard ones. Setups start at ₹40,000.",
+      "icon": "messageCircle",
+      "badge": null,
+      "image": "/services-pages/crm-lead-management.jpg",
+      "stat": "24/7",
+      "statLabel": "instant answers, human handoff",
+      "priceFrom": "setup from ₹40,000",
+      "marketNote": "market: ₹75k–₹4L for SMB support bots",
+      "offers": [
+        {
+          "name": "24/7 AI Support Agent",
+          "blurb": "Instant answers at any hour",
+          "highlight": true
+        },
+        {
+          "name": "Website + WhatsApp Coverage",
+          "blurb": "One brain across both channels",
+          "highlight": false
+        },
+        {
+          "name": "Human Handoff Design",
+          "blurb": "Frustration and buying intent routed to people",
+          "highlight": false
+        },
+        {
+          "name": "Knowledge Base Training",
+          "blurb": "Answers from your docs, not the internet",
+          "highlight": false
+        },
+        {
+          "name": "Multilingual Replies",
+          "blurb": "Hindi, English and more from one agent",
+          "highlight": false
+        },
+        {
+          "name": "Support Analytics",
+          "blurb": "What customers ask, what stumps the bot",
+          "highlight": false
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "slug": "disclaimer",
+      "title": "Disclaimer",
+      "sections": [
+        {
+          "copy": "",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Legal",
+          "heading": "Disclaimer",
+          "ctaLabel": "Get my free audit",
+          "highlight": ""
+        },
+        {
+          "body": "The information on this website is provided in good faith and for general information only. While we keep content current, we make no warranties about completeness or accuracy.\n\nMarketing outcomes depend on market, competition, budget and execution. Statistics on this site describe past client results; they are illustrations, not guarantees of future performance. No agency can guarantee specific rankings, and we advise treating any such guarantee — from anyone — as a red flag.\n\nThird-party names, logos and trademarks referenced on this site belong to their respective owners and are used for identification only. External links are provided for convenience; we are not responsible for third-party content.\n\nQuestions about this disclaimer: Info@digisutrasolutions.com.",
+          "type": "richText",
+          "heading": ""
+        }
+      ],
+      "seoTitle": "Disclaimer",
+      "seoDescription": "Disclaimer for DigiSutra Solutions — information provided as-is; marketing results vary by market, budget and execution.",
+      "noIndex": false
+    },
+    {
+      "slug": "sitemap",
+      "title": "Sitemap",
+      "sections": [
+        {
+          "copy": "The main sections of this site. Search engines read the XML version at /sitemap.xml.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Navigate",
+          "heading": "Everything,",
+          "ctaLabel": "Get my free audit",
+          "highlight": "one page"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "All 15 service lines with offers and pricing, from SEO + AI Search to Mobile Apps.",
+              "title": "Services — /services"
+            },
+            {
+              "copy": "Plans, the comparison matrix and straight per-service rates.",
+              "title": "Pricing — /pricing"
+            },
+            {
+              "copy": "Growth playbooks by topic: SEO & AI search, marketing, AI automation.",
+              "title": "Journal — /blog"
+            },
+            {
+              "copy": "Selected projects and case studies.",
+              "title": "Work — /work"
+            },
+            {
+              "copy": "Reach us; every enquiry includes the free 15-page audit.",
+              "title": "Contact — /contact"
+            },
+            {
+              "copy": "About, careers, referral program and payment options.",
+              "title": "Company"
+            },
+            {
+              "copy": "Privacy policy, terms, refund policy, cookie policy and this disclaimer.",
+              "title": "Legal"
+            }
+          ],
+          "heading": "Main sections"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Sitemap",
+      "seoDescription": "All main sections of the DigiSutra Solutions website: services, pricing, blog, work, company and legal pages.",
+      "noIndex": false
+    },
+    {
+      "slug": "trust-center",
+      "title": "Trust Center",
+      "sections": [
+        {
+          "copy": "The practices behind every account we manage and every lead you send us.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Trust",
+          "heading": "Your data,",
+          "ctaLabel": "Get my free audit",
+          "highlight": "handled properly"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "Leads and client data are never sold, shared or used beyond your engagement.",
+              "title": "No resale, ever"
+            },
+            {
+              "copy": "Role-based access with least privilege; client credentials stored in a manager, never in chat.",
+              "title": "Access control"
+            },
+            {
+              "copy": "HTTPS everywhere, HSTS enabled, secure cookies on every session.",
+              "title": "Encrypted transport"
+            },
+            {
+              "copy": "Every change in our client platform is attributed and timestamped.",
+              "title": "Audit logging"
+            },
+            {
+              "copy": "Daily backups with tested restores for sites under our maintenance plans.",
+              "title": "Backups"
+            },
+            {
+              "copy": "Leave anytime — you get your accounts, assets and data, fully documented.",
+              "title": "Clean offboarding"
+            }
+          ],
+          "heading": "Our commitments"
+        },
+        {
+          "body": "Found a vulnerability on this site, or have a data question? Write to Info@digisutrasolutions.com with the subject \"Security\" — reports are acknowledged within one business day.",
+          "type": "richText",
+          "heading": "Questions or reports"
+        }
+      ],
+      "seoTitle": "Trust Center — Security & Data Practices",
+      "seoDescription": "How DigiSutra Solutions handles your data: access control, encrypted transport, audit logging, backups and no data resale — ever.",
+      "noIndex": false
+    },
+    {
+      "slug": "solutions",
+      "title": "Solutions",
+      "sections": [
+        {
+          "copy": "Services are ingredients. Solutions are the meal: search + ads + automation + web composed for your specific business.",
+          "type": "hero",
+          "ctaHref": "/services",
+          "eyebrow": "Solutions",
+          "heading": "One partner,",
+          "ctaLabel": "Browse all services",
+          "highlight": "whole growth system"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "Local SEO + Google Business Profile + WhatsApp automation — calls that book themselves.",
+              "title": "Local service business"
+            },
+            {
+              "copy": "Store development + e-commerce SEO + performance ads + cart-recovery flows.",
+              "title": "E-commerce brand"
+            },
+            {
+              "copy": "LinkedIn ads + content marketing + CRM setup + lead-qualification AI.",
+              "title": "B2B pipeline"
+            },
+            {
+              "copy": "Brand identity + website + SEO foundations + a lead engine from day one.",
+              "title": "Launch from zero"
+            }
+          ],
+          "heading": "Common compositions"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Solutions — Growth Systems for SMBs",
+      "seoDescription": "Fifteen service lines, one growth partner: search, ads, AI automation, CRM, web, apps and brand — composed into a system that fits your business.",
+      "noIndex": false
+    },
+    {
+      "slug": "news-media",
+      "title": "Newsroom",
+      "sections": [
+        {
+          "copy": "The Journal carries our weekly playbooks; announcements and media land here.",
+          "type": "hero",
+          "ctaHref": "/blog",
+          "eyebrow": "Newsroom",
+          "heading": "Insights, trends",
+          "ctaLabel": "Read the Journal",
+          "highlight": "& stories"
+        },
+        {
+          "body": "Company announcements, industry insights and award mentions will be published in this section.\n\nFor practical, in-the-weeds guidance — SEO in the AI era, WhatsApp marketing, automation — the Journal is updated far more often and is the better read.",
+          "type": "richText",
+          "heading": "What lives here"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Newsroom",
+      "seoDescription": "News, insights and stories from DigiSutra Solutions — start with the Journal for weekly growth playbooks.",
+      "noIndex": false
+    },
+    {
+      "slug": "resources",
+      "title": "Free Tools & Resources",
+      "sections": [
+        {
+          "copy": "A suite of free utilities — SEO audit, keyword research, calculators and generators — is in the works.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Resources",
+          "heading": "Free tools,",
+          "ctaLabel": "Get my free audit",
+          "highlight": "launching soon"
+        },
+        {
+          "body": "While the self-serve tools are being built, the most valuable free resource we offer is human-made: the 15-page website audit covering SEO, speed, UX and conversion, delivered within 48 hours.\n\nIt's the same diagnostic we run before any engagement — and it's genuinely free, with no obligation.",
+          "type": "richText",
+          "heading": "Available today"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Free Marketing Tools & Resources",
+      "seoDescription": "Free tools for marketers and founders are launching soon: SEO audit, keyword ideas, ROI calculator and more. The 15-page website audit is available today.",
+      "noIndex": false
+    },
+    {
+      "slug": "about/why-choose-us",
+      "title": "Why Choose Us",
+      "sections": [
+        {
+          "copy": "92% of clients renew year after year. These are the reasons they give.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "About",
+          "heading": "Why brands",
+          "ctaLabel": "Get my free audit",
+          "highlight": "stay with us"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "AEO and GEO are in every SEO retainer — we optimize for AI answers, not just blue links.",
+              "title": "Built for AI-era search"
+            },
+            {
+              "copy": "Ads and content report in leads and ROAS, not impressions.",
+              "title": "Measured like money"
+            },
+            {
+              "copy": "The AI automation we pitch runs our own site, leads and follow-ups.",
+              "title": "We use what we sell"
+            },
+            {
+              "copy": "Retainers pause with 30 days' notice; the audit comes before any commitment.",
+              "title": "No lock-in"
+            },
+            {
+              "copy": "Strategy stays with experienced hands, not handed to interns.",
+              "title": "Senior eyes on your account"
+            },
+            {
+              "copy": "Decisions move at chat speed — no ticket queues.",
+              "title": "WhatsApp-speed support"
+            }
+          ],
+          "heading": "The honest list"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Why Choose DigiSutra Solutions",
+      "seoDescription": "Answer-first SEO for the AI era, ads measured on ROAS, AI automation we use ourselves, and retainers you can pause — why 92% of clients stay.",
+      "noIndex": false
+    },
+    {
+      "slug": "about/global-presence",
+      "title": "Global Presence",
+      "sections": [
+        {
+          "copy": "One HQ, remote-first delivery, overlap hours for every major timezone.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "About",
+          "heading": "From Noida",
+          "ctaLabel": "Get my free audit",
+          "highlight": "to 12 countries"
+        },
+        {
+          "type": "stats",
+          "items": [
+            {
+              "label": "countries served",
+              "value": "12"
+            },
+            {
+              "label": "happy clients",
+              "value": "120+"
+            },
+            {
+              "label": "continents with active clients",
+              "value": "3"
+            },
+            {
+              "label": "HQ — Noida, Delhi NCR",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "body": "Campaigns run on the same Google and Meta platforms whether you're in Sydney, London or New York — geography changes nothing about execution.\n\nWhat we've engineered is communication: overlap hours for your timezone, async reporting you read over coffee, and WhatsApp-speed responses during your business day.\n\nHQ: B-521, iThum Tower B, Sector 62, Noida, Uttar Pradesh 201309, India.",
+          "type": "richText",
+          "heading": "How remote delivery works"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Global Presence — Noida HQ, 12 Countries",
+      "seoDescription": "DigiSutra Solutions works from Noida (Delhi NCR) with clients across 12 countries — remote-first delivery with timezone overlap for every major market.",
+      "noIndex": false
+    },
+    {
+      "slug": "career",
+      "title": "Careers",
+      "sections": [
+        {
+          "copy": "We hire people who like owning outcomes: SEO specialists, performance marketers, AI engineers, developers and designers.",
+          "type": "hero",
+          "ctaHref": "mailto:Info@digisutrasolutions.com",
+          "eyebrow": "Careers",
+          "heading": "Build growth careers,",
+          "ctaLabel": "Write to us",
+          "highlight": "not just campaigns"
+        },
+        {
+          "body": "We're a Noida-based team (B-521, iThum Tower B, Sector 62) serving clients in 12 countries, with hybrid working and outcome-first reviews.\n\nNo openings listed right now? We still read every serious application. Email Info@digisutrasolutions.com with the subject \"Careers\" and links to work you're proud of — a portfolio, a campaign, a repo, anything real.\n\nWe reply to every candidate we shortlist within a week.",
+          "type": "richText",
+          "heading": "How we work"
+        },
+        {
+          "copy": "Send your CV and one paragraph on the growth problem you most enjoy solving.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Think you'd make us better?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Careers at DigiSutra Solutions, Noida",
+      "seoDescription": "Build growth careers, not just campaigns — SEO, performance marketing, AI engineering and design roles at DigiSutra Solutions, Noida.",
+      "noIndex": false
+    },
+    {
+      "slug": "payment",
+      "title": "Payment Options",
+      "sections": [
+        {
+          "copy": "Every engagement is invoiced with GST; pay however suits your finance team.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Payments",
+          "heading": "Simple, documented",
+          "ctaLabel": "Get my free audit",
+          "highlight": "payments"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "Instant settlement to our business UPI — preferred for Indian clients.",
+              "title": "UPI"
+            },
+            {
+              "copy": "Visa, Mastercard, Maestro and RuPay via secure payment links.",
+              "title": "Cards"
+            },
+            {
+              "copy": "NEFT/RTGS/IMPS to our current account; details on every invoice.",
+              "title": "Bank transfer"
+            },
+            {
+              "copy": "For international clients billing in USD or other currencies.",
+              "title": "PayPal"
+            }
+          ],
+          "heading": "Ways to pay"
+        },
+        {
+          "body": "Marketing retainers are billed monthly in advance; development projects are milestone-based with a kickoff invoice.\n\nQuarterly billing saves roughly 12% on retainers. GST invoices accompany every payment, and receipts are issued the same day funds clear.",
+          "type": "richText",
+          "heading": "Billing terms"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Payment Options",
+      "seoDescription": "Pay DigiSutra Solutions by UPI, cards, bank transfer or PayPal. GST invoices on every payment; quarterly billing saves ~12%.",
+      "noIndex": false
+    },
+    {
+      "slug": "referral-program",
+      "title": "Referral Program",
+      "sections": [
+        {
+          "copy": "Refer a business to us and earn rewards when they become a paying client — simple as that.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Referrals",
+          "heading": "Know someone who",
+          "ctaLabel": "Get my free audit",
+          "highlight": "needs to grow?"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "Send an intro on WhatsApp or email connecting us with the business.",
+              "title": "1 · Introduce"
+            },
+            {
+              "copy": "They get the free 15-page audit and an honest proposal — no spam, no pressure.",
+              "title": "2 · We pitch"
+            },
+            {
+              "copy": "When they sign, you earn a referral reward on their first months of billing. Current terms on request.",
+              "title": "3 · You earn"
+            }
+          ],
+          "heading": "How it works"
+        },
+        {
+          "body": "Rewards are paid once the referred client's first invoice clears. Agencies and consultants can also ask about our white-label arrangements instead.\n\nMessage +91-9953-900123 with the subject \"Referral\" to register an introduction before making it.",
+          "type": "richText",
+          "heading": ""
+        },
+        {
+          "copy": "One WhatsApp message is all it takes to register your referral.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Ready to refer?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Referral Program",
+      "seoDescription": "Refer a business to DigiSutra Solutions and earn rewards when they become a client. Simple terms, paid on real revenue.",
+      "noIndex": false
+    },
+    {
+      "slug": "about/technology",
+      "title": "Technology & Innovation",
+      "sections": [
+        {
+          "copy": "Marketing promises are cheap. This is the engineering underneath ours.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "About",
+          "heading": "The stack behind",
+          "ctaLabel": "Get my free audit",
+          "highlight": "the results"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "Next.js/React and hardened WordPress — sub-2-second targets, Core Web Vitals in the green.",
+              "title": "Modern web"
+            },
+            {
+              "copy": "Claude-powered agents for support, lead qualification and content workflows — the same systems we sell.",
+              "title": "AI, applied"
+            },
+            {
+              "copy": "GA4 with server-side tracking, call and WhatsApp attribution — every rupee traced.",
+              "title": "Honest measurement"
+            },
+            {
+              "copy": "Answer-first structures and schema so AI assistants cite our clients as sources.",
+              "title": "AI-search-ready content"
+            }
+          ],
+          "heading": "What we build on"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Technology & Innovation",
+      "seoDescription": "The stack behind the results: Next.js and WordPress builds, Claude-powered AI automation, server-side tracking and answer-engine-ready content systems.",
+      "noIndex": false
+    },
+    {
+      "slug": "work/clients",
+      "title": "Our Clients",
+      "sections": [
+        {
+          "copy": "120+ brands across e-commerce, healthcare, fintech, travel and B2B.",
+          "type": "hero",
+          "ctaHref": "/work",
+          "eyebrow": "Work",
+          "heading": "The company",
+          "ctaLabel": "See the work",
+          "highlight": "we keep"
+        },
+        {
+          "type": "stats",
+          "items": [
+            {
+              "label": "happy clients",
+              "value": "120+"
+            },
+            {
+              "label": "countries",
+              "value": "12"
+            },
+            {
+              "label": "retention",
+              "value": "92%"
+            },
+            {
+              "label": "avg ROAS",
+              "value": "5.8×"
+            }
+          ]
+        },
+        {
+          "body": "From KART360's marketplace growth to Medline+'s healthcare SEO and AgroLink's lead engine, our longest relationships started the same way yours could: with the free audit and one honest conversation.",
+          "type": "richText",
+          "heading": ""
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Our Clients",
+      "seoDescription": "120+ startups and SMBs across 12 countries — e-commerce, healthcare, fintech, travel and B2B — trust DigiSutra Solutions with their growth.",
+      "noIndex": false
+    },
+    {
+      "slug": "work/case-studies",
+      "title": "Case Studies",
+      "sections": [
+        {
+          "copy": "Challenge, build, numbers — selected engagements written up honestly.",
+          "type": "hero",
+          "ctaHref": "/work",
+          "eyebrow": "Work",
+          "heading": "Proof,",
+          "ctaLabel": "Browse the work grid",
+          "highlight": "documented"
+        },
+        {
+          "body": "Our case studies live on the Work page alongside the project grid, and deeper teardowns appear in the Journal.\n\nWant a case study from your industry specifically? Ask on WhatsApp — if we've done comparable work, we'll walk you through it on a call.",
+          "type": "richText",
+          "heading": ""
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Case Studies",
+      "seoDescription": "Documented client results: the challenge, what we built, and the numbers it moved. Selected case studies from DigiSutra Solutions.",
+      "noIndex": false
+    },
+    {
+      "slug": "work/results",
+      "title": "Results",
+      "sections": [
+        {
+          "copy": "Averages across active clients — not cherry-picked highlights.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Work",
+          "heading": "Numbers we're",
+          "ctaLabel": "Get my free audit",
+          "highlight": "measured by"
+        },
+        {
+          "type": "stats",
+          "items": [
+            {
+              "label": "average ROAS",
+              "value": "5.8×"
+            },
+            {
+              "label": "avg organic growth, 12 mo",
+              "value": "+214%"
+            },
+            {
+              "label": "client retention",
+              "value": "92%"
+            },
+            {
+              "label": "audit turnaround",
+              "value": "48h"
+            }
+          ]
+        },
+        {
+          "body": "Every engagement reports against numbers agreed upfront — leads, revenue, rankings, ROAS — reviewed on a live dashboard, not a quarterly PDF.\n\nResults vary by market and budget; the audit will tell you what's realistic for yours before you spend anything.",
+          "type": "richText",
+          "heading": ""
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Client Results",
+      "seoDescription": "The numbers behind the work: average 5.8× ROAS, +214% organic growth over 12 months, 92% client retention.",
+      "noIndex": false
+    },
+    {
+      "slug": "work/portfolio",
+      "title": "Portfolio",
+      "sections": [
+        {
+          "copy": "Websites, stores, campaigns and automations — the grid tells it better than prose.",
+          "type": "hero",
+          "ctaHref": "/work",
+          "eyebrow": "Work",
+          "heading": "Selected",
+          "ctaLabel": "Open the project grid",
+          "highlight": "projects"
+        },
+        {
+          "body": "The Work page holds the browsable grid with categories and outcomes. For a guided tour relevant to your industry, book a call — we'll show comparable projects and what they moved.",
+          "type": "richText",
+          "heading": ""
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Portfolio",
+      "seoDescription": "Selected websites, stores and campaigns by DigiSutra Solutions — browse the project grid.",
+      "noIndex": false
+    },
+    {
+      "slug": "work/strategy-consulting",
+      "title": "Strategy & Consulting",
+      "sections": [
+        {
+          "copy": "Channel mix, budgets and funnel design decided before a rupee goes to ads.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Work",
+          "heading": "Strategy first,",
+          "ctaLabel": "Get my free audit",
+          "highlight": "spend second"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "The 15-page audit expanded into a quarter-by-quarter plan with budgets.",
+              "title": "Growth audit & roadmap"
+            },
+            {
+              "copy": "Where your next ₹1L should go: search, social, direct or automation.",
+              "title": "Channel-mix strategy"
+            },
+            {
+              "copy": "Landing pages, follow-ups and CRM stages mapped end to end.",
+              "title": "Funnel design"
+            },
+            {
+              "copy": "Senior strategy on retainer, your team executes — or ours does.",
+              "title": "Fractional growth lead"
+            }
+          ],
+          "heading": "Consulting engagements"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Growth Strategy & Consulting",
+      "seoDescription": "Growth strategy engagements: channel mix, budget allocation, funnel design and quarterly roadmaps — with or without execution.",
+      "noIndex": false
+    },
+    {
+      "slug": "news-media/latest-news",
+      "title": "Latest News",
+      "sections": [
+        {
+          "copy": "Company announcements land here; playbooks live in the Journal.",
+          "type": "hero",
+          "ctaHref": "/blog",
+          "eyebrow": "Newsroom",
+          "heading": "Latest",
+          "ctaLabel": "Read the Journal",
+          "highlight": "news"
+        },
+        {
+          "body": "DigiSutra campaigns are now running on JioHotstar Smart TV inventory — ask us about connected-TV advertising for Indian audiences.\n\nOur service catalog expanded to fifteen lines including AI Development, CRM & Lead Management and Mobile App Development.",
+          "type": "richText",
+          "heading": "Recent"
+        }
+      ],
+      "seoTitle": "Latest News",
+      "seoDescription": "Announcements and updates from DigiSutra Solutions.",
+      "noIndex": false
+    },
+    {
+      "slug": "news-media/industry-insights",
+      "title": "Industry Insights",
+      "sections": [
+        {
+          "copy": "The shifts we're acting on for clients right now.",
+          "type": "hero",
+          "ctaHref": "/blog",
+          "eyebrow": "Newsroom",
+          "heading": "Where the industry",
+          "ctaLabel": "Read the analysis",
+          "highlight": "is heading"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "copy": "Google AI Overviews and ChatGPT answer before anyone clicks — being their cited source is the new page one.",
+              "title": "AI answers eat clicks"
+            },
+            {
+              "copy": "For Indian SMBs, carts recover and bookings confirm inside chat, not email.",
+              "title": "WhatsApp is the funnel"
+            },
+            {
+              "copy": "Speed-to-lead beats budget: the first credible reply usually wins the deal.",
+              "title": "Automation is table stakes"
+            }
+          ],
+          "heading": "Three shifts that matter"
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Industry Insights",
+      "seoDescription": "Where digital marketing is heading: AI search, WhatsApp commerce and automation — with links to our deepest analysis.",
+      "noIndex": false
+    },
+    {
+      "slug": "news-media/awards",
+      "title": "Awards & Recognition",
+      "sections": [
+        {
+          "copy": "The trophies we care about most are on client dashboards.",
+          "type": "hero",
+          "ctaHref": "/contact",
+          "eyebrow": "Newsroom",
+          "heading": "Recognition",
+          "ctaLabel": "Get my free audit",
+          "highlight": "& milestones"
+        },
+        {
+          "body": "Formal awards and certifications will be listed here as they're announced.\n\nMeanwhile the record we're proudest of: 92% client retention and a 5.8× average ROAS across 12 countries — recognition renewed every month, by the people paying the bills.",
+          "type": "richText",
+          "heading": ""
+        },
+        {
+          "copy": "The free 15-page audit tells you exactly what will move your numbers first — delivered in 48 hours.",
+          "type": "cta",
+          "ctaHref": "/contact",
+          "heading": "Not sure where to start?",
+          "ctaLabel": "Talk to us"
+        }
+      ],
+      "seoTitle": "Awards & Recognition",
+      "seoDescription": "Recognition and milestones for DigiSutra Solutions — and the client results we consider the real trophies.",
+      "noIndex": false
+    }
+  ]
+}

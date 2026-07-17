@@ -2,20 +2,42 @@ import { cache } from "react";
 import { db } from "@/lib/db";
 import type { Page, PageStatus } from "@prisma/client";
 
-/** Slugs that would shadow real routes or static assets. */
-export const RESERVED_SLUGS = new Set([
+/* Slug reservation. PREFIXES block any page under that first segment
+   (their dynamic routes would shadow the CMS catch-all, so such pages
+   could never render). EXACT blocks only the precise slug — nested pages
+   beneath these (e.g. "work/clients") are fine because those code routes
+   have no dynamic children. */
+export const RESERVED_PREFIXES = new Set([
   "admin",
   "api",
+  "_next",
+  "uploads",
+  "blog",
+  "services",
+]);
+
+export const RESERVED_SLUGS = new Set([
   "work",
   "login",
+  "pricing",
+  "contact",
+  "search",
   "sitemap.xml",
   "robots.txt",
   "favicon.ico",
   "videos",
-  "_next",
 ]);
 
 export const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/** Page slugs may be nested (e.g. "about/why-choose-us"); each segment
+    follows SLUG_REGEX. Other content types stay single-segment. */
+export const PAGE_SLUG_REGEX =
+  /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/;
+
+export function isReservedSlug(slug: string): boolean {
+  return RESERVED_PREFIXES.has(slug.split("/")[0]) || RESERVED_SLUGS.has(slug);
+}
 
 /**
  * A SCHEDULED page whose time has arrived is live; flipping the stored
