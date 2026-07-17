@@ -121,7 +121,7 @@ export default function AuditForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="mt-3 w-full cursor-pointer rounded-full bg-stone-900 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-60"
+        className="shine-sweep mt-3 w-full cursor-pointer rounded-full bg-stone-900 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-60"
       >
         {status === "sending" ? "Sending…" : "Get my free growth audit ↗"}
       </button>
