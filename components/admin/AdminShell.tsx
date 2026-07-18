@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ChartBar,
+  ChevronDown,
   ClipboardList,
   CornerUpRight,
   FileText,
@@ -34,26 +35,60 @@ import { can, ROLE_LABELS } from "@/lib/auth/rbac";
 import type { SessionUser } from "@/lib/auth/session";
 import NotificationsBell from "@/components/admin/NotificationsBell";
 
-const NAV = [
+/* Sidebar structure: Dashboard + Leads stay pinned; everything else lives
+   in collapsible groups. The group holding the current page auto-opens and
+   open/closed choices persist in localStorage. */
+const PINNED = [
   { label: "Dashboard", href: "/admin", icon: Gauge, permission: null },
-  { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage" },
-  { label: "Services", href: "/admin/services", icon: LayoutGrid, permission: "services.manage" },
-  { label: "Pricing", href: "/admin/pricing", icon: IndianRupee, permission: "pricing.manage" },
-  { label: "Pages", href: "/admin/pages", icon: FileText, permission: "pages.view" },
-  { label: "Blog", href: "/admin/blog", icon: Newspaper, permission: "blog.manage" },
-  { label: "Media", href: "/admin/media", icon: ImageIcon, permission: "pages.view" },
-  { label: "Videos", href: "/admin/videos", icon: Video, permission: "pages.view" },
-  { label: "Forms", href: "/admin/forms", icon: ClipboardList, permission: "forms.manage" },
-  { label: "Comments", href: "/admin/comments", icon: MessageSquare, permission: "comments.moderate" },
-  { label: "Ads", href: "/admin/ads", icon: Megaphone, permission: "ads.manage" },
-  { label: "Menus", href: "/admin/menus", icon: MenuSquare, permission: "menus.manage" },
-  { label: "Subscribers", href: "/admin/subscribers", icon: Mail, permission: "newsletter.manage" },
-  { label: "Analytics", href: "/admin/analytics", icon: ChartBar, permission: "analytics.view" },
-  { label: "Redirects", href: "/admin/redirects", icon: CornerUpRight, permission: "redirects.manage" },
-  { label: "Users", href: "/admin/users", icon: Users, permission: "users.manage" },
-  { label: "Settings", href: "/admin/settings", icon: Settings, permission: "settings.manage" },
-  { label: "Audit log", href: "/admin/audit", icon: ScrollText, permission: "audit.read" },
+  { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage", badge: "newLeads" },
 ] as const;
+
+const NAV_GROUPS = [
+  {
+    label: "Content",
+    items: [
+      { label: "Pages", href: "/admin/pages", icon: FileText, permission: "pages.view" },
+      { label: "Blog", href: "/admin/blog", icon: Newspaper, permission: "blog.manage" },
+      { label: "Media", href: "/admin/media", icon: ImageIcon, permission: "pages.view" },
+      { label: "Videos", href: "/admin/videos", icon: Video, permission: "pages.view" },
+      { label: "Forms", href: "/admin/forms", icon: ClipboardList, permission: "forms.manage" },
+      { label: "Comments", href: "/admin/comments", icon: MessageSquare, permission: "comments.moderate", badge: "pendingComments" },
+    ],
+  },
+  {
+    label: "Site setup",
+    items: [
+      { label: "Menus", href: "/admin/menus", icon: MenuSquare, permission: "menus.manage" },
+      { label: "Services", href: "/admin/services", icon: LayoutGrid, permission: "services.manage" },
+      { label: "Pricing", href: "/admin/pricing", icon: IndianRupee, permission: "pricing.manage" },
+      { label: "Ads", href: "/admin/ads", icon: Megaphone, permission: "ads.manage" },
+      { label: "Redirects", href: "/admin/redirects", icon: CornerUpRight, permission: "redirects.manage" },
+    ],
+  },
+  {
+    label: "Audience",
+    items: [
+      { label: "Subscribers", href: "/admin/subscribers", icon: Mail, permission: "newsletter.manage" },
+      { label: "Analytics", href: "/admin/analytics", icon: ChartBar, permission: "analytics.view" },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Users", href: "/admin/users", icon: Users, permission: "users.manage" },
+      { label: "Settings", href: "/admin/settings", icon: Settings, permission: "settings.manage" },
+      { label: "Audit log", href: "/admin/audit", icon: ScrollText, permission: "audit.read" },
+    ],
+  },
+] as const;
+
+type NavItem = {
+  label: string;
+  href: string;
+  icon: typeof Gauge;
+  permission: string | null;
+  badge?: "newLeads" | "pendingComments";
+};
 
 export default function AdminShell({
   user,
@@ -66,6 +101,64 @@ export default function AdminShell({
   const router = useRouter();
   const [dark, setDark] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const [badges, setBadges] = useState<{ newLeads: number; pendingComments: number }>({
+    newLeads: 0,
+    pendingComments: 0,
+  });
+
+  // Restore persisted group state, then make sure the active page's group
+  // is open (deferred past commit per repo convention).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      let open = new Set<string>();
+      try {
+        const stored = localStorage.getItem("ds-admin-nav");
+        if (stored) open = new Set(JSON.parse(stored) as string[]);
+      } catch {
+        /* corrupted state — start fresh */
+      }
+      for (const group of NAV_GROUPS) {
+        if (group.items.some((i) => pathname.startsWith(i.href))) open.add(group.label);
+      }
+      setOpenGroups(open);
+    }, 0);
+    return () => clearTimeout(t);
+  }, [pathname]);
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      localStorage.setItem("ds-admin-nav", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  // Work-waiting badges (new leads, pending comments), refreshed with the
+  // same cadence as the notifications bell.
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch(withBase("/api/admin/badges"));
+        const data = await res.json();
+        if (data.ok && !cancelled) {
+          setBadges({ newLeads: data.newLeads, pendingComments: data.pendingComments });
+        }
+      } catch {
+        /* transient */
+      }
+    }
+    const t = setTimeout(load, 0);
+    const id = setInterval(load, 60 * 1000);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+      clearInterval(id);
+    };
+  }, [pathname]);
 
   // Silent session keep-alive: rotate the refresh token and mint a new
   // access token well before the 15-minute expiry. On failure, fall back
@@ -118,9 +211,47 @@ export default function AdminShell({
     router.refresh();
   }
 
-  const links = NAV.filter(
-    (item) => item.permission === null || can(user.role, item.permission),
-  );
+  const allowed = (item: NavItem) =>
+    item.permission === null || can(user.role, item.permission as never);
+
+  const badgeFor = (item: NavItem) =>
+    item.badge === "newLeads"
+      ? badges.newLeads
+      : item.badge === "pendingComments"
+        ? badges.pendingComments
+        : 0;
+
+  const renderLink = (item: NavItem, indent = false) => {
+    const active =
+      item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+    const count = badgeFor(item);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={() => setMobileNav(false)}
+        className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+          indent ? "ml-2" : ""
+        } ${
+          active
+            ? "bg-orange-600 text-white"
+            : "text-stone-600 hover:bg-orange-50 hover:text-orange-700 dark:text-stone-300 dark:hover:bg-stone-800"
+        }`}
+      >
+        <item.icon size={16} aria-hidden />
+        {item.label}
+        {count > 0 && (
+          <span
+            className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${
+              active ? "bg-white/25 text-white" : "bg-orange-600 text-white"
+            }`}
+          >
+            {count > 99 ? "99+" : count}
+          </span>
+        )}
+      </Link>
+    );
+  };
 
   const sidebar = (
     <nav className="flex h-full flex-col" aria-label="Admin">
@@ -144,26 +275,36 @@ export default function AdminShell({
           CMS
         </p>
       </div>
-      <div className="flex-1 space-y-1 px-3">
-        {links.map((item) => {
-          const active =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname.startsWith(item.href);
+      <div className="flex-1 space-y-0.5 overflow-y-auto px-3">
+        {PINNED.filter((i) => allowed(i as NavItem)).map((i) => renderLink(i as NavItem))}
+        {NAV_GROUPS.map((group) => {
+          const items = group.items.filter((i) => allowed(i as NavItem));
+          if (items.length === 0) return null;
+          const isOpen = openGroups.has(group.label);
+          const groupHasWork = items.some((i) => badgeFor(i as NavItem) > 0);
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileNav(false)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-orange-600 text-white"
-                  : "text-stone-600 hover:bg-orange-50 hover:text-orange-700 dark:text-stone-300 dark:hover:bg-stone-800"
-              }`}
-            >
-              <item.icon size={16} aria-hidden />
-              {item.label}
-            </Link>
+            <div key={group.label} className="pt-2">
+              <button
+                onClick={() => toggleGroup(group.label)}
+                aria-expanded={isOpen}
+                className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-stone-400 transition-colors hover:text-orange-700 dark:hover:text-orange-400"
+              >
+                {group.label}
+                {!isOpen && groupHasWork && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-orange-500" aria-hidden />
+                )}
+                <ChevronDown
+                  size={12}
+                  aria-hidden
+                  className={`ml-auto transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`}
+                />
+              </button>
+              {isOpen && (
+                <div className="space-y-0.5">
+                  {items.map((i) => renderLink(i as NavItem, true))}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
