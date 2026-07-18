@@ -125,12 +125,23 @@ export default function AdminShell({
   const sidebar = (
     <nav className="flex h-full flex-col" aria-label="Admin">
       <div className="px-5 pb-6 pt-5">
-        <Link href="/admin" className="font-display text-lg font-extrabold italic tracking-tight">
-          <span className="text-orange-500">DIGI</span>
-          <span className="text-stone-800 dark:text-stone-100">SUTRA</span>
+        <Link href="/admin" className="block">
+          {/* Light mode: full-color logo; dark mode: the light footer variant. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={withBase("/logo.png")}
+            alt="DigiSutra Solutions"
+            className="h-10 w-auto object-contain dark:hidden"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={withBase("/footer-logo.webp")}
+            alt="DigiSutra Solutions"
+            className="hidden h-10 w-auto object-contain dark:block"
+          />
         </Link>
-        <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-stone-400">
-          CMS · Phase 1
+        <p className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-stone-400">
+          CMS
         </p>
       </div>
       <div className="flex-1 space-y-1 px-3">

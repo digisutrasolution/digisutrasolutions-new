@@ -41,8 +41,8 @@ export default async function AdminDashboardPage() {
         Welcome back, {user?.name.split(" ")[0]}
       </h1>
       <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-        Phase 1 foundation is live — authentication, roles and auditing.
-        Content management arrives in Phase 2.
+        Your site at a glance — leads, content, menus and pricing are all
+        managed from here.
       </p>
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
