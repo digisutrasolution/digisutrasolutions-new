@@ -72,14 +72,15 @@ export default async function ServicesPage() {
           Not sure where to start?
         </h2>
         <p className="max-w-xl text-sm leading-relaxed text-stone-600">
-          The free 15-page audit tells you exactly which of these will move
-          your numbers first — delivered in 48 hours, no strings.
+          Book a free 30-minute expert call — a strategist tells you exactly
+          which of these will move your numbers first, backed by a free
+          15-page audit of your site.
         </p>
         <Link
           href="/contact"
           className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#F26419] px-7 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600"
         >
-          Get my free audit <ArrowRight size={15} aria-hidden />
+          Claim your free expert call <ArrowRight size={15} aria-hidden />
         </Link>
       </div>
     </section>

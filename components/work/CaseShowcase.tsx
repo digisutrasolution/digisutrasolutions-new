@@ -187,14 +187,15 @@ export default function CaseShowcase({ cases }: { cases: WorkCase[] }) {
           </span>
         </h2>
         <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-400">
-          Every engagement starts the same way these did — with a free 15-page
-          audit that shows exactly where the growth is hiding.
+          Every engagement here started with an honest conversation — a free
+          expert call, plus a 15-page audit showing exactly where the growth
+          is hiding.
         </p>
         <Link
           href="/contact"
           className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#F26419] px-7 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600"
         >
-          Get my free audit <ArrowRight size={14} aria-hidden />
+          Claim your free expert call <ArrowRight size={14} aria-hidden />
         </Link>
       </div>
     </div>

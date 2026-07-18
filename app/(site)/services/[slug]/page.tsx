@@ -163,7 +163,7 @@ export default async function ServiceCategoryPage({
               href="/contact"
               className="inline-flex items-center gap-2 rounded-full bg-[#F26419] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600"
             >
-              Get my free audit <ArrowRight size={14} aria-hidden />
+              Claim your free expert call <ArrowRight size={14} aria-hidden />
             </Link>
             {service.priceFrom && (
               <span className="text-sm text-stone-300">

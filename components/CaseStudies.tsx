@@ -71,7 +71,7 @@ export default function CaseStudies() {
           href="/contact"
           className="shine-sweep inline-block rounded-full bg-[#F26419] px-7 py-3.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
         >
-          Get results like these — free growth audit →
+          Get results like these — book your free expert call →
         </Link>
       </div>
     </section>

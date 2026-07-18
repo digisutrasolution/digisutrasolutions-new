@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { createElement } from "react";
 import {
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import PricingMatrix from "@/components/pricing/PricingMatrix";
 import { navIcon } from "@/components/nav-icons";
+import { withBase } from "@/lib/base-path";
 import { getLiveFaqs } from "@/lib/faq";
 import { getLivePricing } from "@/lib/pricing";
 import { SITE_URL } from "@/lib/site";
@@ -71,9 +73,19 @@ export default async function PricingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Dark hero */}
-      <div className="bg-stone-900">
-        <div className="mx-auto max-w-[1280px] px-6 pb-14 pt-10 text-center sm:pb-16 sm:pt-12">
+      {/* Dark hero — duotone planning photo under a heavy scrim */}
+      <div className="relative overflow-hidden bg-stone-900">
+        <Image
+          src={withBase("/pricing-hero.jpg")}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
+        <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,10,5,0.93),rgba(18,10,5,0.84)_55%,rgba(18,10,5,0.93))]" aria-hidden />
+        <div className="relative mx-auto max-w-[1280px] px-6 pb-14 pt-10 text-center sm:pb-16 sm:pt-12">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">
             Pricing
           </p>
@@ -102,7 +114,9 @@ export default async function PricingPage() {
       </div>
 
       <section className="mx-auto max-w-[1280px] px-6">
-        <div className="-mt-6">
+        {/* relative so the billing toggle paints above the hero's absolute
+            image/scrim layers in the -mt-6 overlap zone */}
+        <div className="relative -mt-6">
           <PricingMatrix plans={plans} matrix={matrix} />
         </div>
 
@@ -198,10 +212,10 @@ export default async function PricingPage() {
             href="/contact"
             className="inline-flex items-center gap-2 rounded-full bg-[#F26419] px-8 py-3.5 text-sm font-bold text-white transition-colors hover:bg-orange-600"
           >
-            Not sure? Start with the free audit <ArrowRight size={14} aria-hidden />
+            Claim your free expert call <ArrowRight size={14} aria-hidden />
           </Link>
           <p className="mt-3 text-xs text-stone-400">
-            48-hour turnaround · tells you exactly what to buy (and what not to)
+            30 minutes with a growth strategist — leave with a clear plan, whether you hire us or not
           </p>
         </div>
       </section>

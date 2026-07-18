@@ -121,15 +121,15 @@ export default async function FaqPage() {
           Question not on the list?
         </h2>
         <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-400">
-          Message us on WhatsApp — a real human replies the same day. Or start
-          with the free 15-page audit and get answers specific to your site.
+          Message us on WhatsApp — a real human replies the same day. Or book a
+          free 30-minute expert call and get answers specific to your business.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/contact"
             className="inline-flex items-center gap-2 rounded-full bg-[#F26419] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600"
           >
-            Get my free audit <ArrowRight size={14} aria-hidden />
+            Claim your free expert call <ArrowRight size={14} aria-hidden />
           </Link>
           <a
             href={WA_HREF}
