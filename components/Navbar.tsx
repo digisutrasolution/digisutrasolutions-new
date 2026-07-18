@@ -484,16 +484,19 @@ function MegaPanel({
         <div className="w-[252px] shrink-0 self-stretch" />
         {groups ? (
           <div
-            className="flex-1 bg-white p-4"
+            className="min-w-0 flex-1 bg-white p-4"
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${groups.length}, 1fr)`,
+              // minmax(0,1fr): grid columns default to min-width:auto, so
+              // truncated (nowrap) descriptions would widen the column and
+              // shove the featured card off the panel instead of ellipsizing.
+              gridTemplateColumns: `repeat(${groups.length}, minmax(0, 1fr))`,
               gap: "0 0.75rem",
               alignContent: "start",
             }}
           >
             {groups.map((g) => (
-              <div key={g || "_"}>
+              <div key={g || "_"} className="min-w-0">
                 {g && (
                   <p className="mega-link px-2 pb-1 pt-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-800">
                     {g}
@@ -509,10 +512,10 @@ function MegaPanel({
           </div>
         ) : (
           <div
-            className="flex-1 bg-white p-4"
+            className="min-w-0 flex-1 bg-white p-4"
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${item.cols ?? 2}, 1fr)`,
+              gridTemplateColumns: `repeat(${item.cols ?? 2}, minmax(0, 1fr))`,
               gap: "0.1rem",
               alignContent: "start",
             }}
