@@ -2,15 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { createElement } from "react";
-import {
-  ArrowRight,
-  ChartLine,
-  Earth,
-  FileSearch,
-  PauseCircle,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { ArrowRight, ChartLine, Earth, ShieldCheck, Users } from "lucide-react";
 import PricingMatrix from "@/components/pricing/PricingMatrix";
 import { navIcon } from "@/components/nav-icons";
 import { withBase } from "@/lib/base-path";
@@ -115,59 +107,11 @@ export default async function PricingPage() {
 
       <section className="mx-auto max-w-[1280px] px-6">
         {/* relative so the billing toggle paints above the hero's absolute
-            image/scrim layers in the -mt-6 overlap zone */}
+            image/scrim layers in the -mt-6 overlap zone. Matrix, risk strip
+            and rate card live in the client component so the INR/USD toggle
+            covers them all. */}
         <div className="relative -mt-6">
-          <PricingMatrix plans={plans} matrix={matrix} />
-        </div>
-
-        {/* Risk reversal */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-dashed border-stone-200 pt-6 text-sm text-stone-600">
-          <span className="flex items-center gap-1.5">
-            <PauseCircle size={15} className="text-[#F26419]" aria-hidden /> Pause with 30 days notice
-          </span>
-          <span className="flex items-center gap-1.5">
-            <FileSearch size={15} className="text-[#F26419]" aria-hidden /> Free 15-page audit before you pay
-          </span>
-          <span className="flex items-center gap-1.5">
-            <ChartLine size={15} className="text-[#F26419]" aria-hidden /> Avg client: 5.8× ROAS
-          </span>
-        </div>
-
-        {/* Rate card */}
-        <h2 className="font-display mt-16 text-center text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">
-          Buying one thing?{" "}
-          <span className="font-serif-accent font-medium italic text-orange-600">
-            Straight rates.
-          </span>
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-stone-600">
-          Every project runs on a fixed quote agreed before work starts — the
-          grey line under each rate is what the Indian market charges for the
-          same scope.
-        </p>
-        <div className="mt-8 overflow-hidden rounded-2xl border border-stone-200 bg-white">
-          <div className="grid lg:grid-cols-2">
-            {rateCard.map((r, i) => (
-              <div
-                key={r.label}
-                className={`flex items-center justify-between gap-6 border-t border-stone-100 px-6 py-4 transition-colors hover:bg-[#FFFBF7] ${
-                  i === 0 ? "border-t-0" : ""
-                } ${i === 1 ? "lg:border-t-0" : ""} ${
-                  i % 2 === 1 ? "lg:border-l lg:border-l-stone-100" : ""
-                }`}
-              >
-                <div className="min-w-0">
-                  <p className="font-display text-sm font-bold text-stone-900">{r.label}</p>
-                  {r.marketNote && (
-                    <p className="mt-0.5 text-xs text-stone-400">{r.marketNote}</p>
-                  )}
-                </div>
-                <span className="font-display shrink-0 text-sm font-bold text-emerald-700">
-                  {r.price}
-                </span>
-              </div>
-            ))}
-          </div>
+          <PricingMatrix plans={plans} matrix={matrix} rateCard={rateCard} />
         </div>
 
         {/* Pricing FAQs (admin-managed) */}

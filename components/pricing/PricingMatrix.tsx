@@ -2,24 +2,32 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Info } from "lucide-react";
-import type { MatrixRowDef, PlanDef } from "@/lib/pricing";
+import { ChartLine, FileSearch, Info, PauseCircle } from "lucide-react";
+import { inrToUsdDisplay, USD_RATE } from "@/lib/currency";
+import type { MatrixRowDef, PlanDef, RateRowDef } from "@/lib/pricing";
 
-/* Billing toggle + plan header cards + feature comparison matrix. The
-   recommended plan's column is lifted with an orange frame end to end. */
+/* Billing + currency toggles, plan header cards, feature comparison matrix,
+   risk-reversal strip and the one-off rate card. The recommended plan's
+   column is lifted with an orange frame end to end. USD prices are display
+   conversions of the INR figures (lib/currency.ts); market notes stay in
+   INR — they describe the Indian market. */
 export default function PricingMatrix({
   plans,
   matrix,
+  rateCard,
 }: {
   plans: (PlanDef & { period?: string })[];
   matrix: MatrixRowDef[];
+  rateCard: RateRowDef[];
 }) {
   const [quarterly, setQuarterly] = useState(true);
+  const [usd, setUsd] = useState(false);
   const hasQuarterly = plans.some((p) => p.quarterlyPrice);
   const cols = plans.length;
 
+  const money = (s: string) => (usd ? inrToUsdDisplay(s) : s);
   const priceFor = (p: PlanDef) =>
-    quarterly && p.quarterlyPrice ? p.quarterlyPrice : p.price;
+    money(quarterly && p.quarterlyPrice ? p.quarterlyPrice : p.price);
 
   const colCls = (i: number, extra = "") => {
     const p = plans[i];
@@ -30,29 +38,38 @@ export default function PricingMatrix({
     }`;
   };
 
+  const pillCls = (on: boolean) =>
+    `cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+      on ? "bg-[#FDBA74] text-stone-900" : "text-stone-400 hover:text-white"
+    }`;
+
   return (
     <div>
-      {hasQuarterly && (
-        <div className="flex justify-center">
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {hasQuarterly && (
           <div className="inline-flex items-center gap-1 rounded-full bg-stone-800 p-1">
-            <button
-              onClick={() => setQuarterly(false)}
-              className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
-                !quarterly ? "bg-[#FDBA74] text-stone-900" : "text-stone-400 hover:text-white"
-              }`}
-            >
+            <button onClick={() => setQuarterly(false)} className={pillCls(!quarterly)}>
               Monthly
             </button>
-            <button
-              onClick={() => setQuarterly(true)}
-              className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
-                quarterly ? "bg-[#FDBA74] text-stone-900" : "text-stone-400 hover:text-white"
-              }`}
-            >
+            <button onClick={() => setQuarterly(true)} className={pillCls(quarterly)}>
               Quarterly <span className="font-bold text-orange-900">save ~12%</span>
             </button>
           </div>
+        )}
+        <div className="inline-flex items-center gap-1 rounded-full bg-stone-800 p-1">
+          <button onClick={() => setUsd(false)} className={pillCls(!usd)} aria-pressed={!usd}>
+            ₹ INR
+          </button>
+          <button onClick={() => setUsd(true)} className={pillCls(usd)} aria-pressed={usd}>
+            $ USD
+          </button>
         </div>
+      </div>
+      {usd && (
+        <p className="mt-3 text-center text-xs text-stone-500">
+          USD prices are approximate (₹{USD_RATE}/$) — your invoice states the exact
+          amount, billed in INR or USD via PayPal or wire.
+        </p>
       )}
 
       {/* pt-4 gives the floating RECOMMENDED badge headroom — the scroll
@@ -81,7 +98,7 @@ export default function PricingMatrix({
               </p>
               {quarterly && p.quarterlyPrice && p.quarterlyPrice !== p.price && (
                 <p className="text-[11px] text-stone-400">
-                  <s>{p.price}</s> billed quarterly
+                  <s>{money(p.price)}</s> billed quarterly
                 </p>
               )}
               {p.tagline && <p className="mt-1 text-[11px] leading-snug text-stone-500">{p.tagline}</p>}
@@ -143,6 +160,56 @@ export default function PricingMatrix({
               >
                 {p.cta ?? "Choose plan"}
               </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Risk reversal */}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-dashed border-stone-200 pt-6 text-sm text-stone-600">
+        <span className="flex items-center gap-1.5">
+          <PauseCircle size={15} className="text-[#F26419]" aria-hidden /> Pause with 30 days notice
+        </span>
+        <span className="flex items-center gap-1.5">
+          <FileSearch size={15} className="text-[#F26419]" aria-hidden /> Free 15-page audit before you pay
+        </span>
+        <span className="flex items-center gap-1.5">
+          <ChartLine size={15} className="text-[#F26419]" aria-hidden /> Avg client: 5.8× ROAS
+        </span>
+      </div>
+
+      {/* Rate card */}
+      <h2 className="font-display mt-16 text-center text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">
+        Buying one thing?{" "}
+        <span className="font-serif-accent font-medium italic text-orange-600">
+          Straight rates.
+        </span>
+      </h2>
+      <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-stone-600">
+        Every project runs on a fixed quote agreed before work starts — the
+        grey line under each rate is what the Indian market charges for the
+        same scope.
+      </p>
+      <div className="mt-8 overflow-hidden rounded-2xl border border-stone-200 bg-white">
+        <div className="grid lg:grid-cols-2">
+          {rateCard.map((r, i) => (
+            <div
+              key={r.label}
+              className={`flex items-center justify-between gap-6 border-t border-stone-100 px-6 py-4 transition-colors hover:bg-[#FFFBF7] ${
+                i === 0 ? "border-t-0" : ""
+              } ${i === 1 ? "lg:border-t-0" : ""} ${
+                i % 2 === 1 ? "lg:border-l lg:border-l-stone-100" : ""
+              }`}
+            >
+              <div className="min-w-0">
+                <p className="font-display text-sm font-bold text-stone-900">{r.label}</p>
+                {r.marketNote && (
+                  <p className="mt-0.5 text-xs text-stone-400">{r.marketNote}</p>
+                )}
+              </div>
+              <span className="font-display shrink-0 text-sm font-bold text-emerald-700">
+                {money(r.price)}
+              </span>
             </div>
           ))}
         </div>

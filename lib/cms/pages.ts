@@ -22,6 +22,7 @@ export const RESERVED_SLUGS = new Set([
   "pricing",
   "contact",
   "faq",
+  "payment",
   "search",
   "sitemap.xml",
   "robots.txt",
