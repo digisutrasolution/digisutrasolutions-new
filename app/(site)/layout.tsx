@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TrackPageview from "@/components/TrackPageview";
 import WhatsAppFab from "@/components/WhatsAppFab";
+import BackToTop from "@/components/BackToTop";
 import { getFeaturedPost, getLiveNav } from "@/lib/menu";
 import { SITE_URL } from "@/lib/site";
 
@@ -47,6 +48,7 @@ export default async function SiteLayout({
       </main>
       <Footer />
       <WhatsAppFab />
+      <BackToTop />
     </>
   );
 }
