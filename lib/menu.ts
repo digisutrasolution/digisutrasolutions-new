@@ -61,7 +61,6 @@ export const DEFAULT_NAV: NavNode[] = [
     href: "/services",
     tagline: "Full-spectrum digital marketing.\n18 services, one growth partner.",
     panelImage: "/menu-images/services-stock.jpg",
-    featured: true,
     children: [
       { label: "SEO + AI Search Optimization", href: "/services/seo-ai-search", icon: "search", badge: "AEO · GEO", group: "Growth", description: "Rank on Google — and get cited by AI answers" },
       { label: "Performance Marketing", href: "/services/performance-marketing", icon: "trendingUp", group: "Growth", description: "Google, Meta & LinkedIn ads run for ROAS" },
@@ -121,7 +120,6 @@ export const DEFAULT_NAV: NavNode[] = [
     tagline: "Insights, trends & stories\nfrom the world of digital marketing.",
     cols: 2,
     panelImage: "/menu-images/newsroom.webp",
-    featured: true,
     children: [
       { label: "Blog", href: "/blog", icon: "bookOpen" },
       { label: "Latest News", href: "/news-media/latest-news", icon: "newspaper" },
