@@ -1,0 +1,1053 @@
+{
+  "categories": [
+    {
+      "slug": "seo-ai-search",
+      "offers": [
+        {
+          "name": "Technical SEO",
+          "description": "Technical SEO removes the crawl, indexing and speed issues that silently cap your rankings — fix the foundation and every other SEO effort works harder. We audit your site with Screaming Frog and Google Search Console, then repair broken redirects, duplicate content, thin pages, crawl budget waste and Core Web Vitals failures. You get a prioritized fix list, schema markup implementation and clean XML sitemaps, with every change documented so your developers can verify it.",
+          "features": [
+            "Full crawl + indexation audit",
+            "Core Web Vitals & speed fixes",
+            "Schema markup implementation",
+            "Redirect & sitemap cleanup"
+          ],
+          "priceNote": "In SEO retainers from ₹15,000/mo; most fixes live in 2–4 weeks"
+        },
+        {
+          "name": "Local SEO",
+          "description": "Local SEO gets your business competing for Google's map pack when customers in Noida and Delhi NCR search 'near me' — the highest-intent traffic a local business can get. We optimize your Google Business Profile, build consistent NAP citations, earn local reviews and create location pages targeted to the areas you serve. Monthly reporting shows map-pack positions, calls and direction requests, so you see exactly which searches bring customers through the door.",
+          "features": [
+            "Google map pack optimization",
+            "NAP citations across directories",
+            "Review generation strategy",
+            "Location page creation"
+          ],
+          "priceNote": "In retainers from ₹15,000/mo; expect 90 days for local traction"
+        },
+        {
+          "name": "E-commerce SEO",
+          "description": "E-commerce SEO grows organic revenue by getting your category and product pages in front of the searches shoppers across India actually type. We fix faceted navigation and duplicate-content traps, write keyword-mapped category copy, add Product schema for rich results, and clean up out-of-stock and pagination handling on Shopify or WooCommerce. Reporting ties organic sessions to revenue in GA4, so you know which pages sell — not just which ones rank.",
+          "features": [
+            "Category page keyword mapping",
+            "Product schema for rich results",
+            "Faceted navigation cleanup",
+            "GA4 revenue attribution setup"
+          ],
+          "priceNote": "Retainers from ₹15,000/mo scale with catalog size; market ₹20k–₹50k"
+        },
+        {
+          "name": "Answer Engine Optimization (AEO)",
+          "description": "Answer Engine Optimization structures your content so ChatGPT, Perplexity and Claude can cite your business when buyers ask for recommendations. We rewrite key pages answer-first, add FAQ and HowTo schema, build entity-consistent About and service pages, and track how often AI assistants mention you versus competitors. As more buying research moves into AI chat, AEO protects the demand your traditional SEO already earns — without waiting for a click that may never come.",
+          "features": [
+            "Answer-first page restructuring",
+            "FAQ & HowTo schema markup",
+            "AI citation tracking & reports",
+            "Entity & brand consistency audit"
+          ],
+          "priceNote": "Bundled into SEO retainers from ₹15,000/mo — no separate fee"
+        },
+        {
+          "name": "Generative Engine Optimization (GEO)",
+          "description": "Generative Engine Optimization prepares your site to be cited in Google AI Overviews and Gemini answers, where a growing share of searches now end without a single click. We optimize the passages AI models quote: concise definitions, statistics with sources, comparison tables and structured data generative engines can lift verbatim. You get a page-by-page GEO scorecard and quarterly visibility tracking across AI Overviews, so you can see where your content appears — and where competitors show up instead.",
+          "features": [
+            "AI Overview visibility tracking",
+            "Quotable passage optimization",
+            "Comparison & stats content blocks",
+            "Structured data for AI engines"
+          ],
+          "priceNote": "Included in retainers from ₹15,000/mo; baseline report in week 1"
+        },
+        {
+          "name": "Google Business Profile Optimization",
+          "description": "Google Business Profile optimization turns your free GBP listing into a steady source of calls, WhatsApp messages and direction requests. For businesses in Noida and across Delhi NCR, the map pack is often the first — and only — result customers see. We fix categories and attributes, write keyword-rich service descriptions, publish weekly posts and photos, set up review replies and Q&A, and monitor GBP Insights monthly so you know exactly what the listing is producing.",
+          "features": [
+            "Category & attribute optimization",
+            "Weekly posts & photo updates",
+            "Review response management",
+            "Monthly GBP Insights reporting"
+          ],
+          "priceNote": "Part of local SEO retainers from ₹15,000/mo; setup done in week 1"
+        },
+        {
+          "name": "Content Strategy",
+          "description": "Content strategy maps every page and post to a search your buyers actually make, so you publish for demand instead of guessing. We build a keyword-clustered content calendar from Search Console, Ahrefs and competitor-gap data, define funnel stages for each topic, and brief writers with target queries, entities and internal links. The output is a 90-day roadmap your team — or ours — can execute, with rankings and conversions reviewed monthly.",
+          "features": [
+            "Keyword-clustered content calendar",
+            "Competitor content gap analysis",
+            "Writer briefs with target queries",
+            "90-day execution roadmap"
+          ],
+          "priceNote": "Within retainers from ₹15,000/mo; first roadmap in 2 weeks"
+        },
+        {
+          "name": "SEO Audits",
+          "description": "Our SEO audit tells you exactly why your site isn't ranking — free, 15 pages, delivered within 48 hours. It covers technical health, on-page gaps, backlink profile, local visibility and AI-search readiness, each finding graded by impact and effort so you know what to fix first. Businesses across India use it as a second opinion on their current agency or as the starting brief for a retainer. No sales call required to get it.",
+          "features": [
+            "15-page audit, free of cost",
+            "Delivered within 48 hours",
+            "Impact-graded fix priorities",
+            "AI-search readiness check"
+          ],
+          "priceNote": "Free; paid deep-dives fold into retainers from ₹15,000/mo"
+        }
+      ]
+    },
+    {
+      "slug": "performance-marketing",
+      "offers": [
+        {
+          "name": "Google Ads",
+          "description": "DigiSutra manages Google Ads campaigns end to end — Search, Performance Max and Shopping — built around cost per lead, not vanity clicks. As a Google Ads agency in Noida serving startups and SMBs in 12 countries, we handle keyword research, negative-keyword pruning, ad copy testing and bid strategy, with conversion tracking wired before a rupee is spent. Weekly optimization reports show exactly what your budget bought. Start with a free 15-page audit delivered in 48 hours.",
+          "features": [
+            "Search + Performance Max campaign builds",
+            "Keyword and negative-keyword research",
+            "Ad copy and bid strategy testing",
+            "Weekly optimization + spend reports"
+          ],
+          "priceNote": "Management from ₹15,000/mo; campaigns live within 1–2 weeks"
+        },
+        {
+          "name": "Meta Ads",
+          "description": "Our Meta Ads management turns Facebook and Instagram budgets into tracked leads and sales through full-funnel campaigns — awareness, retargeting and conversion. We handle audience research, creative testing, Advantage+ setup and Pixel plus Conversions API tracking, then optimize weekly against cost per result. Startups and D2C brands across India use us to stop guessing which creatives work. Every plan includes reporting that ties spend to revenue, and the free 15-page audit shows what to fix first.",
+          "features": [
+            "Full-funnel Facebook + Instagram setup",
+            "Creative and audience A/B testing",
+            "Pixel + Conversions API tracking",
+            "Weekly cost-per-result optimization"
+          ],
+          "priceNote": "From ₹15,000/mo flat or a % of spend; live in about a week"
+        },
+        {
+          "name": "LinkedIn Ads",
+          "description": "LinkedIn Ads are the fastest way to put your B2B offer in front of decision-makers by job title, industry and company size — and we manage them for cost per qualified lead, not clicks. DigiSutra builds Sponsored Content and Lead Gen Form campaigns, tight ICP audience targeting, and retargeting for visitors who didn't convert. You get ad creatives, monthly spend plans and weekly reports that separate real pipeline from junk leads. No inflated promises — just measured B2B lead generation.",
+          "features": [
+            "Job-title and company-size targeting",
+            "Lead Gen Form campaign builds",
+            "ICP audience + retargeting setup",
+            "Weekly pipeline-quality reports"
+          ],
+          "priceNote": "Management from ₹15,000/mo + LinkedIn spend; setup in 1 week"
+        },
+        {
+          "name": "Remarketing",
+          "description": "Remarketing campaigns bring back visitors who left your site without converting — usually the cheapest conversions in any ad account. We set up Google Display and Meta retargeting audiences, segment them by pages visited and cart activity, and run dynamic product ads with frequency caps so your brand follows up without stalking. Creative refreshes stop ad fatigue before performance drops. Remarketing is included in every performance retainer we run, and the free 48-hour audit shows the audiences you're missing.",
+          "features": [
+            "Google + Meta retargeting audiences",
+            "Cart and page-level segmentation",
+            "Dynamic product ads with caps",
+            "Creative refresh against ad fatigue"
+          ],
+          "priceNote": "Included in retainers from ₹15,000/mo; audiences live in days"
+        },
+        {
+          "name": "Conversion Tracking",
+          "description": "Conversion tracking connects every lead and sale to the exact ad, keyword and campaign that produced it — the foundation every paid campaign needs before scaling spend. We implement GA4, Google Tag Manager, enhanced conversions and the Meta Conversions API, then verify events fire correctly across forms, calls and checkouts. The result: reports you can trust and budgets shifted to what actually converts. Tracking setup is part of every campaign we launch, never an afterthought.",
+          "features": [
+            "GA4 + Google Tag Manager setup",
+            "Meta Conversions API integration",
+            "Form, call and checkout event testing",
+            "Attribution reports per campaign"
+          ],
+          "priceNote": "Bundled with management from ₹15,000/mo; setup in 3–5 days"
+        },
+        {
+          "name": "Landing Page Optimization",
+          "description": "Landing page optimization makes the clicks you already pay for convert more often — usually the cheapest way to cut cost per lead. Our CRO team in Noida audits your pages with heatmaps and session recordings, fixes message match between ad and page, tightens forms, and runs A/B tests on headlines and CTAs. Pages are rebuilt mobile-first with load times that don't burn budget. Bundled with our ad management or delivered standalone, starting with the free 15-page audit.",
+          "features": [
+            "Heatmap + session-recording audit",
+            "A/B tests on headlines and CTAs",
+            "Ad-to-page message match fixes",
+            "Mobile-first speed improvements"
+          ],
+          "priceNote": "Included in retainers from ₹15,000/mo; first tests in 2 weeks"
+        }
+      ]
+    },
+    {
+      "slug": "ai-automation",
+      "offers": [
+        {
+          "name": "AI Chatbots",
+          "description": "AI chatbots for websites answer visitor questions instantly, qualify leads with smart follow-up questions, and hand hot prospects to your sales team — 24/7, without adding headcount. As an AI chatbot development company in Noida, DigiSutra builds bots trained on your actual pages, pricing and FAQs, powered by Claude or GPT, with clean human handoff and a lead log pushed to your CRM or WhatsApp. Start with our free 15-page audit, delivered in 48 hours.",
+          "features": [
+            "Bot trained on your site content & FAQs",
+            "Lead capture pushed to CRM or WhatsApp",
+            "Human handoff rules for hot leads",
+            "Monthly transcript review & tuning"
+          ],
+          "priceNote": "Setup from ₹15,000; market ₹75k–₹4L for SMB bots. Live in 2–4 weeks"
+        },
+        {
+          "name": "WhatsApp Automation",
+          "description": "WhatsApp automation replies to customer messages in seconds — order updates, pricing queries and lead capture handled automatically on the channel Indian buyers actually open. We set up the official WhatsApp Business API, get your message templates approved, and build auto-reply flows, broadcast lists and drip follow-ups for businesses across India. Deliverables include a verified API account, approved templates, chatbot flows and a handoff path to your team. No spam tactics; opt-in lists only.",
+          "features": [
+            "Official WhatsApp Business API setup",
+            "Message templates drafted & approved",
+            "Auto-reply & drip flows built",
+            "Broadcasts with opt-in list hygiene"
+          ],
+          "priceNote": "Setup from ₹15,000 (market: ₹15k–₹75k); live in about a week"
+        },
+        {
+          "name": "CRM Automation",
+          "description": "CRM automation routes every new lead to the right salesperson, tags it by source and intent, and fires follow-up tasks automatically — so nothing sits unworked in a spreadsheet. We wire your forms, ads and WhatsApp into Zoho or HubSpot, build assignment rules and stage-based triggers, and add alerts when deals stall. You get a documented workflow map plus training for your team. Request the free 15-page audit to see where leads are leaking today.",
+          "features": [
+            "Forms, ads & WhatsApp wired into CRM",
+            "Auto lead routing & tagging rules",
+            "Stalled-deal alerts & task triggers",
+            "Workflow map + team training"
+          ],
+          "priceNote": "Scoped within setups from ₹15,000; typically 1–3 weeks"
+        },
+        {
+          "name": "Email Automation",
+          "description": "Email automation turns your list into revenue on autopilot: welcome series, nurture sequences and win-back campaigns that send themselves while your team sells. We build the flows in Mailchimp, Brevo or Zoho Campaigns, write the copy, set up SPF/DKIM so you land in inboxes, and A/B test subject lines monthly. Every sequence maps to a stage of your funnel — new lead, quote sent, gone quiet — with reporting on opens, clicks and replies.",
+          "features": [
+            "Welcome, nurture & win-back flows",
+            "Copywriting included per sequence",
+            "SPF/DKIM deliverability setup",
+            "Monthly A/B tests & reporting"
+          ],
+          "priceNote": "Setups from ₹15,000; sequences live in 1–2 weeks"
+        },
+        {
+          "name": "Lead Qualification AI",
+          "description": "Lead qualification AI asks every enquiry the questions your sales team would — budget, timeline, requirement — then scores it and routes only genuine buyers to a human. Tyre-kickers get helpful self-serve answers instead of eating your reps' hours. We build the scoring logic around your actual deal history, connect it to your website, WhatsApp and ad forms, and sync qualified leads straight into your CRM. Built for service businesses and dealerships across India.",
+          "features": [
+            "Custom scoring rules from deal history",
+            "Works on website, WhatsApp & ad forms",
+            "Qualified leads synced to your CRM",
+            "Weekly qualification accuracy review"
+          ],
+          "priceNote": "Setup from ₹15,000; market rates for SMB AI builds run ₹75k–₹4L"
+        },
+        {
+          "name": "Appointment Booking Bots",
+          "description": "Appointment booking bots confirm bookings inside the chat — no phone tag, no missed enquiries after hours. The bot checks your real availability via Google Calendar or Calendly, offers open slots, confirms in seconds and sends automated reminders on WhatsApp and email to cut no-shows. Ideal for clinics, salons, consultants and showrooms where every missed call is a lost customer. Rescheduling and cancellations are handled in the same conversation, and every booking lands in your calendar and CRM.",
+          "features": [
+            "Live calendar sync (Google/Calendly)",
+            "WhatsApp & email reminders",
+            "In-chat reschedule & cancel",
+            "Bookings logged to calendar + CRM"
+          ],
+          "priceNote": "Setup from ₹15,000; booking flows live in 1–2 weeks"
+        },
+        {
+          "name": "AI Customer Support",
+          "description": "AI customer support resolves most routine queries — order status, pricing, returns, policies — instantly on your website and WhatsApp, freeing your team for the conversations that need a human. DigiSutra, an AI automation agency in Noida, trains the agent on your actual documents and past tickets, designs escalation rules so frustrated or high-value customers reach a person fast, and reviews transcripts monthly to close knowledge gaps. Hindi and English supported from day one.",
+          "features": [
+            "Trained on your docs & past tickets",
+            "Website + WhatsApp, one knowledge base",
+            "Smart escalation to human agents",
+            "Hindi & English support built in"
+          ],
+          "priceNote": "Setup from ₹15,000; market ₹75k–₹4L for SMB support bots"
+        },
+        {
+          "name": "Sales Automation",
+          "description": "Sales automation fires follow-ups, quotes and payment reminders on schedule, so deals stop dying of silence. We map your sales process, then automate the repetitive steps: instant enquiry acknowledgements, quote PDFs generated from templates, reminder sequences at day 3, 7 and 14, and renewal nudges before contracts lapse. Every action logs to your CRM and your reps get a daily who-to-call list — the busywork runs itself while your team focuses on closing.",
+          "features": [
+            "Auto follow-up sequences (day 3/7/14)",
+            "Quote & invoice templates automated",
+            "Renewal & payment reminders",
+            "Daily who-to-call list for reps"
+          ],
+          "priceNote": "Included in setups from ₹15,000; live in 1–2 weeks"
+        },
+        {
+          "name": "Internal Business Automation",
+          "description": "Internal business automation hands your repetitive back-office work — data entry, report generation, invoice processing, approval chains — to software, cutting hours of manual effort every week. We start by mapping where your team's time actually goes, then build automations with tools like n8n, Zapier and custom scripts that connect your existing apps: Tally, Google Sheets, email, CRM. You get documented workflows your staff can understand and a dashboard showing what ran, what failed and what it saved.",
+          "features": [
+            "Process mapping & time audit first",
+            "n8n/Zapier + custom script builds",
+            "Connects Tally, Sheets, email, CRM",
+            "Run logs & failure alerts dashboard"
+          ],
+          "priceNote": "Setup from ₹15,000; scoped per workflow, often 2–4 weeks"
+        }
+      ]
+    },
+    {
+      "slug": "website-design-development",
+      "offers": [
+        {
+          "name": "Business Websites",
+          "description": "A professional business website that generates enquiries — designed, built and launched by DigiSutra Solutions, a website design company in Noida (Delhi NCR). Every build is mobile-first, loads fast and ships SEO-ready: clean structure, on-page metadata, Google Analytics 4 and lead-capture forms wired from day one. You get a site built to look credible and turn visitors into calls and enquiries, without agency bloat or endless timelines. Start with our free 15-page audit, delivered in 48 hours.",
+          "features": [
+            "Mobile-first responsive design",
+            "On-page SEO and GA4 set up at launch",
+            "Lead forms with WhatsApp click-to-chat",
+            "Live in 2–4 weeks with handover training"
+          ],
+          "priceNote": "From ₹35,000 (market ₹40k–₹1.5L); live in 2–4 weeks"
+        },
+        {
+          "name": "WordPress Development",
+          "description": "Custom WordPress development you can edit yourself — no developer needed for routine updates. DigiSutra builds custom themes on the block editor (no page-builder lock-in), with vetted plugins, security hardening and daily-backup readiness baked in. We serve startups and SMBs across India that want the world's most popular CMS without the bloated templates. Every site ships mobile-responsive, schema-ready and structured for search. Ask for the free 15-page audit of your current site first.",
+          "features": [
+            "Custom theme, no page-builder lock-in",
+            "Editable via the WordPress block editor",
+            "Security hardening and vetted plugins",
+            "Schema markup and SEO-ready structure"
+          ],
+          "priceNote": "Custom builds from ₹35,000; most sites live in 3–5 weeks"
+        },
+        {
+          "name": "Next.js/React Websites",
+          "description": "Next.js and React websites built for speed: server-side rendering, static generation and image optimization engineered to keep Core Web Vitals in the green. DigiSutra develops modern-stack marketing and product sites with Tailwind CSS, clean component architecture and deployment on Vercel or your own infrastructure. The result is a site that feels instant on mobile data, handles traffic spikes without breaking, and gives search engines fast, crawlable pages. Get the free 15-page audit before you commit.",
+          "features": [
+            "SSR/SSG with Next.js App Router",
+            "Core Web Vitals tuned before launch",
+            "Tailwind CSS component architecture",
+            "Vercel or self-hosted deployment"
+          ],
+          "priceNote": "Scoped per build from ₹35,000; typical delivery 4–6 weeks"
+        },
+        {
+          "name": "E-commerce Stores",
+          "description": "A Shopify or WooCommerce store that is ready to take orders on day one — products loaded, payments live, shipping configured. DigiSutra builds e-commerce websites for D2C brands and retailers selling across India, with Razorpay and UPI checkout, GST-ready invoicing and product pages structured to convert. We handle theme customization, catalog setup and order-notification flows so you launch selling, not troubleshooting. Start with the free 15-page audit if you already have a store.",
+          "features": [
+            "Shopify or WooCommerce setup",
+            "Razorpay, UPI and card payments live",
+            "Catalog upload and GST-ready invoicing",
+            "Conversion-focused product pages"
+          ],
+          "priceNote": "From ₹35,000 by catalog size; stores live in 4–6 weeks"
+        },
+        {
+          "name": "Custom Web Applications",
+          "description": "Custom web application development that fits your workflow instead of forcing it into off-the-shelf software. From client portals and admin dashboards to booking systems and internal tools, DigiSutra — a web development company in Noida — builds secure, role-based applications on modern stacks like Next.js and Laravel. You get discovery, wireframes, staged delivery and documentation, so the tool your team relies on is maintainable, not a black box. Book the free 15-page audit to scope it.",
+          "features": [
+            "Discovery, wireframes and staged builds",
+            "Role-based logins and secure access",
+            "Next.js or Laravel modern stacks",
+            "Documentation and handover included"
+          ],
+          "priceNote": "Quoted per scope; category projects start at ₹35,000"
+        },
+        {
+          "name": "Landing Pages",
+          "description": "A high-converting landing page does one job: turn paid traffic into leads — and that is exactly how DigiSutra builds them. Each page pairs a single clear offer with proof, fast load times and a form or WhatsApp CTA above the fold, then ships with GA4 and conversion tracking installed so you can measure cost per lead from day one. Ideal for Google Ads and Meta campaigns where every click is paid for. Free 15-page audit available first.",
+          "features": [
+            "Single-offer layout, CTA above the fold",
+            "GA4 and conversion tracking installed",
+            "Fast-loading, mobile-first build",
+            "A/B-test-ready copy and sections"
+          ],
+          "priceNote": "Single-page scope under the ₹35,000 site rate; ~1 week build"
+        },
+        {
+          "name": "Website Speed Optimization",
+          "description": "Slow website? A speed optimization sprint fixes the issues dragging your load times: oversized images, render-blocking scripts, bloated plugins, missing caching and weak hosting configuration. DigiSutra audits with Google PageSpeed Insights and Lighthouse, then implements the fixes — image compression, lazy loading, CDN and caching setup — with before/after Core Web Vitals reports so improvements are measurable, not claimed. Faster pages mean lower bounce rates and better ad Quality Scores. Get the free 15-page audit to see what is slowing you down.",
+          "features": [
+            "PageSpeed and Lighthouse audit",
+            "Image, caching and CDN fixes applied",
+            "Render-blocking scripts cleaned up",
+            "Before/after Core Web Vitals report"
+          ],
+          "priceNote": "Fixed-scope sprint priced under a ₹35,000 rebuild; 1–2 weeks"
+        },
+        {
+          "name": "Website Maintenance",
+          "description": "Website maintenance that prevents the 2 a.m. emergency: core and plugin updates, daily backups, uptime monitoring and security checks handled on a schedule, with small content edits included. DigiSutra keeps WordPress, Shopify and custom sites patched and recoverable, so a bad update or hack becomes a restore, not a rebuild. You get a monthly report of what was updated, backed up and fixed — proof the work happened. Start with the free 15-page audit of your site's current health.",
+          "features": [
+            "Core, plugin and theme updates",
+            "Daily backups with tested restores",
+            "Uptime and security monitoring",
+            "Monthly maintenance report"
+          ],
+          "priceNote": "Monthly add-on to any build; bundled with projects from ₹35,000"
+        }
+      ]
+    },
+    {
+      "slug": "crm-lead-management",
+      "offers": [
+        {
+          "name": "CRM Setup",
+          "description": "CRM setup means your Zoho or HubSpot account configured, your leads migrated, and your team actually using it — typically live within 2–4 weeks. As a CRM implementation partner in Noida serving clients in 12 countries, DigiSutra handles custom fields, user roles, email and WhatsApp integration, and spreadsheet-to-CRM data migration, then trains your team so adoption sticks. You get a working system mapped to how you sell, not an empty license. Start with a free 15-page audit delivered in 48 hours.",
+          "features": [
+            "Zoho or HubSpot fully configured",
+            "Data migration from spreadsheets",
+            "Email + WhatsApp integration",
+            "Team training and adoption support"
+          ],
+          "priceNote": "Implementations from ₹50,000 (market ₹75k–₹2.5L); 2–4 weeks"
+        },
+        {
+          "name": "Sales Pipeline",
+          "description": "A well-built sales pipeline shows exactly where every deal sits and what moves it forward. DigiSutra designs pipeline stages in Zoho or HubSpot that mirror how your deals actually close — clear entry and exit criteria, win-probability weighting, and stuck-deal alerts so nothing rots in 'follow up later'. We workshop the stages with your sales team, configure them, and test with live deals. Most B2B pipelines need five to seven stages; we cut the rest.",
+          "features": [
+            "Stage design workshop with your team",
+            "Entry/exit criteria per stage",
+            "Win-probability weighting",
+            "Stuck-deal and rot alerts"
+          ],
+          "priceNote": "Included in CRM implementations from ₹50,000"
+        },
+        {
+          "name": "Lead Tracking",
+          "description": "Lead tracking gives you the source, owner, and current status of every enquiry in one place — no more leads dying in inboxes or spreadsheets. DigiSutra wires your website forms, WhatsApp, Google Ads, and Meta lead forms into Zoho or HubSpot with UTM-level source attribution, so you know which channel produces buyers, not just clicks. Startups and SMBs across India use this to stop guessing where revenue comes from. Setup starts with a free 15-page audit in 48 hours.",
+          "features": [
+            "Website, WhatsApp + ad form capture",
+            "UTM source attribution per lead",
+            "Live status for every enquiry",
+            "Duplicate detection and merging"
+          ],
+          "priceNote": "Included in setups from ₹50,000; wired during week one"
+        },
+        {
+          "name": "Lead Assignment",
+          "description": "Automated lead assignment puts every new lead in front of the right rep within seconds — because leads go cold fast. DigiSutra builds assignment rules in Zoho or HubSpot: round-robin for fairness, territory and product-line routing where it matters, and SLA escalations that automatically re-route leads a rep hasn't touched. Reps get instant mobile and email alerts, managers see who is sitting on what, and no enquiry waits overnight for a human to forward an email.",
+          "features": [
+            "Round-robin + territory routing",
+            "SLA escalation for untouched leads",
+            "Instant mobile and email alerts",
+            "Manager visibility on lead loads"
+          ],
+          "priceNote": "No separate fee — part of implementations from ₹50,000"
+        },
+        {
+          "name": "Sales Dashboard",
+          "description": "A sales dashboard puts pipeline value, conversion rates, and revenue on one screen your team checks every morning — no exporting, no spreadsheet gymnastics. DigiSutra builds live dashboards in Zoho Analytics or HubSpot reporting: deals by stage, lead-source performance, rep leaderboards, and month-to-date revenue against target. We configure the views your founders and sales managers actually need, then trim everything else, because a dashboard nobody opens is just decoration. Delivered as part of your CRM build or standalone.",
+          "features": [
+            "Live pipeline and revenue view",
+            "Lead-source performance breakdown",
+            "Rep leaderboards and targets",
+            "Zoho Analytics / HubSpot reports"
+          ],
+          "priceNote": "Part of CRM builds from ₹50,000; live within 2–3 weeks"
+        },
+        {
+          "name": "Reporting",
+          "description": "Weekly sales reporting turns CRM data into numbers your team acts on: leads by source, conversion by stage, rep activity, and revenue against forecast, delivered automatically every Monday. DigiSutra configures scheduled reports in Zoho or HubSpot for startups and SMBs across India, so founders see the truth without chasing anyone for updates. We define the metrics with you once, automate the rest, and review the format after the first month. Ask for the free 15-page audit to see what your current data can already tell you.",
+          "features": [
+            "Automated weekly report delivery",
+            "Conversion and source metrics",
+            "Revenue vs forecast tracking",
+            "Rep activity summaries"
+          ],
+          "priceNote": "Included in implementations from ₹50,000 (market ₹75k–₹2.5L)"
+        }
+      ]
+    },
+    {
+      "slug": "branding-ui-ux",
+      "offers": [
+        {
+          "name": "Logo Design",
+          "description": "A professional logo design gives your business a custom mark that works everywhere — website, packaging, social media and print. DigiSutra's logo design process in Noida starts with a discovery brief, delivers three to four original concepts, refines your pick through structured revision rounds, and hands over every file format you will ever need: AI, EPS, SVG, PNG and favicon, plus basic usage guidelines. No templates, no stock marks — a logo built around your positioning, not this year's trend.",
+          "features": [
+            "3–4 original logo concepts",
+            "Structured revision rounds",
+            "AI, EPS, SVG, PNG + favicon files",
+            "Basic usage guidelines included"
+          ],
+          "priceNote": "From ₹20,000 (agency market: ₹20k–₹75k); most logos in 2–3 weeks"
+        },
+        {
+          "name": "Brand Identity",
+          "description": "A complete brand identity system keeps your business consistent across every touchpoint — one logo suite, one color palette, one typographic voice, all documented in guidelines your team can actually follow. We build full identity packages for startups and SMBs across India: logo variations and lockups, hex and CMYK color values, font pairing and hierarchy, and a brand guidelines PDF for designers, developers and printers. The payoff is recognition — customers see one brand, not five inconsistent versions of it.",
+          "features": [
+            "Logo suite: lockups & variations",
+            "Color palette with hex & CMYK values",
+            "Typography pairing & hierarchy",
+            "Brand guidelines PDF"
+          ],
+          "priceNote": "Full identity runs ₹50k–₹2L in the market; typically 3–5 weeks"
+        },
+        {
+          "name": "UI/UX Design",
+          "description": "Good UI/UX design turns visitors into users by removing friction — clear flows, obvious next actions, interfaces people understand in seconds. We design websites, web apps and mobile apps end to end: user flows, high-fidelity Figma screens, clickable prototypes you can test before build, and clean developer handoff with specs and assets. Every layout ships mobile-first and every decision is grounded in how users actually behave. Want proof of where your current UX leaks? Our free 15-page audit lands in 48 hours.",
+          "features": [
+            "User flows & information architecture",
+            "High-fidelity Figma screens",
+            "Clickable prototypes for testing",
+            "Developer handoff with specs"
+          ],
+          "priceNote": "Projects from ₹20,000; scope sets the timeline (2–6 weeks)"
+        },
+        {
+          "name": "Wireframes",
+          "description": "Wireframes lock down structure and flow before money goes into visual design or development — the cheapest possible point to change your mind. We map every screen and key state as low-fidelity Figma wireframes: navigation, content hierarchy, forms and complete user journeys, reviewed with you page by page until the flow is agreed. For startups validating a product idea, wireframing catches missing screens and dead-end paths early, so the build phase runs without expensive rework or scope surprises.",
+          "features": [
+            "Every screen & key state mapped",
+            "Low-fidelity Figma wireframes",
+            "User journey & navigation maps",
+            "Page-by-page review sessions"
+          ],
+          "priceNote": "Usually scoped within UI/UX projects from ₹20,000; 1–2 weeks"
+        },
+        {
+          "name": "Design Systems",
+          "description": "A design system gives your product one reusable component library — buttons, forms, cards, colors, spacing — so every new screen stays consistent and design time drops, often by 30–50%. We build design systems in Figma with tokens, component variants and plain-English usage documentation, and can pair them with a coded Tailwind or React component kit. For growing SaaS and multi-product teams across India, it ends the cycle of every designer reinventing the same UI slightly differently.",
+          "features": [
+            "Figma library with component variants",
+            "Design tokens: color, type, spacing",
+            "Plain-English usage documentation",
+            "Optional coded Tailwind/React kit"
+          ],
+          "priceNote": "Custom-scoped; design work from ₹20,000; allow 2–4 weeks"
+        }
+      ]
+    },
+    {
+      "slug": "mobile-app-development",
+      "offers": [
+        {
+          "name": "Android Apps",
+          "description": "DigiSutra Solutions builds Play Store-ready Android apps for startups and SMBs, with login, backend APIs and payment integration included in a standard MVP. As an Android app development company in Noida (Delhi NCR), we design in Figma, build in Flutter or Kotlin, wire in Firebase analytics and crash reporting, and handle Play Console listing and release. You get source code, documentation and a store-ready build — typically live in 8–12 weeks.",
+          "features": [
+            "Play Console setup & store listing",
+            "Kotlin or Flutter build, your choice",
+            "Firebase analytics & crash reporting",
+            "Full source code handover"
+          ],
+          "priceNote": "MVPs from ₹3,00,000 (market ₹3–8L); typically 8–12 weeks"
+        },
+        {
+          "name": "iOS Apps",
+          "description": "iOS app development that takes you from idea to App Store: native-quality builds on Flutter or React Native, designed to Apple's Human Interface Guidelines and submitted through App Store Connect for you. We handle provisioning, TestFlight beta distribution, in-app purchase and push notification setup, and the review checklist that trips up first-time founders. Startups in 12 countries ship their iPhone apps with us — one codebase, no separate native budget.",
+          "features": [
+            "App Store Connect & TestFlight setup",
+            "HIG-compliant UI design",
+            "Push notifications & IAP wiring",
+            "Review-checklist submission support"
+          ],
+          "priceNote": "Included in cross-platform MVPs from ₹3,00,000; 8–12 weeks typical"
+        },
+        {
+          "name": "Flutter Apps",
+          "description": "Flutter app development gives you Android and iOS from one Dart codebase — typically 15–25% cheaper than React Native and 40–60% cheaper than two native builds. DigiSutra's Noida team scopes your MVP, designs in Figma, builds with Flutter and Firebase, and ships to both stores from a single pipeline. Login, backend, payments and analytics come standard in an MVP build, with source code and CI/CD handover so you're never locked in.",
+          "features": [
+            "One codebase for Android + iOS",
+            "Firebase backend & analytics",
+            "CI/CD pipeline to both stores",
+            "Source code & docs handover"
+          ],
+          "priceNote": "From ₹3,00,000 for a two-store MVP; market runs ₹3–8L"
+        },
+        {
+          "name": "React Native Apps",
+          "description": "React Native app development that shares logic with your React website — if your web app is already React or Next.js, we reuse components, skills and even developers to ship your mobile app faster. We build with TypeScript and Expo where it fits, integrate REST or GraphQL APIs, and deliver Play Store and App Store builds from one codebase. A practical choice for SMBs across India that already run a React stack.",
+          "features": [
+            "Code reuse from your React web app",
+            "TypeScript + Expo tooling",
+            "REST/GraphQL API integration",
+            "Both-store builds, one codebase"
+          ],
+          "priceNote": "Cross-platform MVPs from ₹3,00,000; typically 8–12 weeks"
+        },
+        {
+          "name": "Progressive Web Apps",
+          "description": "A Progressive Web App gives customers an app-like experience — home-screen install, offline mode, push notifications — without app store approval or download friction. We build PWAs on Next.js and React with service workers, web push and Lighthouse PWA scores treated as a release gate. For growing businesses, a PWA is often the fastest route to mobile: one URL works on every device, updates ship instantly, and there's no 30% store commission.",
+          "features": [
+            "Offline mode via service workers",
+            "Home-screen install & web push",
+            "Lighthouse PWA audit passed",
+            "No app store fees or review delays"
+          ],
+          "priceNote": "Lighter scope than store MVPs; full app MVPs from ₹3,00,000"
+        }
+      ]
+    },
+    {
+      "slug": "ecommerce-development",
+      "offers": [
+        {
+          "name": "Shopify Stores",
+          "description": "Shopify store development gets you selling online fast: theme customization, product catalog setup, Razorpay and UPI payments, shipping zones, and GST-ready invoicing configured before launch. As a Shopify development agency serving startups and D2C brands across India, DigiSutra builds on Online Store 2.0 themes — mobile-first, fast, and structured for SEO — then trains your team to run daily operations without needing a developer on call.",
+          "features": [
+            "Theme setup + brand customization",
+            "Razorpay, UPI & COD configured",
+            "GST invoicing and shipping zones",
+            "Admin training + launch checklist"
+          ],
+          "priceNote": "Launch-ready builds from ₹60,000; typically live in 3–4 weeks"
+        },
+        {
+          "name": "WooCommerce Stores",
+          "description": "WooCommerce development gives you a full online store on WordPress that you own outright — no monthly platform fees, no lock-in. We build on WooCommerce with a lightweight theme, configure products, taxes, shipping and Razorpay/UPI checkout, then harden the stack for speed and security. You get a staging environment, an admin walkthrough, and a store your team can extend with plugins as the business grows.",
+          "features": [
+            "WordPress + WooCommerce full setup",
+            "Razorpay/UPI checkout wired in",
+            "Speed and security hardening",
+            "Staging site + admin walkthrough"
+          ],
+          "priceNote": "From ₹60,000 launch-ready (market: ₹75k–₹2L); 3–5 weeks"
+        },
+        {
+          "name": "Custom E-commerce",
+          "description": "Custom e-commerce development is the answer when Shopify themes and plugins can't handle your catalog, pricing logic, or B2B workflows. Our Noida team builds bespoke storefronts on Next.js and React with a headless or custom backend — multi-tier pricing, quote flows, inventory rules, whatever your model needs. Every build ships mobile-first with clean URLs, structured data, and Core Web Vitals in the green, so the store is ready for SEO from day one.",
+          "features": [
+            "Next.js/React custom storefront",
+            "B2B pricing and quote workflows",
+            "Headless or custom backend build",
+            "Structured data + clean URLs"
+          ],
+          "priceNote": "Toward the top of the ₹75k–₹2L range; typical build 6–10 weeks"
+        },
+        {
+          "name": "Payments & UPI Integration",
+          "description": "UPI payment gateway integration done right means fewer failed transactions and faster checkout. We wire Razorpay, Cashfree, or PayU into your store with UPI intent flow, cards, netbanking, wallets, and COD rules — plus webhooks that keep order status accurate and retry handling for dropped payments. Because UPI drives the majority of online payments across India, we test the intent flow on real devices before you go live. No guesswork, no stuck orders.",
+          "features": [
+            "Razorpay/Cashfree/PayU setup",
+            "UPI intent, cards, wallets, COD",
+            "Webhook-accurate order status",
+            "Real-device payment testing"
+          ],
+          "priceNote": "Included in builds from ₹60,000; standalone integration in ~1 week"
+        },
+        {
+          "name": "Conversion-Ready Product Pages",
+          "description": "Product pages built for conversion turn more of your existing traffic into orders without more ad spend. Each template gets benefit-led copy structure, zoomable image galleries, trust signals, size and shipping clarity, review placement, and a sticky add-to-cart tested on mobile first. We add Product schema markup so listings can show price and ratings in search results, and wire GA4 e-commerce events so you can see exactly where buyers drop off.",
+          "features": [
+            "Mobile-first sticky add-to-cart",
+            "Product schema for rich results",
+            "Trust signals + review layout",
+            "GA4 e-commerce event tracking"
+          ],
+          "priceNote": "Included in store builds from ₹60,000; page revamps scoped on request"
+        },
+        {
+          "name": "Store Migrations",
+          "description": "Store migration without losing SEO or order history — that is the whole job. We move you between Shopify, WooCommerce, Magento, or custom platforms with a full URL mapping and 301 redirect plan, product and customer data transfer, and order history intact. URL structures and metadata are preserved to minimize ranking risk, checkout is re-tested end to end, and the switch happens in a planned cutover window so you keep taking orders throughout.",
+          "features": [
+            "Full URL map + 301 redirect plan",
+            "Products, customers, orders moved",
+            "Checkout re-tested end to end",
+            "Planned cutover, minimal downtime"
+          ],
+          "priceNote": "Scoped from ₹60,000 depending on catalog size; 2–6 weeks"
+        }
+      ]
+    },
+    {
+      "slug": "website-maintenance-security",
+      "offers": [
+        {
+          "name": "Updates & Backups",
+          "description": "Scheduled core, plugin and theme updates plus daily off-site backups keep your website secure, compatible and recoverable — the foundation of any website maintenance plan. DigiSutra applies updates on a staging copy first, verifies nothing breaks, then pushes live and confirms a clean backup restore point. Businesses across India lose sites to one skipped update; a disciplined patch-and-backup routine costs less than a single rebuild. Every cycle is logged, and restores are tested monthly so a rollback takes minutes, not days.",
+          "features": [
+            "Weekly core, plugin & theme updates",
+            "Daily off-site backups, 30-day retention",
+            "Staging tests before every live push",
+            "Monthly restore drills & update logs"
+          ],
+          "priceNote": "Included in care plans from ₹8,000/mo; typical AMC ₹10k–₹25k/mo"
+        },
+        {
+          "name": "Security Monitoring",
+          "description": "Round-the-clock website security monitoring catches malware injections, file changes, brute-force logins and blacklist flags before customers or Google see them. DigiSutra combines firewall rules (Cloudflare WAF), daily malware scans and file-integrity checks with human review from our Noida team, so alerts become fixes instead of noise. You get a monthly security report in plain language: what was blocked, what was patched, what needs a decision. It is the difference between finding a hack in hours and finding it in a search result.",
+          "features": [
+            "24/7 malware & file-integrity scans",
+            "Cloudflare WAF & login hardening",
+            "Blacklist & SSL expiry watch",
+            "Monthly plain-English security report"
+          ],
+          "priceNote": "Part of care plans from ₹8,000/mo; market AMCs run ₹10k–₹25k/mo"
+        },
+        {
+          "name": "Malware Cleanup",
+          "description": "Most hacked websites can usually be cleaned, hardened and cleared of Google's \"this site may be hacked\" warning within 24–72 hours. DigiSutra's malware removal covers infected file cleanup, backdoor and rogue-admin removal, database inspection, and resubmission through Google Search Console so warnings and blacklist entries are lifted. We then close the hole that let attackers in — outdated plugins, weak logins, missing firewall — and document everything. For businesses across India running on WordPress, this is the fastest route from \"site hacked\" back to normal.",
+          "features": [
+            "Full infection & backdoor removal",
+            "Google blacklist / warning removal",
+            "Post-hack hardening & patching",
+            "Incident report with entry point"
+          ],
+          "priceNote": "Included in plans from ₹8,000/mo; typical cleanup 24–72 hours"
+        },
+        {
+          "name": "Uptime Monitoring",
+          "description": "One-minute uptime checks with instant alerts mean downtime gets caught — and acted on — in minutes, not when a customer calls. DigiSutra monitors availability, SSL certificate expiry and key user journeys like checkout or contact forms, not just the homepage. When something goes down, the alert reaches a human who starts diagnosis immediately and keeps you informed until resolution. Monthly uptime reports show availability history, incident timelines and what was fixed, giving you a clear record of how reliably your site actually runs.",
+          "features": [
+            "60-second checks from multiple regions",
+            "Instant email/WhatsApp down alerts",
+            "SSL & domain expiry monitoring",
+            "Monthly uptime & incident report"
+          ],
+          "priceNote": "Included in every care plan from ₹8,000/mo"
+        },
+        {
+          "name": "Speed Audits",
+          "description": "Quarterly website speed audits keep Core Web Vitals — LCP, INP and CLS — in the green so slow pages don't quietly bleed leads and conversions. Each audit runs your key pages through PageSpeed Insights and real-user data, then delivers a prioritized fix list: image compression, caching, script cleanup, hosting bottlenecks. Fixes within maintenance scope are applied in the same cycle; bigger rebuilds get a clear estimate first. You see before-and-after scores every quarter, so speed is tracked like a metric, not guessed at.",
+          "features": [
+            "Quarterly Core Web Vitals check-up",
+            "PageSpeed + real-user data review",
+            "Prioritized fix list per audit",
+            "Before/after scores each quarter"
+          ],
+          "priceNote": "Bundled with care plans from ₹8,000/mo; audits run quarterly"
+        },
+        {
+          "name": "Small Changes Retainer",
+          "description": "A small-changes retainer means routine website edits — text updates, new banners, landing pages, form tweaks, product changes — are handled within 1–2 business days, with no per-task quotes or freelancer hunting. Requests go to a shared tracker, get confirmed with a turnaround, and ship with a note of what changed. It suits SMBs that need a reliable web team on call but not a full-time hire. Larger jobs are flagged before work starts, so the plan never hides surprise invoices.",
+          "features": [
+            "Monthly bank of edits & tweaks",
+            "1–2 business day turnaround",
+            "Shared request tracker & log",
+            "Clear scope — big jobs quoted first"
+          ],
+          "priceNote": "Within care plans from ₹8,000/mo (market AMC: ₹10k–₹25k/mo)"
+        }
+      ]
+    },
+    {
+      "slug": "content-marketing",
+      "offers": [
+        {
+          "name": "Content Strategy",
+          "description": "A content strategy maps every article, page and asset to the keywords your buyers actually search — so you publish for pipeline, not vanity traffic. DigiSutra audits your existing content, mines keyword and competitor data with Ahrefs and Google Search Console, and delivers a prioritized topic roadmap showing intent, funnel stage and target page for each keyword. Startups and SMBs across India use it as the blueprint for every blog post and landing page that follows — starting with our free 15-page audit in 48 hours.",
+          "features": [
+            "Keyword & competitor research report",
+            "Topic roadmap mapped to funnel stages",
+            "Content gap & cannibalization audit",
+            "Quarterly priority calendar"
+          ],
+          "priceNote": "Included in programs from ₹15,000/mo; roadmap ready in 2 weeks"
+        },
+        {
+          "name": "SEO Blog Writing",
+          "description": "SEO blog writing that leads with the answer — articles structured so Google, ChatGPT and AI Overviews can lift your paragraph as the response. Every post DigiSutra ships from its Noida studio is keyword-mapped, matched to search intent and built with clean H2/H3 structure, FAQ schema and internal links. You get research, briefs, human-edited drafts and on-page optimization in one workflow — no thin AI filler, and no ranking promises we can't stand behind.",
+          "features": [
+            "Answer-first articles, 1,200–2,000 words",
+            "FAQ schema & internal links built in",
+            "Keyword & intent brief per post",
+            "Human-edited, plagiarism-checked drafts"
+          ],
+          "priceNote": "Core of retainers from ₹15,000/mo (market: ₹15k–₹40k/mo)"
+        },
+        {
+          "name": "Landing Page Copy",
+          "description": "Landing page copy engineered for one action — a headline that states the value, proof that removes doubt and a CTA a visitor can't misread. DigiSutra writes conversion copy for ad campaigns, product launches and lead-gen pages: message hierarchy, objection handling, social proof placement and A/B-ready headline variants. Because we also manage paid campaigns, the copy is built to convert the Google and Meta traffic you're already paying for — clicks into leads, not bounces.",
+          "features": [
+            "Full page copy, hero to CTA",
+            "2–3 headline variants for A/B tests",
+            "Objection-handling & proof sections",
+            "SEO title & meta description included"
+          ],
+          "priceNote": "Included in programs from ₹15,000/mo; copy in about a week"
+        },
+        {
+          "name": "Case Studies & Whitepapers",
+          "description": "Case studies and whitepapers are the proof assets that close B2B deals — evidence a prospect can forward to their boss. DigiSutra runs the full production: customer interviews, data gathering, a challenge–solution–result narrative, design-ready copy and a polished PDF plus web version. Use them in sales decks, email nurture and LinkedIn campaigns; one strong case study outworks ten generic blog posts. We write them for SaaS companies, B2B services and D2C brands alike.",
+          "features": [
+            "Interview-led research & drafting",
+            "Challenge–solution–result narrative",
+            "Designed PDF + web page version",
+            "Sales-enablement usage notes"
+          ],
+          "priceNote": "Scoped within ₹15k–₹40k/mo programs; 2–3 weeks per asset"
+        },
+        {
+          "name": "Content Calendars",
+          "description": "A content calendar turns publishing from ad hoc into automatic: a dated, owner-assigned schedule covering every blog post, email and social asset for the next 30–90 days. DigiSutra builds yours around your keyword strategy, seasonal demand and campaign dates, delivered in Notion, Google Sheets or your CMS with a brief attached to every slot. The result is a publishing rhythm your team can actually keep — content that compounds instead of stalling after month one.",
+          "features": [
+            "30–90 day dated publishing schedule",
+            "Brief attached to every content slot",
+            "Seasonal & campaign dates mapped in",
+            "Delivered in Notion, Sheets or CMS"
+          ],
+          "priceNote": "Included in retainers from ₹15,000/mo; first calendar in week 1"
+        },
+        {
+          "name": "Content Refresh & Optimization",
+          "description": "Refreshing old content is the fastest SEO win most sites ignore — updating a decaying post costs a fraction of writing a new one and targets keywords you already rank for. DigiSutra audits your library with Google Search Console and Ahrefs, flags pages losing clicks, then rewrites intros answer-first, updates stats, adds FAQ schema and repairs internal links. It's how businesses in Noida — and our clients in 12 countries — squeeze more from content they've already paid for.",
+          "features": [
+            "Decay audit via Search Console",
+            "Answer-first intro rewrites",
+            "Updated stats, links & FAQ schema",
+            "Before/after click tracking"
+          ],
+          "priceNote": "Within programs from ₹15,000/mo; refreshes ship monthly"
+        }
+      ]
+    },
+    {
+      "slug": "direct-marketing",
+      "offers": [
+        {
+          "name": "Email Campaigns",
+          "description": "Professionally managed email marketing campaigns — newsletters, promotions and product announcements planned, written, designed and sent for you every month. As an email marketing agency in Noida serving clients in 12 countries, DigiSutra handles subject-line testing, mobile-friendly templates on Mailchimp, Brevo or Zoho Campaigns, and open-and-click reporting, all built to drive repeat sales from the audience you already own. No renting attention from ad platforms; your list, your channel, your margins. Start with a free 15-page audit delivered in 48 hours.",
+          "features": [
+            "Monthly campaign calendar & copywriting",
+            "Mobile-friendly branded email templates",
+            "A/B subject-line testing",
+            "Open, click & revenue reporting"
+          ],
+          "priceNote": "In programs from ₹10,000/mo + platform fees; first send in 1 week"
+        },
+        {
+          "name": "SMS Campaigns",
+          "description": "Bulk SMS marketing that puts time-sensitive offers, reminders and alerts straight into your customers' pockets — messages most people read within minutes. DigiSutra manages the full stack for businesses across India: TRAI DLT registration, sender-ID and template approval, segmented sends via MSG91 or Twilio, and delivery reporting. Ideal for flash sales, appointment reminders and payment nudges where email is too slow. Get a free 15-page marketing audit in 48 hours to see where SMS fits your funnel.",
+          "features": [
+            "TRAI DLT registration & compliance",
+            "Sender ID & template approvals",
+            "Segmented sends via MSG91/Twilio",
+            "Delivery & click reporting"
+          ],
+          "priceNote": "In programs from ₹10,000/mo; SMS platform & DLT fees billed at cost"
+        },
+        {
+          "name": "WhatsApp Broadcasts",
+          "description": "WhatsApp broadcast campaigns delivered through the official WhatsApp Business API — the channel Indian customers open first — without the number-ban risk of unofficial bulk senders. We handle Meta business verification, template approval, opt-in list management and scheduled broadcasts for offers, restock alerts and festival promotions, plus read-and-reply reporting after every send. Broadcasts pair naturally with our WhatsApp automation, so replies get answered in seconds. Ask for the free 15-page audit, delivered in 48 hours.",
+          "features": [
+            "Official WhatsApp Business API setup",
+            "Meta verification & template approval",
+            "Opt-in list & broadcast scheduling",
+            "Read & reply rate reporting"
+          ],
+          "priceNote": "In programs from ₹10,000/mo + Meta conversation fees; live in ~1 week"
+        },
+        {
+          "name": "Drip & Nurture Sequences",
+          "description": "Automated drip campaigns and lead-nurture sequences that follow up every lead without anyone lifting a finger — welcome series, abandoned-cart flows, post-purchase journeys and re-engagement emails triggered by what each contact actually does. We map the journey, write every message, build the flows in Mailchimp, Brevo or your CRM, and refine them from real open and conversion data. One build keeps working around the clock, so no lead goes cold because your team got busy. Free 15-page audit in 48 hours.",
+          "features": [
+            "Journey mapping & sequence copywriting",
+            "Welcome, cart & win-back flows",
+            "Behaviour-triggered sends",
+            "Monthly flow optimization"
+          ],
+          "priceNote": "In programs from ₹10,000/mo; first sequences live in 2–3 weeks"
+        },
+        {
+          "name": "List Building & Segmentation",
+          "description": "List building and audience segmentation that grow a clean, permission-based subscriber base — then slice it by behaviour, purchase history and interest so every campaign lands with the people most likely to act. Deliverables include lead magnets and signup forms on your site, WhatsApp and checkout opt-ins, list hygiene to remove dead addresses, and segment structures inside your email or CRM platform. Smaller, sharper segments consistently outperform blast-everyone sends. Request the free 15-page audit — delivered within 48 hours — to see how your list scores.",
+          "features": [
+            "Lead magnets & signup form setup",
+            "WhatsApp & checkout opt-in capture",
+            "List cleaning & hygiene passes",
+            "Behaviour & purchase segments"
+          ],
+          "priceNote": "Included in programs from ₹10,000/mo; initial build in 1–2 weeks"
+        },
+        {
+          "name": "Deliverability Setup",
+          "description": "Email deliverability setup is how your campaigns reach the primary inbox instead of spam: SPF, DKIM and DMARC records configured correctly, a dedicated sending domain warmed up gradually, and blacklist and reputation monitoring from day one. It is the unglamorous work most businesses across India skip — and the reason well-written emails go unread. We check your current sending setup as part of the free 15-page audit, delivered in 48 hours, and fix what is silently costing you reach.",
+          "features": [
+            "SPF, DKIM & DMARC configuration",
+            "Sending domain & IP warm-up",
+            "Blacklist & reputation monitoring",
+            "Inbox placement testing"
+          ],
+          "priceNote": "One-time setup within programs from ₹10,000/mo; done in ~1 week"
+        }
+      ]
+    },
+    {
+      "slug": "influencer-marketing",
+      "offers": [
+        {
+          "name": "Creator Discovery & Vetting",
+          "description": "Creator discovery and vetting means finding influencers whose audiences are real, engaged and relevant to your brand — before any money changes hands. We shortlist creators across Instagram, YouTube and regional platforms, then screen engagement rates, audience demographics, follower authenticity and past brand work using audit tools like HypeAuditor. You get a vetted shortlist with rates, reach and fit notes for each creator, so every collaboration starts from data. Fake-follower checks are standard on every shortlist.",
+          "features": [
+            "Vetted creator shortlist with rates",
+            "Fake-follower & engagement checks",
+            "Audience demographic breakdown",
+            "Platform mix: Instagram, YouTube, more"
+          ],
+          "priceNote": "Included in campaigns from ₹25,000; shortlist ready in 5–7 days"
+        },
+        {
+          "name": "Campaign Strategy",
+          "description": "An influencer campaign strategy sets the goal, creator mix, content briefs, deliverables and posting timeline before anything goes live — so the campaign runs like a project, not a favour. We define target audience, platform split, hashtags, disclosure requirements and per-creator deliverables, then lock it in a written brief every creator signs off on. As an influencer marketing agency in Noida, we plan campaigns for startups and SMBs that need results they can report, not just likes.",
+          "features": [
+            "Written campaign brief & goals",
+            "Creator mix & platform split",
+            "Deliverables and posting timeline",
+            "ASCI disclosure compliance built in"
+          ],
+          "priceNote": "Campaigns from ₹25,000; strategy locked in week one"
+        },
+        {
+          "name": "Micro-Influencer Programs",
+          "description": "Micro-influencer marketing uses many creators in the 10k–100k follower range instead of one expensive celebrity — typically higher engagement rates, lower cost per post and more authentic reach. We recruit, brief and manage batches of micro and nano influencers in niches from D2C and food to fintech and local services, then consolidate results into one report. Ideal for SMBs that want steady creator content every month without celebrity budgets.",
+          "features": [
+            "Batch recruiting of 10k–100k creators",
+            "Niche & regional creator targeting",
+            "Single consolidated results report",
+            "Monthly always-on program option"
+          ],
+          "priceNote": "Programs from ₹25,000; creator fees vary by tier"
+        },
+        {
+          "name": "Content Collaborations",
+          "description": "Content collaborations pair your brand with creators to co-produce posts, Instagram Reels, YouTube reviews and unboxings that feel native to the creator's feed — not like ads dropped into it. We handle concept, brief, script review and approval loops, so the content stays on-brand while keeping the creator's authentic voice. Each collaboration ships with agreed formats, captions and tagging, and can feed your own social calendar. Popular with D2C and consumer brands in Noida and Delhi NCR.",
+          "features": [
+            "Reels, reviews & unboxing formats",
+            "Concept, brief & script approvals",
+            "On-brand captions and tagging",
+            "Content feeds your social calendar"
+          ],
+          "priceNote": "Part of campaigns from ₹25,000; content live in 2–4 weeks"
+        },
+        {
+          "name": "Performance Tracking",
+          "description": "Influencer performance tracking measures reach, engagement, clicks and conversions for every creator in your campaign — so you fund what works and drop what doesn't. We set up UTM links, coupon codes and platform insights per creator, then report cost per engagement and cost per conversion in one dashboard. No vanity-metric decks: you see which creators drove traffic and sales, benchmarked against your paid channels. It's how we run influencer marketing like performance marketing.",
+          "features": [
+            "UTM links & coupon codes per creator",
+            "Cost per engagement & conversion",
+            "Single campaign dashboard",
+            "Post-campaign learnings report"
+          ],
+          "priceNote": "Included in campaigns from ₹25,000; wrap report in 7 days"
+        },
+        {
+          "name": "UGC Rights Management",
+          "description": "UGC rights management secures written usage rights so you can legally reuse creator photos, videos and reviews in your own ads, website and email — often the cheapest ad creative you'll ever get. We negotiate usage scope, duration and whitelisting (running Meta ads through the creator's handle) into every collaboration contract, and hand over a rights-cleared content library. For brands across India buying creator content, this is the step that turns one post into months of ad creative.",
+          "features": [
+            "Usage scope & duration in contracts",
+            "Meta ads whitelisting arranged",
+            "Rights-cleared content library",
+            "Reuse across ads, web and email"
+          ],
+          "priceNote": "Rights included in campaigns from ₹25,000; extended use negotiable"
+        }
+      ]
+    },
+    {
+      "slug": "ai-development",
+      "offers": [
+        {
+          "name": "Custom AI Chatbots",
+          "description": "A custom AI chatbot is a purpose-built conversational agent trained on your products, policies and sales flow — not a template widget with your logo on it. DigiSutra designs the conversation, builds on Claude or GPT APIs, connects your CRM and WhatsApp, and tests against real customer queries before launch. Startups and SMBs across India use these bots to qualify leads and answer buyers round the clock. You get full prompt documentation, admin controls and no vendor lock-in.",
+          "features": [
+            "Conversation design + intent mapping",
+            "Claude/GPT build with guardrails",
+            "CRM & WhatsApp integrations",
+            "Prompt docs + admin controls"
+          ],
+          "priceNote": "Custom builds from ₹75,000 (market ₹1L–₹4L); live in 3–5 weeks"
+        },
+        {
+          "name": "RAG Knowledge Assistants",
+          "description": "RAG knowledge assistants let AI answer questions from your own documents — manuals, SOPs, product sheets, past tickets — instead of guessing from the open internet. We chunk and index your content in a vector database, wire retrieval into Claude or GPT, and add source citations so every answer is traceable. Ideal for support teams, HR policies and internal wikis. Hallucination testing and an update pipeline for new documents come with every build.",
+          "features": [
+            "Vector database + document indexing",
+            "Source-cited, traceable answers",
+            "Works on PDFs, wikis and tickets",
+            "Update pipeline for new content"
+          ],
+          "priceNote": "From ₹75,000 depending on data volume; typical build 4–6 weeks"
+        },
+        {
+          "name": "AI API Integrations",
+          "description": "AI API integration connects Claude, GPT or Gemini directly into the tools you already run — CRM, helpdesk, spreadsheets, internal portals — so AI works where your team works. Our Noida-based developers handle authentication, rate limits, cost controls and fallbacks, then document everything for your team. Common builds include auto-drafted email replies, ticket summarization and lead scoring inside Zoho or HubSpot. You keep your own API keys and own the code outright.",
+          "features": [
+            "Claude/GPT/Gemini wired into your stack",
+            "Cost controls, caching and fallbacks",
+            "Zoho, HubSpot and helpdesk hooks",
+            "Your keys, your code, documented"
+          ],
+          "priceNote": "Integrations from ₹75,000; scoped builds ship in 2–4 weeks"
+        },
+        {
+          "name": "Process Automation Models",
+          "description": "Process automation models hand repetitive decisions to AI — invoice categorization, document data extraction, lead routing, approval triage — so your team stops doing work software can do. We map the workflow first, build around Claude or GPT with human review on low-confidence cases, and connect everything to your existing systems via API or n8n. SMBs across India typically automate a first process within a month, then expand. Accuracy is benchmarked before anything touches live data.",
+          "features": [
+            "Workflow mapping before any build",
+            "Human review on low-confidence cases",
+            "n8n / API hookups to your systems",
+            "Accuracy benchmarked pre-launch"
+          ],
+          "priceNote": "From ₹75,000 per process (market ₹1L–₹4L); first flow in ~4 weeks"
+        },
+        {
+          "name": "AI Dashboards & Insights",
+          "description": "An AI dashboard turns raw business data into plain-language answers — ask why leads dropped last week and get an explanation, not just a chart. We connect your sales, marketing and operations data, layer Claude on top for summaries and anomaly detection, and deliver a view your team reads in minutes each morning. Weekly AI-written digests and Slack or WhatsApp alerts come standard, so insights reach you without opening a report. No analyst required.",
+          "features": [
+            "Plain-language answers from your data",
+            "Anomaly alerts to Slack/WhatsApp",
+            "Weekly AI-written digest emails",
+            "Sales, ads and ops data in one view"
+          ],
+          "priceNote": "Dashboards from ₹75,000; first version live in 3–4 weeks"
+        },
+        {
+          "name": "Fine-tuned Workflows",
+          "description": "Fine-tuned workflows are prompt chains and pipelines engineered for your specific domain — legal drafting, medical intake, real-estate listings, anything generic AI gets wrong. We test prompts against your real examples, version them, and build evaluation sets so output quality is measured, not assumed. The result is AI that follows your tone, format and compliance rules on the first try. Every workflow ships with documentation your team can maintain and extend without us.",
+          "features": [
+            "Prompt engineering on real examples",
+            "Evaluation sets that measure quality",
+            "Versioned prompts, no regressions",
+            "Docs your team can maintain solo"
+          ],
+          "priceNote": "From ₹75,000; typically 2–3 weeks per workflow"
+        }
+      ]
+    },
+    {
+      "slug": "ai-customer-support",
+      "offers": [
+        {
+          "name": "24/7 AI Support Agent",
+          "description": "A 24/7 AI support agent answers customer questions instantly — at 2 AM, on weekends, during festival rushes — so routine queries stop piling up in your inbox. DigiSutra builds always-on support bots for startups and SMBs across India, trained on your actual FAQs, policies and product data, with escalation rules for anything the bot shouldn't touch. You get a deployed web chat agent, response-quality testing before launch, and monthly tuning based on real conversations. No scripts to write, no seats to hire.",
+          "features": [
+            "Always-on web chat agent, live in weeks",
+            "Trained on your FAQs and policies",
+            "Escalation rules for sensitive queries",
+            "Pre-launch response-quality testing"
+          ],
+          "priceNote": "Core of AI support setups from ₹40,000; live in 2–3 weeks."
+        },
+        {
+          "name": "Website + WhatsApp Coverage",
+          "description": "One AI support agent covering both website chat and WhatsApp Business gives customers the same accurate answer on whichever channel they prefer. We deploy a single knowledge brain across both — WhatsApp Business API setup, approved message templates, and a matching web widget — so you maintain answers once, not twice. For Indian buyers who live on WhatsApp, this is usually the highest-traffic support channel from day one. Conversation logs from both channels feed one dashboard for review.",
+          "features": [
+            "WhatsApp Business API setup + templates",
+            "Matching website chat widget",
+            "One knowledge base for both channels",
+            "Unified conversation logs"
+          ],
+          "priceNote": "Both channels covered in setups from ₹40,000; 2–4 weeks."
+        },
+        {
+          "name": "Human Handoff Design",
+          "description": "Good human handoff design means the AI knows when to stop: frustrated customers, complex complaints and high-value buying signals get routed to your team with the full conversation attached, so nobody repeats themselves. We define escalation triggers, working-hours routing and fallback replies, then test them against real query samples before launch. Triggers are tuned monthly as transcripts reveal what the bot should attempt — and what it should hand over.",
+          "features": [
+            "Escalation triggers for intent + frustration",
+            "Full-context transfer to your team",
+            "Working-hours and fallback routing",
+            "Monthly trigger tuning from transcripts"
+          ],
+          "priceNote": "Included in support-bot setups from ₹40,000; no separate fee."
+        },
+        {
+          "name": "Knowledge Base Training",
+          "description": "Knowledge base training grounds your AI support agent in your own documents — help articles, policies, price lists, product specs — so it answers from facts you control instead of the open internet. We structure your content for retrieval (RAG), fill the gaps a bot exposes fast, and set the agent to say \"I don't know\" rather than invent. Updates are ongoing: change a policy, and the bot's answers change with it. Accuracy is reviewed against real transcripts each month.",
+          "features": [
+            "Docs structured for RAG retrieval",
+            "Answers grounded in your content only",
+            "\"Don't know\" beats made-up replies",
+            "Monthly accuracy reviews"
+          ],
+          "priceNote": "Part of setups from ₹40,000; initial training in 1–2 weeks."
+        },
+        {
+          "name": "Multilingual Replies",
+          "description": "Multilingual replies let one AI support agent handle Hindi, English, Hinglish and regional-language queries without separate bots or translated scripts. The agent detects the customer's language and answers in it, pulling from a single knowledge base — so serving customers across India doesn't multiply your maintenance work. We test tone and accuracy per language before launch, because a stiff machine-translated reply reads worse than no reply. Useful for D2C brands, clinics and service businesses with mixed-language audiences.",
+          "features": [
+            "Auto language detection per chat",
+            "Hindi, English, Hinglish + more",
+            "One knowledge base, every language",
+            "Per-language tone and accuracy tests"
+          ],
+          "priceNote": "Included in setups from ₹40,000; extra languages add days, not lakhs."
+        },
+        {
+          "name": "Support Analytics",
+          "description": "Support analytics tell you what customers actually ask, what the AI resolves on its own, and which questions stump it — data most SMBs never had before a bot. You get a monthly report covering top query themes, resolution and handoff rates, and gaps to fix in your knowledge base; recurring complaints often point straight at product or pricing-page fixes. For DigiSutra clients in Noida and worldwide, this report doubles as free voice-of-customer research. It ships with every support-bot setup.",
+          "features": [
+            "Monthly query-theme report",
+            "Resolution and handoff rates",
+            "Knowledge-gap flags to fix fast",
+            "Voice-of-customer insights included"
+          ],
+          "priceNote": "Bundled with every setup from ₹40,000; first report after month one."
+        }
+      ]
+    }
+  ]
+}

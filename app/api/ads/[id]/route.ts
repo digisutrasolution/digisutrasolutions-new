@@ -19,7 +19,7 @@ const PatchSchema = z.object({
   description: z.string().trim().max(300).optional(),
   imageUrl: urlField.nullable().optional().or(z.literal("").transform(() => null)),
   targetUrl: urlField.optional(),
-  placement: z.enum(["BLOG_SIDEBAR", "ARTICLE_SIDEBAR", "BLOG_INLINE"]).optional(),
+  placement: z.enum(["BLOG_SIDEBAR", "ARTICLE_SIDEBAR", "BLOG_INLINE", "SERVICE_SIDEBAR"]).optional(),
   active: z.boolean().optional(),
   startsAt: z.string().datetime().nullable().optional(),
   endsAt: z.string().datetime().nullable().optional(),

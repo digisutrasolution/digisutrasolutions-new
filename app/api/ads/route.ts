@@ -19,7 +19,7 @@ const AdSchema = z.object({
   description: z.string().trim().max(300).optional(),
   imageUrl: urlField.optional().or(z.literal("").transform(() => undefined)),
   targetUrl: urlField,
-  placement: z.enum(["BLOG_SIDEBAR", "ARTICLE_SIDEBAR", "BLOG_INLINE"]),
+  placement: z.enum(["BLOG_SIDEBAR", "ARTICLE_SIDEBAR", "BLOG_INLINE", "SERVICE_SIDEBAR"]),
   active: z.boolean().optional(),
   startsAt: z.string().datetime().nullable().optional(),
   endsAt: z.string().datetime().nullable().optional(),

@@ -19,6 +19,10 @@ type Offer = {
   categoryId: string;
   name: string;
   blurb: string;
+  description: string;
+  features: string[];
+  priceNote: string | null;
+  image: string | null;
   highlight: boolean;
   order: number;
   visible: boolean;
@@ -173,6 +177,10 @@ function OfferForm({
   const [f, setF] = useState({
     name: offer.name ?? "",
     blurb: offer.blurb ?? "",
+    description: offer.description ?? "",
+    features: (offer.features ?? []).join(", "),
+    priceNote: offer.priceNote ?? "",
+    image: offer.image ?? "",
     highlight: offer.highlight ?? false,
   });
   const [busy, setBusy] = useState(false);
@@ -182,12 +190,18 @@ function OfferForm({
     setBusy(true);
     setErr("");
     try {
+      const body = {
+        ...f,
+        features: f.features.split(",").map((s) => s.trim()).filter(Boolean),
+        priceNote: f.priceNote.trim() || null,
+        image: f.image.trim() || null,
+      };
       const res = await fetch(
         withBase(isNew ? `/api/services/${categoryId}/offers` : `/api/services/offers/${offer.id}`),
         {
           method: isNew ? "POST" : "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(f),
+          body: JSON.stringify(body),
         },
       );
       const data = await res.json();
@@ -204,6 +218,10 @@ function OfferForm({
     <div className="mx-2 mb-2 flex flex-wrap items-end gap-2 rounded-xl border border-orange-200 bg-orange-50/40 p-3 dark:border-orange-900/50 dark:bg-stone-900">
       <div className="min-w-40 flex-1"><label className={labelCls}>Offer</label><input value={f.name} onChange={(e) => setF((p) => ({ ...p, name: e.target.value }))} className={inputCls} /></div>
       <div className="min-w-52 flex-[2]"><label className={labelCls}>One-line blurb</label><input value={f.blurb} onChange={(e) => setF((p) => ({ ...p, blurb: e.target.value }))} className={inputCls} maxLength={120} /></div>
+      <div className="basis-full"><label className={labelCls}>Section paragraph (SEO — shown on the service page)</label><textarea value={f.description} onChange={(e) => setF((p) => ({ ...p, description: e.target.value }))} className={`${inputCls} min-h-24 resize-y`} maxLength={1200} /></div>
+      <div className="min-w-64 flex-[2]"><label className={labelCls}>Features (comma-separated, up to 6)</label><input value={f.features} onChange={(e) => setF((p) => ({ ...p, features: e.target.value }))} className={inputCls} /></div>
+      <div className="min-w-44 flex-1"><label className={labelCls}>Price note</label><input value={f.priceNote} onChange={(e) => setF((p) => ({ ...p, priceNote: e.target.value }))} className={inputCls} maxLength={90} /></div>
+      <div className="min-w-44 flex-1"><label className={labelCls}>Image URL (optional)</label><input value={f.image} onChange={(e) => setF((p) => ({ ...p, image: e.target.value }))} className={inputCls} placeholder="/uploads/…" /></div>
       <label className="flex cursor-pointer items-center gap-1.5 pb-2 text-xs font-medium text-stone-600 dark:text-stone-300">
         <input type="checkbox" checked={f.highlight} onChange={(e) => setF((p) => ({ ...p, highlight: e.target.checked }))} />
         Highlight

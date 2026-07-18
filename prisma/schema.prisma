@@ -326,6 +326,7 @@ enum AdPlacement {
   BLOG_SIDEBAR
   ARTICLE_SIDEBAR
   BLOG_INLINE
+  SERVICE_SIDEBAR
 }
 
 model AdBanner {
@@ -432,14 +433,18 @@ model ServiceCategory {
 }
 
 model ServiceOffer {
-  id         String          @id @default(cuid())
-  category   ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId String
-  name       String
-  blurb      String          @default("")
-  highlight  Boolean         @default(false)
-  order      Int             @default(0)
-  visible    Boolean         @default(true)
+  id          String          @id @default(cuid())
+  category    ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  String
+  name        String
+  blurb       String          @default("")
+  description String          @default("")
+  features    String[]        @default([])
+  priceNote   String?
+  image       String?
+  highlight   Boolean         @default(false)
+  order       Int             @default(0)
+  visible     Boolean         @default(true)
 
   @@index([categoryId, order])
 }

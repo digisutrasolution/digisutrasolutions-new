@@ -23,6 +23,10 @@ export const CategorySchema = z.object({
 export const OfferSchema = z.object({
   name: z.string().trim().min(2).max(90),
   blurb: z.string().trim().max(120).optional(),
+  description: z.string().trim().max(1200).optional(),
+  features: z.array(z.string().trim().min(1).max(60)).max(6).optional(),
+  priceNote: z.string().trim().max(90).nullable().optional(),
+  image: z.string().trim().max(600).nullable().optional(),
   highlight: z.boolean().optional(),
   visible: z.boolean().optional(),
 });

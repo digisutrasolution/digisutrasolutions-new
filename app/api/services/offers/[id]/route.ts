@@ -38,6 +38,10 @@ export async function PATCH(
     data: {
       ...(d.name !== undefined ? { name: d.name } : {}),
       ...(d.blurb !== undefined ? { blurb: d.blurb } : {}),
+      ...(d.description !== undefined ? { description: d.description } : {}),
+      ...(d.features !== undefined ? { features: d.features } : {}),
+      ...(d.priceNote !== undefined ? { priceNote: d.priceNote } : {}),
+      ...(d.image !== undefined ? { image: d.image } : {}),
       ...(d.highlight !== undefined ? { highlight: d.highlight } : {}),
       ...(d.visible !== undefined ? { visible: d.visible } : {}),
     },

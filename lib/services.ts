@@ -7,6 +7,10 @@ import { db } from "@/lib/db";
 export type OfferDef = {
   name: string;
   blurb?: string;
+  description?: string;
+  features?: string[];
+  priceNote?: string;
+  image?: string;
   highlight?: boolean;
 };
 
@@ -211,6 +215,10 @@ export async function getLiveServices(): Promise<LiveService[]> {
         offers: c.offers.map((o) => ({
           name: o.name,
           blurb: o.blurb || undefined,
+          description: o.description || undefined,
+          features: o.features.length ? o.features : undefined,
+          priceNote: o.priceNote ?? undefined,
+          image: o.image ?? undefined,
           highlight: o.highlight,
         })),
       }));

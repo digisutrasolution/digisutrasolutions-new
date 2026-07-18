@@ -24,6 +24,7 @@ const PLACEMENTS = [
   { value: "BLOG_SIDEBAR", label: "Blog sidebar" },
   { value: "ARTICLE_SIDEBAR", label: "Article sidebar" },
   { value: "BLOG_INLINE", label: "Blog inline (future)" },
+  { value: "SERVICE_SIDEBAR", label: "Service page sidebar" },
 ];
 
 const inputCls =
