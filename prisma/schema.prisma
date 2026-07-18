@@ -484,6 +484,20 @@ model RateCardRow {
   visible    Boolean @default(true)
 }
 
+model FaqItem {
+  id       String  @id @default(cuid())
+  question String
+  lead     String  @default("")
+  rest     String  @default("")
+  category String  @default("General")
+  icon     String?
+  featured Boolean @default(false)
+  order    Int     @default(0)
+  visible  Boolean @default(true)
+
+  @@index([order])
+}
+
 enum LeadSource {
   CONTACT
   AUDIT

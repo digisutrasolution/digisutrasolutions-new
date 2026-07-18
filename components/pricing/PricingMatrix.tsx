@@ -55,7 +55,9 @@ export default function PricingMatrix({
         </div>
       )}
 
-      <div className="mt-8 overflow-x-auto">
+      {/* pt-4 gives the floating RECOMMENDED badge headroom — the scroll
+          container clips anything above the grid. */}
+      <div className="mt-8 overflow-x-auto pt-4">
         <div
           className="min-w-[720px]"
           style={{ display: "grid", gridTemplateColumns: `1.2fr repeat(${cols}, 1fr)` }}

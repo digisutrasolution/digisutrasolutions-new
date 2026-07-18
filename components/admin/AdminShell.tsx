@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ChartBar,
   ChevronDown,
+  CircleHelp,
   ClipboardList,
   CornerUpRight,
   FileText,
@@ -53,6 +54,7 @@ const NAV_GROUPS = [
       { label: "Videos", href: "/admin/videos", icon: Video, permission: "pages.view" },
       { label: "Forms", href: "/admin/forms", icon: ClipboardList, permission: "forms.manage" },
       { label: "Comments", href: "/admin/comments", icon: MessageSquare, permission: "comments.moderate", badge: "pendingComments" },
+      { label: "FAQ", href: "/admin/faq", icon: CircleHelp, permission: "faq.manage" },
     ],
   },
   {

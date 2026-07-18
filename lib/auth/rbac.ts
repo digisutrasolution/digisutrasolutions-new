@@ -30,6 +30,7 @@ export const PERMISSIONS = {
   "services.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "pricing.manage": ["SUPER_ADMIN"],
   "leads.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
+  "faq.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSIONS;

@@ -1,0 +1,180 @@
+{
+  "faqs": [
+    {
+      "question": "How much does a digital marketing agency charge per month in India?",
+      "lead": "Most SMB programs cost ₹20,000–₹50,000 monthly; DigiSutra starter plans begin at ₹19,999.",
+      "rest": "That entry price covers SEO or one paid channel; full-funnel programs spanning several channels start at ₹49,999 per month. Pricing scales with channels and goals, not a one-size-fits-all package.",
+      "category": "Pricing & engagement",
+      "icon": "calculator",
+      "featured": true
+    },
+    {
+      "question": "Do I get locked into a long contract when I hire a marketing agency?",
+      "lead": "No lock-in — marketing retainers pause with 30 days notice.",
+      "rest": "Development and e-commerce projects run on fixed quotes with milestone payments, so costs are agreed before any work starts. The free 48-hour audit shows you the roadmap before you commit a rupee.",
+      "category": "Pricing & engagement",
+      "icon": "badgeCheck",
+      "featured": true
+    },
+    {
+      "question": "How much does a website cost in India and what affects the price?",
+      "lead": "Business websites start at ₹35,000; page count, custom design, integrations and e-commerce features drive the final price.",
+      "rest": "E-commerce stores with payments and shipping built in start at ₹60,000. Every project gets a fixed quote up front, so the number you approve is the number you pay — no hourly surprises.",
+      "category": "Pricing & engagement",
+      "icon": "calculator",
+      "featured": false
+    },
+    {
+      "question": "Do I pay upfront for a website or in milestones?",
+      "lead": "You pay in milestones — an agreed portion at each completed stage, never the whole amount up front.",
+      "rest": "The quote is fixed before development starts, so scope changes get discussed rather than silently billed. Marketing retainers work differently — simple monthly billing with no long-term lock-in, so you only commit to work you have approved.",
+      "category": "Pricing & engagement",
+      "icon": "fileText",
+      "featured": false
+    },
+    {
+      "question": "Does the monthly agency fee include my ad spend?",
+      "lead": "No — management fees and ad spend are separate; ads management starts at ₹15,000/mo while ad budget goes directly to Google or Meta.",
+      "rest": "Your ad budget is paid straight to Google, Meta or LinkedIn; the management fee covers strategy, optimization and reporting. Keeping the two separate means you always know what reached the platform and what paid for expertise.",
+      "category": "Pricing & engagement",
+      "icon": "chartColumn",
+      "featured": false
+    },
+    {
+      "question": "How long does SEO take to show results?",
+      "lead": "SEO typically shows first movement in 4–6 weeks, compounding from month three.",
+      "rest": "Early weeks bring technical fixes, indexing gains and long-tail visibility; traffic and leads then build as content and authority stack up. Any agency guaranteeing overnight rankings is a red flag.",
+      "category": "SEO & AI search",
+      "icon": "timer",
+      "featured": true
+    },
+    {
+      "question": "Is SEO still worth it in 2026 with AI Overviews and ChatGPT?",
+      "lead": "Yes — AI Overviews and chatbots cite the well-structured pages SEO builds.",
+      "rest": "Assistants pull answers from clearly structured, entity-rich, authoritative content — exactly what good SEO produces. The work now includes being citable by AI engines alongside ranking in classic Google results.",
+      "category": "SEO & AI search",
+      "icon": "search",
+      "featured": true
+    },
+    {
+      "question": "What do AEO and GEO mean in digital marketing?",
+      "lead": "AEO and GEO make your content the answer that ChatGPT and Google AI Overviews cite.",
+      "rest": "AEO stands for Answer Engine Optimization, GEO for Generative Engine Optimization — in practice, answer-first pages, clean schema markup and facts an AI can quote verbatim. Our SEO retainers cover both alongside classic Google rankings.",
+      "category": "SEO & AI search",
+      "icon": "sparkles",
+      "featured": false
+    },
+    {
+      "question": "How do I rank my business on Google in Noida and Delhi NCR?",
+      "lead": "Local rankings come from an optimized Google Business Profile, local pages and genuine reviews.",
+      "rest": "Consistent citations and content targeting the searches NCR customers actually type matter just as much. We run local SEO from our Sector 62, Noida HQ, and the free 15-page audit shows exactly where your local visibility leaks.",
+      "category": "SEO & AI search",
+      "icon": "mapPin",
+      "featured": false
+    },
+    {
+      "question": "How will I know if my SEO is actually working?",
+      "lead": "You track rankings, organic traffic and leads month over month — a good SEO report ties work done to business outcomes, not vanity metrics.",
+      "rest": "We report in plain English and answer questions over WhatsApp with same-day human replies. If numbers stall, you see it — and with a 30-day pause option, we have to keep earning the retainer.",
+      "category": "SEO & AI search",
+      "icon": "chartLine",
+      "featured": false
+    },
+    {
+      "question": "What is the minimum ad budget to start Google or Meta ads in India?",
+      "lead": "There is no platform-mandated minimum; our ads management starts at ₹15,000/mo and we size your media budget to your market and goals.",
+      "rest": "Most SMBs start lean, prove which campaigns convert, then scale the winners — click costs vary widely by industry, so a plumber and a SaaS firm need very different starting points.",
+      "category": "Ads & lead generation",
+      "icon": "target",
+      "featured": false
+    },
+    {
+      "question": "Google Ads or Meta Ads — which is better for my business?",
+      "lead": "Google Ads captures people already searching for your product; Meta Ads creates demand by putting you in front of the right audience first.",
+      "rest": "High-intent services usually start with Google; visual products and B2C brands often win on Meta, and B2B on LinkedIn. We manage all three, and our clients average 5.8× ROAS across channels.",
+      "category": "Ads & lead generation",
+      "icon": "share2",
+      "featured": false
+    },
+    {
+      "question": "How quickly do paid ads start generating leads?",
+      "lead": "Paid ads can generate leads within days of launch, unlike SEO which compounds over months.",
+      "rest": "Expect a testing phase while audiences and creatives find their footing — performance improves as data accumulates. Because retainers pause with 30 days notice, you are never locked in while campaigns prove themselves.",
+      "category": "Ads & lead generation",
+      "icon": "timer",
+      "featured": false
+    },
+    {
+      "question": "What is the difference between a WordPress site and a custom Next.js website?",
+      "lead": "WordPress suits content-led sites you edit yourself; a custom-coded site delivers faster load times and tighter security for growth-focused businesses.",
+      "rest": "We build both, and recommend based on how you will actually use the site — not what is easiest to sell. Either route starts at ₹35,000 for a business website; the right stack depends on editing needs, speed and integrations.",
+      "category": "Websites & e-commerce",
+      "icon": "monitorSmartphone",
+      "featured": false
+    },
+    {
+      "question": "What do I need to launch an online store in India?",
+      "lead": "You need product pages, secure payments, shipping integration and order management — a complete e-commerce store starts at ₹60,000.",
+      "rest": "We handle catalog setup, payment gateway integration and a mobile-friendly checkout, then hand over an admin panel you can run yourself. Add SEO or ads once the store is live to start driving traffic.",
+      "category": "Websites & e-commerce",
+      "icon": "shoppingCart",
+      "featured": false
+    },
+    {
+      "question": "Can AI automation replace my marketing team or agency?",
+      "lead": "No — AI agents automate follow-up, reporting and repetitive workflows; strategy stays human.",
+      "rest": "DigiSutra builds AI automation agents that answer enquiries, chase leads and compile reports around the clock, while human specialists own positioning, campaigns and creative.",
+      "category": "AI automation & CRM",
+      "icon": "bot",
+      "featured": true
+    },
+    {
+      "question": "What can a WhatsApp chatbot actually do for a small business?",
+      "lead": "A WhatsApp bot can answer FAQs, qualify leads, book appointments and send order updates 24/7 — setup starts at ₹15,000.",
+      "rest": "Full builds from ₹40,000 connect the bot to your CRM so every conversation becomes a tracked lead. The bot handles repetitive queries; your team steps in for conversations that need a human.",
+      "category": "AI automation & CRM",
+      "icon": "bot",
+      "featured": false
+    },
+    {
+      "question": "How does AI automation stop leads from going cold?",
+      "lead": "An AI bot replies the instant an enquiry lands, so no lead goes cold waiting for a human.",
+      "rest": "The bot asks qualifying questions, records every answer and hands warm prospects to your team in real time. That first-minute response is often the difference between a booked call and a lost enquiry.",
+      "category": "AI automation & CRM",
+      "icon": "brain",
+      "featured": false
+    },
+    {
+      "question": "What does a free website audit include and is it really free?",
+      "lead": "Yes — the audit is genuinely free: a 15-page report in 48 hours.",
+      "rest": "It covers SEO health, site speed, UX and conversion blockers, with no charge and no obligation to hire DigiSutra afterward. Use it as a prioritised fix-list even if you never become a client.",
+      "category": "Working with us",
+      "icon": "fileSearch",
+      "featured": true
+    },
+    {
+      "question": "Can an agency in India work with clients in the USA, UK or Australia?",
+      "lead": "Yes — DigiSutra already serves clients in 12 countries from Noida, India.",
+      "rest": "Remote delivery is standard: campaigns run on the same Google and Meta ad platforms whether you're in Sydney, London or New York, and async reporting keeps international accounts moving between time zones.",
+      "category": "Working with us",
+      "icon": "earth",
+      "featured": true
+    },
+    {
+      "question": "Do you provide support and updates over WhatsApp?",
+      "lead": "Support and project updates run over WhatsApp — no ticket queues or email chains.",
+      "rest": "Clients message the team directly for campaign questions, approvals and quick fixes, alongside regular performance reporting. It keeps decisions moving fast.",
+      "category": "Working with us",
+      "icon": "messageCircle",
+      "featured": true
+    },
+    {
+      "question": "What happens after I contact DigiSutra Solutions?",
+      "lead": "You get a free 15-page website and growth audit within 48 hours — no obligation and no pressure to sign anything.",
+      "rest": "The audit shows exactly what is broken and what to fix first; if you like the plan, we scope the engagement — no pressure either way. Everything after that runs over WhatsApp with real humans replying same-day.",
+      "category": "Working with us",
+      "icon": "messageCircle",
+      "featured": false
+    }
+  ]
+}
