@@ -1743,6 +1743,15 @@ cmrpyttka0026t6pstwei0qhs	/news-media/latest-news	localhost:3100	2026-07-18 06:0
 cmrpytwfv0027t6ps1kvbt7fz	/news-media	localhost:3100	2026-07-18 06:08:09.596
 cmrpyuclx0028t6psgsfv9x8g	/	localhost:3100	2026-07-18 06:08:30.549
 cmrpz6ybo002bt6ps6f2c8507	/	localhost:3100	2026-07-18 06:18:18.564
+cmrpzctoq002et6psevux09g9	/pricing	\N	2026-07-18 06:22:52.49
+cmrpzcwni002ft6psp9u9mmtj	/payment	\N	2026-07-18 06:22:56.335
+cmrpzfzpn002gt6ps5b8mqk1m	/pricing	localhost:3100	2026-07-18 06:25:20.267
+cmrpzgeh9002ht6ps5orv9dt9	/contact	localhost:3100	2026-07-18 06:25:39.406
+cmrpzha9f002it6pszzahchs8	/payment	localhost:3100	2026-07-18 06:26:20.595
+cmrpzk701002jt6pslco80nnd	/pricing	localhost:3100	2026-07-18 06:28:36.337
+cmrpzk9i2002kt6ps5vljp05d	/contact	localhost:3100	2026-07-18 06:28:39.579
+cmrpzkbaa002lt6psrfy5fw8u	/pricing	localhost:3100	2026-07-18 06:28:41.89
+cmrpzks3x002mt6psisn8m8jp	/contact	localhost:3100	2026-07-18 06:29:03.693
 \.
 
 
@@ -2217,7 +2226,11 @@ cmrpxc7ua0001t6psnvbvsyqk	57ca3f1804542f83361473d14499a44214cf6734f5decd76fc15ee
 cmrpxwtq5000vt6psmkf5cmwu	5f6c80d3aed84c0580d7cafa7bbfe88cc4cee29ae18249e0d7887ace926a1df4	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 05:42:26.427	2026-07-18 05:52:26.45	2026-07-18 05:42:26.43
 cmrpy9opg000xt6pscbr6p9jl	8f268fc21003039df3eea6517eef0d410d7b0fc83711156879d048298c9855ae	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 05:52:26.45	2026-07-18 06:02:26.513	2026-07-18 05:52:26.452
 cmrpymjpx001ct6ps1rkwjl0y	08b0d6064d4e1b52833146c12f9c2e6f00322aabf87ed2772bfb56de647fc12e	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 06:02:26.514	2026-07-18 06:12:26.424	2026-07-18 06:02:26.517
-cmrpyzem3002at6ps6l7ofg0y	34a8550f57bb68f1dfd5ed30ae92fbe23a728101c723e4f10ca4db29bcc14249	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 06:12:26.424	\N	2026-07-18 06:12:26.426
+cmrpyzem3002at6ps6l7ofg0y	34a8550f57bb68f1dfd5ed30ae92fbe23a728101c723e4f10ca4db29bcc14249	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 06:12:26.424	2026-07-18 06:22:26.459	2026-07-18 06:12:26.426
+cmrpzc9lo002dt6ps9jddha40	71cf1028083d70a69044e98d01338afdfd119637b6cea50cfed3a436c4009a36	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 06:22:26.459	2026-07-18 06:36:58.447	2026-07-18 06:22:26.46
+cmrpzuyfn002ot6psgcx1fndw	c18ec3447c0dc0d351e50c959c56503fdf9c77f6538b90312823de5ba97f1736	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 06:36:58.448	2026-07-18 23:05:46.204	2026-07-18 06:36:58.451
+cmrqz6k17002qt6psn77gl9nt	95ee5e292682bac86636bbe41658fd4b15d80ec5e25c929d725c13bd1f5074d4	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-17 23:05:46.204	2026-07-20 13:17:12.547	2026-07-18 23:05:46.218
+cmrt91d6m002st6pssgr7yr4u	fa413fb4601b87e1a9d72e4f60a63fa7a5e20df54506632b8703e3069b3d32d0	cmr92chs50000t6cklv6m3y9t	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36	::1	2026-08-19 13:17:12.547	\N	2026-07-20 13:17:12.564
 \.
 
 
