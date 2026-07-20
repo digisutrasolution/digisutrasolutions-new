@@ -5,7 +5,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 
-const KEYS = ["whatsapp", "linkedin", "instagram", "youtube", "facebook", "x"] as const;
+const KEYS = ["whatsapp", "linkedin", "instagram", "youtube", "facebook", "x", "pinterest"] as const;
 
 const LinksSchema = z
   .array(
@@ -16,7 +16,7 @@ const LinksSchema = z
       url: z.string().trim().url().max(400),
     }),
   )
-  .max(6);
+  .max(7);
 
 export async function GET() {
   const { error } = await requirePermission("settings.manage");

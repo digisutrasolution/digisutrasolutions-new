@@ -14,6 +14,7 @@ const PLATFORMS = [
   { key: "youtube", label: "YouTube" },
   { key: "facebook", label: "Facebook" },
   { key: "x", label: "X (Twitter)" },
+  { key: "pinterest", label: "Pinterest" },
 ];
 
 const inputCls =
