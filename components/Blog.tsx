@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Mail, Newspaper } from "lucide-react";
+import { Newspaper } from "lucide-react";
+import HomeSubscribe from "@/components/HomeSubscribe";
 import Reveal from "@/components/Reveal";
 import { db } from "@/lib/db";
 import { BLOG_POSTS } from "@/lib/data";
@@ -139,7 +140,7 @@ export default async function Blog() {
                 </span>
               </div>
               <div className="p-5 sm:p-6">
-                <p className="text-xs text-stone-400">
+                <p className="text-xs text-stone-500">
                   {featured.date}
                   {featured.authorName ? ` · ${featured.authorName}` : ""}
                 </p>
@@ -187,28 +188,19 @@ export default async function Blog() {
                   />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-[11px] text-stone-400">
+                  <span className="block text-xs text-stone-500">
                     {post.category} · {post.date}
                   </span>
                   <span className="font-display mt-1 block text-sm font-bold leading-snug text-stone-900 transition-colors group-hover:text-orange-700">
                     {post.title}
                   </span>
-                  <span className="mt-1 block text-[11px] text-stone-400">
+                  <span className="mt-1 block text-xs text-stone-500">
                     {post.readingMinutes} min read
                   </span>
                 </span>
               </Link>
             ))}
-            <Link
-              href="/contact"
-              className="mt-auto flex items-center gap-2.5 border-t border-dashed border-[#F0E2D6] px-3 pb-1 pt-4 text-sm text-stone-600 transition-colors hover:text-orange-700"
-            >
-              <Mail size={15} className="shrink-0 text-[#F26419]" aria-hidden />
-              <span>
-                Get growth notes monthly —{" "}
-                <b className="font-bold text-[#F26419]">subscribe →</b>
-              </span>
-            </Link>
+            <HomeSubscribe />
           </div>
         </Reveal>
       </div>

@@ -46,8 +46,12 @@ export default function AuditCta() {
               <AuditForm />
             </div>
 
-            {/* Animated audit score preview card */}
-            <AuditScoreCard />
+            {/* Animated audit score preview card — decorative, so phones
+                skip it (the checklist + form carry the message) and the
+                band stays a single screen tall */}
+            <div className="hidden lg:block">
+              <AuditScoreCard />
+            </div>
           </div>
         </div>
       </Reveal>
