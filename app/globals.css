@@ -603,6 +603,37 @@ body {
   color: transparent;
 }
 
+/* Printing — used by the invoice generator: everything except the sheet
+   is hidden, so "Save as PDF" produces just the invoice. */
+@media print {
+  body:has(.invoice-sheet) > *,
+  body:has(.invoice-sheet) header,
+  body:has(.invoice-sheet) footer,
+  body:has(.invoice-sheet) .no-print {
+    display: none !important;
+  }
+  body:has(.invoice-sheet) main,
+  body:has(.invoice-sheet) main *:has(.invoice-sheet) {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  .invoice-sheet {
+    display: block !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  .invoice-sheet * {
+    display: revert;
+  }
+  @page {
+    margin: 16mm;
+  }
+}
+
 .text-outline-cream {
   -webkit-text-stroke: 1px #ffedd5;
   color: transparent;

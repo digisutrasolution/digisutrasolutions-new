@@ -78,7 +78,7 @@ export const TOOLS: Tool[] = [
     blurb: "Create a clean GST invoice and download it.",
     icon: "fileText",
     group: "Business admin",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "privacy-policy-generator",
@@ -126,7 +126,7 @@ export const TOOLS: Tool[] = [
     blurb: "Confirm your certificate is valid and not expiring.",
     icon: "lock",
     group: "Build & create",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "brand-name-generator",
