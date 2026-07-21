@@ -186,7 +186,7 @@ export default async function BlogPostPage({
   };
 
   return (
-    <div className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
+    <div className="mx-auto max-w-[1280px] px-6 pb-16 pt-12 sm:pb-24 sm:pt-16">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

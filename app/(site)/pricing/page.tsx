@@ -60,7 +60,7 @@ export default async function PricingPage() {
   };
 
   return (
-    <div className="pb-12 sm:pb-16">
+    <div className="pb-16 sm:pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

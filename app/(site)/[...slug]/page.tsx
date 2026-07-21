@@ -156,7 +156,9 @@ export default async function CmsPage({
         </div>
       )}
       <SectionRenderer sections={sections} />
-      <div className="pb-8" />
+      {/* Bottom-padding floor so every CMS page ends with breathing room
+          regardless of which block type it ends on */}
+      <div className="pb-16 sm:pb-20" />
     </>
   );
 }

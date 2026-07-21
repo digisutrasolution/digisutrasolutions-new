@@ -48,7 +48,7 @@ export default async function SearchPage({
   const total = pages.length + posts.length;
 
   return (
-    <section className="mx-auto max-w-3xl px-6 pb-8 pt-12 sm:pt-16">
+    <section className="mx-auto max-w-3xl px-6 pb-16 pt-12 sm:pb-24 sm:pt-16">
       <h1 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
         Search
       </h1>
