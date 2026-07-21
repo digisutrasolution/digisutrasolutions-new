@@ -132,14 +132,14 @@ export default function SutraBot() {
 
   return (
     <>
-      {/* Launcher — top of the corner ladder (WhatsApp 20px, back-to-top
-          96px, bot 184px). Hidden while the panel is open; the panel's
-          header X closes it and the panel itself covers the ladder. */}
+      {/* Primary launcher, bottom of the corner ladder (bot 20px, WhatsApp
+          92px, back-to-top 156px). Hidden while the panel is open — the
+          panel's header X closes it and the panel covers the ladder. */}
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Chat with DigiSutra Bot"
         aria-expanded={open}
-        className={`group fixed bottom-[11.5rem] right-5 z-[130] cursor-pointer items-center gap-2.5 ${
+        className={`group fixed bottom-5 right-5 z-[130] cursor-pointer items-center gap-2.5 ${
           open ? "hidden" : "flex"
         }`}
       >
@@ -155,7 +155,7 @@ export default function SutraBot() {
         <div
           role="dialog"
           aria-label="DigiSutra Bot"
-          className="fixed inset-x-3 bottom-3 z-[135] flex max-h-[78vh] flex-col overflow-hidden rounded-2xl border border-stone-700 bg-stone-900 shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:inset-x-auto sm:bottom-5 sm:right-5 sm:max-h-[70vh] sm:w-[380px]"
+          className="fixed inset-x-3 bottom-3 top-[calc(var(--topbar-h)+80px)] z-[135] flex flex-col overflow-hidden rounded-2xl border border-stone-700 bg-stone-900 shadow-[0_24px_60px_rgba(0,0,0,0.45)] sm:inset-x-auto sm:bottom-5 sm:right-5 sm:top-auto sm:h-[min(85vh,660px)] sm:w-[400px]"
         >
           {/* Header */}
           <div className="flex items-center gap-2.5 border-b border-stone-700 px-4 py-3">

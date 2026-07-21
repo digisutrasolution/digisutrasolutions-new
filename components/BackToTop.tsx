@@ -45,14 +45,14 @@ export default function BackToTop() {
       }
       aria-label="Back to top"
       tabIndex={visible ? 0 : -1}
-      className={`fixed bottom-24 right-5 z-[120] h-[52px] w-[52px] cursor-pointer transition-all duration-300 ${
+      className={`fixed bottom-[9.75rem] right-[25px] z-[120] h-[46px] w-[46px] cursor-pointer transition-all duration-300 ${
         visible
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-3 opacity-0"
       }`}
     >
       <svg viewBox="0 0 52 52" className="absolute inset-0 -rotate-90" aria-hidden>
-        <circle cx="26" cy="26" r={R} fill="none" stroke="#F5EDE4" strokeWidth="3" />
+        <circle cx="26" cy="26" r={R} fill="none" stroke="#F5EDE4" strokeWidth="3.4" />
         <circle
           cx="26"
           cy="26"
