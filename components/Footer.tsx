@@ -136,7 +136,7 @@ export default async function Footer() {
   const [firstColumn, ...restColumns] = columns;
 
   const linkColumn = (col: NavNode) => (
-    <div key={col.label}>
+    <div key={col.label} className="order-1 lg:order-none">
       <h3 className="mb-4 text-[1rem] font-black uppercase tracking-wide text-[#F26419] sm:mb-5">
         {col.label}
       </h3>
@@ -192,9 +192,10 @@ export default async function Footer() {
         </div>
 
         <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-12 sm:px-6 sm:py-16">
-          {/* Mobile is a two-part layout: brand and contact span the full
-              width while the CMS link columns sit side by side, so the
-              right half of the screen is never empty. */}
+          {/* Below lg the footer leads with the link columns side by side,
+              then contact full width, and closes with a compact brand
+              sign-off (CSS order only — DOM order stays brand-first so the
+              lg column layout and crawlers are unaffected). */}
           <div
             className="footer-grid grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-2 sm:gap-8 lg:gap-10"
             style={
@@ -203,25 +204,22 @@ export default async function Footer() {
               } as React.CSSProperties
             }
           >
-            {/* Part one on phones: brand + first link column. The wrapper
-                dissolves from sm (display: contents) so tablet and desktop
-                grids see the same direct children as before. */}
-            <div className="flex flex-col gap-8 sm:contents">
-            {/* Brand column */}
-            <div>
-              <div className="mb-6">
-                <Image
-                  src={withBase("/footer-logo.webp")}
-                  alt="Digisutra Solutions"
-                  width={260}
-                  height={90}
-                  className="ml-1 h-14 w-auto object-contain sm:h-16"
-                />
-              </div>
-              <p className="mb-5 text-[0.92rem] leading-relaxed text-white lg:ml-4">
-                {info.description}
-              </p>
-              <div className="flex flex-wrap items-center gap-2.5 lg:ml-4">
+            {/* Brand — sign-off row at the end below lg, first column on lg */}
+            <div className="order-3 col-span-2 border-t border-white/10 pt-6 lg:order-none lg:col-span-1 lg:border-0 lg:pt-0">
+              <div className="flex items-center justify-between gap-4 lg:block">
+                <div className="min-w-0">
+                  <Image
+                    src={withBase("/footer-logo.webp")}
+                    alt="Digisutra Solutions"
+                    width={260}
+                    height={90}
+                    className="h-10 w-auto object-contain lg:mb-6 lg:ml-1 lg:h-16"
+                  />
+                  <p className="mt-2 line-clamp-2 text-[0.82rem] leading-relaxed text-white lg:mb-5 lg:ml-4 lg:mt-0 lg:line-clamp-none lg:text-[0.92rem]">
+                    {info.description}
+                  </p>
+                </div>
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2.5 lg:ml-4 lg:justify-start">
                 {socials.map((s) => {
                   const icon = SOCIAL_ICONS[s.key];
                   return (
@@ -252,6 +250,7 @@ export default async function Footer() {
                   );
                 })}
               </div>
+              </div>
               <div className="mt-6 hidden lg:ml-4 lg:block">
                 <p className="mb-3 text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
                   We Accept
@@ -263,14 +262,10 @@ export default async function Footer() {
             </div>
 
             {firstColumn && linkColumn(firstColumn)}
-            </div>
-
-            {/* Part two on phones: remaining link columns + contact */}
-            <div className="flex flex-col gap-8 sm:contents">
             {restColumns.map(linkColumn)}
 
             {/* Contact column — content managed in /admin/settings */}
-            <div>
+            <div className="order-2 col-span-2 lg:order-none lg:col-span-1">
               <h3 className="mb-5 text-[1rem] font-black uppercase tracking-wide text-[#F26419]">
                 Contact
               </h3>
@@ -300,8 +295,9 @@ export default async function Footer() {
                     ))}
                   </span>
                 </div>
-                {/* Contact sits in the right half on phones, so rows stack. */}
-                <div className="space-y-3 sm:space-y-3.5">
+                {/* Contact spans the full width below lg, so the two phone
+                    numbers pair on one row; email keeps a row to itself. */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 lg:block lg:space-y-3.5">
                 <a
                   href={`tel:+${telDigits(info.phoneIndia)}`}
                   className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
@@ -344,7 +340,7 @@ export default async function Footer() {
                 </a>
                 <a
                   href={`mailto:${info.email}`}
-                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors [overflow-wrap:anywhere] hover:text-white sm:gap-3 sm:text-[0.92rem]"
+                  className="col-span-2 flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors [overflow-wrap:anywhere] hover:text-white sm:gap-3 sm:text-[0.92rem] lg:col-auto"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
                     <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
@@ -354,7 +350,6 @@ export default async function Footer() {
                 </a>
                 </div>
               </div>
-            </div>
             </div>
           </div>
 
