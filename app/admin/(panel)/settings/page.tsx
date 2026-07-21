@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import { can } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import BotNudgeManager from "@/components/admin/BotNudgeManager";
 import FooterInfoManager from "@/components/admin/FooterInfoManager";
 import SocialLinksManager from "@/components/admin/SocialLinksManager";
+import { getBotNudge } from "@/lib/bot-nudge";
 import { DEFAULT_FOOTER_INFO } from "@/lib/footer";
 
 export const metadata = { title: "Settings" };
@@ -14,9 +16,10 @@ export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user.role, "settings.manage")) redirect("/admin");
 
-  const [social, footer] = await Promise.all([
+  const [social, footer, botNudge] = await Promise.all([
     db.siteSetting.findUnique({ where: { key: "socialLinks" } }),
     db.siteSetting.findUnique({ where: { key: "footerInfo" } }),
+    getBotNudge(),
   ]);
   const links = Array.isArray(social?.value) ? (social.value as SocialLink[]) : [];
   const footerInfo = { ...DEFAULT_FOOTER_INFO, ...(footer?.value as object | undefined) };
@@ -27,7 +30,16 @@ export default async function AdminSettingsPage() {
         Site settings
       </h1>
 
-      <h2 className="font-display mt-6 text-base font-bold">Footer &amp; contact</h2>
+      <h2 className="font-display mt-6 text-base font-bold">DigiSutra Bot greeting</h2>
+      <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+        The bubble that appears beside the chat button for new visitors. Timing and the message
+        for each page are set here.
+      </p>
+      <div className="mt-4">
+        <BotNudgeManager initial={botNudge} />
+      </div>
+
+      <h2 className="font-display mt-8 text-base font-bold">Footer &amp; contact</h2>
       <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
         The footer&apos;s brand text, address, phone numbers and email. Link
         columns and the legal bar are managed under Menus (Footer / Footer

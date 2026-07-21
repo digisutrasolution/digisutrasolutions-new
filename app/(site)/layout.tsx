@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import TrackPageview from "@/components/TrackPageview";
 import BackToTop from "@/components/BackToTop";
 import SutraBot from "@/components/SutraBot";
+import { getBotNudge } from "@/lib/bot-nudge";
 import { getFeaturedPost, getLiveNav } from "@/lib/menu";
 import { SITE_URL } from "@/lib/site";
 
@@ -11,7 +12,11 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [nav, featuredPost] = await Promise.all([getLiveNav(), getFeaturedPost()]);
+  const [nav, featuredPost, botNudge] = await Promise.all([
+    getLiveNav(),
+    getFeaturedPost(),
+    getBotNudge(),
+  ]);
   const toUrl = (href: string) => (href.startsWith("/") ? `${SITE_URL}${href}` : href);
   const navJsonLd = {
     "@context": "https://schema.org",
@@ -49,7 +54,7 @@ export default async function SiteLayout({
       <Footer />
       {/* WhatsAppFab is intentionally unmounted — WhatsApp now lives inside
           the bot panel, the footer contact tiles and the contact page. */}
-      <SutraBot />
+      <SutraBot nudge={botNudge} />
       <BackToTop />
     </>
   );

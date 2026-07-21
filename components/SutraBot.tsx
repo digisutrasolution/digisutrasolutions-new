@@ -3,9 +3,18 @@
 import { withBase } from "@/lib/base-path";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ArrowUp, Check, MessageCircle, Sparkles, X } from "lucide-react";
+import {
+  NUDGE_COOLDOWN_DAYS,
+  NUDGE_EXCLUDED_PATHS,
+  nudgeTextFor,
+  type BotNudge,
+} from "@/lib/bot-nudge";
 
 type Turn = { role: "user" | "assistant"; content: string };
+
+const NUDGE_KEY = "ds-bot-nudge-seen";
 
 const OPENING =
   "Hi! I'm DigiSutra Bot. Tell me what you're trying to grow and I'll point you to the right service — or share prices, timelines and our free 15-page audit.";
@@ -24,7 +33,9 @@ const WA_HREF =
 /* DigiSutra Bot — floating chat panel. The transcript lives here; the API
    is stateless. After two exchanges (or on request) it offers the inline
    capture form, which writes a Lead with source SUTRABOT. */
-export default function SutraBot() {
+export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
+  const pathname = usePathname();
+  const [teaser, setTeaser] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([{ role: "assistant", content: OPENING }]);
   const [draft, setDraft] = useState("");
@@ -58,6 +69,47 @@ export default function SutraBot() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
+
+  /* Proactive greeting: fires on a delay OR a scroll depth, whichever comes
+     first, once per visitor per cooldown. Skipped on conversion pages, once
+     the panel has been opened, and after a lead is captured. */
+  useEffect(() => {
+    if (!nudge?.enabled || open || teaser) return;
+    if (NUDGE_EXCLUDED_PATHS.some((p) => pathname.startsWith(p))) return;
+
+    const text = nudgeTextFor(nudge, pathname);
+    if (!text) return;
+
+    try {
+      const seen = Number(localStorage.getItem(NUDGE_KEY) ?? 0);
+      if (seen && Date.now() - seen < NUDGE_COOLDOWN_DAYS * 86400000) return;
+    } catch {
+      /* private mode — fall through and just show it once this session */
+    }
+
+    let fired = false;
+    const fire = () => {
+      if (fired) return;
+      fired = true;
+      setTeaser(text);
+      try {
+        localStorage.setItem(NUDGE_KEY, String(Date.now()));
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const timer = setTimeout(fire, nudge.delaySeconds * 1000);
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (max > 0 && (window.scrollY / max) * 100 >= nudge.scrollPercent) fire();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [nudge, pathname, open, teaser]);
 
   async function send(text: string) {
     const message = text.trim();
@@ -135,8 +187,35 @@ export default function SutraBot() {
       {/* Primary launcher, bottom of the corner ladder (bot 20px, WhatsApp
           92px, back-to-top 156px). Hidden while the panel is open — the
           panel's header X closes it and the panel covers the ladder. */}
+      {/* Proactive greeting bubble */}
+      {teaser && !open && (
+        <div className="fixed bottom-[6.25rem] right-5 z-[130] w-[min(17rem,calc(100vw-2.5rem))] rounded-2xl rounded-br-sm border border-stone-700 bg-stone-900 p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+          <p className="text-sm leading-relaxed text-stone-100">{teaser}</p>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => {
+                setTeaser(null);
+                setOpen(true);
+              }}
+              className="cursor-pointer rounded-full bg-[#F26419] px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-orange-600"
+            >
+              Yes, show me
+            </button>
+            <button
+              onClick={() => setTeaser(null)}
+              className="cursor-pointer rounded-full border border-stone-600 px-3 py-1.5 text-xs font-semibold text-stone-400 transition-colors hover:text-white"
+            >
+              No thanks
+            </button>
+          </div>
+        </div>
+      )}
+
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setTeaser(null);
+          setOpen((v) => !v);
+        }}
         aria-label="Chat with DigiSutra Bot"
         aria-expanded={open}
         className={`group fixed bottom-5 right-5 z-[130] cursor-pointer items-center gap-2.5 ${
@@ -146,8 +225,13 @@ export default function SutraBot() {
         <span className="hidden rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-stone-900 shadow-[0_8px_24px_rgba(0,0,0,0.18)] lg:block">
           Ask DigiSutra Bot
         </span>
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#F26419] text-white shadow-[0_10px_26px_rgba(0,0,0,0.28)] transition-transform duration-200 group-hover:scale-105">
+        <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#F26419] text-white shadow-[0_10px_26px_rgba(0,0,0,0.28)] transition-transform duration-200 group-hover:scale-105">
           <Sparkles size={24} aria-hidden />
+          {teaser && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white">
+              1
+            </span>
+          )}
         </span>
       </button>
 
