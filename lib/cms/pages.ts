@@ -23,7 +23,7 @@ export const RESERVED_SLUGS = new Set([
   "contact",
   "faq",
   "payment",
-  "resources/roi-calculator",
+  "free-tools/roi-calculator",
   "search",
   "sitemap.xml",
   "robots.txt",

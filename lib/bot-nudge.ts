@@ -38,7 +38,7 @@ export const DEFAULT_BOT_NUDGE: BotNudge = {
     { path: "/work", text: "Want results like these? I can set up your free audit." },
     { path: "/blog", text: "Want this done for you? Free 15-page audit, in 48 hours." },
     { path: "/payment", text: "Questions about payment, invoices or GST? Ask me." },
-    { path: "/resources", text: "Want a human to read these numbers with you?" },
+    { path: "/free-tools", text: "Want a human to read these numbers with you?" },
     { path: "/", text: "Want the free 15-page audit? I can set it up in 30 seconds." },
   ],
 };

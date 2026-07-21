@@ -116,7 +116,7 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
           </div>
         ))}
         <datalist id="admin-nudge-paths">
-          {["/", "/pricing", "/services", "/work", "/blog", "/payment", "/resources", "/faq", "/about"].map(
+          {["/", "/pricing", "/services", "/work", "/blog", "/payment", "/free-tools", "/faq", "/about"].map(
             (p) => (
               <option key={p} value={p} />
             ),

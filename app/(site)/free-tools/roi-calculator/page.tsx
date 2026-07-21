@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Marketing ROI Calculator: Estimate Leads & Revenue",
   description:
     "Free ROI calculator for Indian businesses — move the sliders to see the enquiries, orders and revenue a monthly marketing budget could return, with the assumptions shown.",
-  alternates: { canonical: `${SITE_URL}/resources/roi-calculator` },
+  alternates: { canonical: `${SITE_URL}/free-tools/roi-calculator` },
 };
 
 export default function RoiCalculatorPage() {
@@ -20,12 +20,12 @@ export default function RoiCalculatorPage() {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-          { "@type": "ListItem", position: 2, name: "Resources", item: `${SITE_URL}/resources` },
+          { "@type": "ListItem", position: 2, name: "Resources", item: `${SITE_URL}/free-tools` },
           {
             "@type": "ListItem",
             position: 3,
             name: "ROI Calculator",
-            item: `${SITE_URL}/resources/roi-calculator`,
+            item: `${SITE_URL}/free-tools/roi-calculator`,
           },
         ],
       },
@@ -34,7 +34,7 @@ export default function RoiCalculatorPage() {
         name: "DigiSutra Marketing ROI Calculator",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Any",
-        url: `${SITE_URL}/resources/roi-calculator`,
+        url: `${SITE_URL}/free-tools/roi-calculator`,
         offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
       },
     ],
