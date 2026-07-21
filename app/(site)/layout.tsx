@@ -1,7 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TrackPageview from "@/components/TrackPageview";
-import WhatsAppFab from "@/components/WhatsAppFab";
 import BackToTop from "@/components/BackToTop";
 import SutraBot from "@/components/SutraBot";
 import { getFeaturedPost, getLiveNav } from "@/lib/menu";
@@ -48,7 +47,8 @@ export default async function SiteLayout({
         {children}
       </main>
       <Footer />
-      <WhatsAppFab />
+      {/* WhatsAppFab is intentionally unmounted — WhatsApp now lives inside
+          the bot panel, the footer contact tiles and the contact page. */}
       <SutraBot />
       <BackToTop />
     </>

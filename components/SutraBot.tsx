@@ -300,13 +300,14 @@ export default function SutraBot() {
                 <ArrowUp size={18} aria-hidden />
               </button>
             </form>
+            {/* Primary route to WhatsApp now that the floating button is gone */}
             <a
               href={WA_HREF}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-stone-400 transition-colors hover:text-[#FDBA74]"
+              className="mt-2.5 flex items-center justify-center gap-2 rounded-full border border-[#25D366]/50 bg-[#25D366]/10 py-2 text-xs font-bold text-[#4ADE80] transition-colors hover:bg-[#25D366]/20"
             >
-              <MessageCircle size={12} aria-hidden /> Prefer WhatsApp? Talk to a human →
+              <MessageCircle size={13} aria-hidden /> Talk to a human on WhatsApp
             </a>
           </div>
         </div>
