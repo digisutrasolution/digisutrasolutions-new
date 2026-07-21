@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createElement } from "react";
 import { ArrowRight, ChartLine, Earth, ShieldCheck, Users } from "lucide-react";
 import PricingMatrix from "@/components/pricing/PricingMatrix";
+import RoiCalculator from "@/components/RoiCalculator";
 import { navIcon } from "@/components/nav-icons";
 import { withBase } from "@/lib/base-path";
 import { getLiveFaqs } from "@/lib/faq";
@@ -150,6 +151,11 @@ export default async function PricingPage() {
             </p>
           </div>
         )}
+
+        {/* Estimate the return before committing to a plan */}
+        <div className="mt-16">
+          <RoiCalculator />
+        </div>
 
         <div className="mt-14 text-center">
           <Link

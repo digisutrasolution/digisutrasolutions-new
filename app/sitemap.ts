@@ -34,6 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     { url: `${base}/pricing`, lastModified: new Date(), priority: 0.8 },
     { url: `${base}/payment`, lastModified: new Date(), priority: 0.6 },
+    { url: `${base}/resources/roi-calculator`, lastModified: new Date(), priority: 0.6 },
     { url: `${base}/contact`, lastModified: new Date(), priority: 0.8 },
     { url: `${base}/faq`, lastModified: new Date(), priority: 0.7 },
     { url: `${base}/work`, lastModified: new Date(), priority: 0.8 },
