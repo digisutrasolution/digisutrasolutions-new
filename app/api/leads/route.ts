@@ -18,7 +18,7 @@ const LeadSchema = z.object({
   budget: z.string().trim().max(60).optional(),
   timeline: z.string().trim().max(60).optional(),
   message: z.string().trim().max(2000).optional(),
-  source: z.enum(["CONTACT", "AUDIT", "ESTIMATOR"]).optional(),
+  source: z.enum(["CONTACT", "AUDIT", "ESTIMATOR", "SUTRABOT"]).optional(),
   hp: z.string().optional(),          // honeypot — must stay empty
   startedAt: z.number().optional(),   // time-trap — form render timestamp
 });

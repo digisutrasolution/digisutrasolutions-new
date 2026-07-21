@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import TrackPageview from "@/components/TrackPageview";
 import WhatsAppFab from "@/components/WhatsAppFab";
 import BackToTop from "@/components/BackToTop";
+import SutraBot from "@/components/SutraBot";
 import { getFeaturedPost, getLiveNav } from "@/lib/menu";
 import { SITE_URL } from "@/lib/site";
 
@@ -48,6 +49,7 @@ export default async function SiteLayout({
       </main>
       <Footer />
       <WhatsAppFab />
+      <SutraBot />
       <BackToTop />
     </>
   );
