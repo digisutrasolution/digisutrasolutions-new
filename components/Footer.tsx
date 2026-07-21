@@ -46,6 +46,20 @@ const SOCIAL_ICONS: Record<string, { viewBox: string; path: string }> = {
   },
 };
 
+/* Contact methods render as tappable tiles below lg (icon + label on the
+   first line, value wrapping underneath via w-full) and collapse back to
+   the desktop column's plain icon + value rows from lg. */
+const CONTACT_TILE =
+  "flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-white/10 bg-black/20 p-3 text-white no-underline transition-colors hover:border-[#F26419] lg:flex-nowrap lg:gap-3 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:hover:border-transparent";
+const CONTACT_TILE_WA =
+  "flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-white no-underline transition-colors hover:border-emerald-400 lg:flex-nowrap lg:gap-3 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:hover:border-transparent";
+const CONTACT_LABEL = "text-[11px] text-stone-400 lg:hidden";
+const CONTACT_VALUE_BASE =
+  "w-full font-semibold leading-tight text-white lg:w-auto lg:font-normal";
+const CONTACT_VALUE = `${CONTACT_VALUE_BASE} text-[0.84rem] lg:text-[0.92rem]`;
+/* The address is long, so the email tile drops a step and may wrap. */
+const CONTACT_VALUE_EMAIL = `${CONTACT_VALUE_BASE} text-[0.72rem] [overflow-wrap:anywhere] lg:text-[0.92rem]`;
+
 /* Fallback when no social profiles are configured in admin Settings. */
 const DEFAULT_SOCIALS: { key: string; label: string; url: string }[] = [
   { key: "facebook", label: "Facebook", url: "https://www.facebook.com/profile.php?id=61585578555272" },
@@ -295,12 +309,13 @@ export default async function Footer() {
                     ))}
                   </span>
                 </div>
-                {/* Contact spans the full width below lg, so the two phone
-                    numbers pair on one row; email keeps a row to itself. */}
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3 lg:block lg:space-y-3.5">
+                {/* Below lg each contact method is a tappable tile in a 2×2
+                    grid (no half-empty row); on lg they return to the plain
+                    icon + value rows of the desktop column. */}
+                <div className="grid grid-cols-2 gap-2.5 lg:block lg:space-y-3.5">
                 <a
                   href={`tel:+${telDigits(info.phoneIndia)}`}
-                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
+                  className={CONTACT_TILE}
                 >
                   <svg width="20" height="14" viewBox="0 0 20 14" className="shrink-0" aria-hidden>
                     <rect width="20" height="4.67" fill="#FF9933" />
@@ -309,11 +324,12 @@ export default async function Footer() {
                     <circle cx="10" cy="7" r="1.6" fill="none" stroke="#000080" strokeWidth="0.4" />
                     <circle cx="10" cy="7" r="0.35" fill="#000080" />
                   </svg>
-                  {info.phoneIndia}
+                  <span className={CONTACT_LABEL}>India</span>
+                  <span className={CONTACT_VALUE}>{info.phoneIndia}</span>
                 </a>
                 <a
                   href={`tel:+${telDigits(info.phoneUs)}`}
-                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
+                  className={CONTACT_TILE}
                 >
                   <svg width="20" height="14" viewBox="0 0 20 14" className="shrink-0" aria-hidden>
                     <rect width="20" height="14" fill="#B22234" />
@@ -325,28 +341,31 @@ export default async function Footer() {
                     <rect width="20" height="1.08" y="11.85" fill="#fff" />
                     <rect width="8" height="7.54" fill="#3C3B6E" />
                   </svg>
-                  {info.phoneUs}
+                  <span className={CONTACT_LABEL}>USA</span>
+                  <span className={CONTACT_VALUE}>{info.phoneUs}</span>
                 </a>
                 <a
                   href={`https://wa.me/${telDigits(info.whatsapp)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
+                  className={CONTACT_TILE_WA}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366" className="shrink-0" aria-hidden>
                     <path d={SOCIAL_ICONS.whatsapp.path} />
                   </svg>
-                  {info.whatsapp}
+                  <span className={`${CONTACT_LABEL} text-emerald-300/90`}>WhatsApp</span>
+                  <span className={CONTACT_VALUE}>{info.whatsapp}</span>
                 </a>
                 <a
                   href={`mailto:${info.email}`}
-                  className="col-span-2 flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors [overflow-wrap:anywhere] hover:text-white sm:gap-3 sm:text-[0.92rem] lg:col-auto"
+                  className={CONTACT_TILE}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
                     <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
                     <path d="M2 7l10 7 10-7" stroke="currentColor" strokeWidth="1.8" />
                   </svg>
-                  {info.email}
+                  <span className={CONTACT_LABEL}>Email</span>
+                  <span className={CONTACT_VALUE_EMAIL}>{info.email}</span>
                 </a>
                 </div>
               </div>
