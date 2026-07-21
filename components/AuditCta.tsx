@@ -16,7 +16,10 @@ export default function AuditCta() {
       <Reveal>
         <div className="bg-dots-light relative overflow-hidden rounded-[2rem] bg-[#F26419] px-6 py-12 sm:px-12 sm:py-14">
           <div className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_1fr]">
-            <div>
+            {/* Below lg the copy/checklist/form are max-w-md, so the column
+                itself is centered at that width — otherwise viewports between
+                ~500px and lg show a much larger right gap than left. */}
+            <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-100">
                 Free website audit
               </p>
