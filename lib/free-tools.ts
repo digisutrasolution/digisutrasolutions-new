@@ -38,7 +38,7 @@ export const TOOLS: Tool[] = [
     blurb: "Find the searches your buyers actually type.",
     icon: "search",
     group: "Growth & SEO",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "domain-authority-checker",
@@ -142,7 +142,7 @@ export const TOOLS: Tool[] = [
     blurb: "Draft an outline or article from a topic.",
     icon: "penTool",
     group: "AI tools",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "ai-chatbot-builder",
@@ -150,7 +150,7 @@ export const TOOLS: Tool[] = [
     blurb: "Sketch a chatbot flow for your business.",
     icon: "bot",
     group: "AI tools",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "pomodoro-timer",
