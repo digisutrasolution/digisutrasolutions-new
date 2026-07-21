@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { BLOG_CATEGORIES } from "@/lib/blog";
 import { db } from "@/lib/db";
+import { liveTools } from "@/lib/resources";
 import { SITE_URL } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -34,7 +35,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     { url: `${base}/pricing`, lastModified: new Date(), priority: 0.8 },
     { url: `${base}/payment`, lastModified: new Date(), priority: 0.6 },
-    { url: `${base}/resources/roi-calculator`, lastModified: new Date(), priority: 0.6 },
+    { url: `${base}/resources`, lastModified: new Date(), priority: 0.6 },
+    // Only live tools belong in the sitemap; "in the works" pages are noindexed.
+    ...liveTools().map((t) => ({
+      url: `${base}/resources/${t.slug}`,
+      lastModified: new Date(),
+      priority: 0.6,
+    })),
     { url: `${base}/contact`, lastModified: new Date(), priority: 0.8 },
     { url: `${base}/faq`, lastModified: new Date(), priority: 0.7 },
     { url: `${base}/work`, lastModified: new Date(), priority: 0.8 },
