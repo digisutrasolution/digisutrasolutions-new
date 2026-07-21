@@ -62,7 +62,7 @@ export const TOOLS: Tool[] = [
     blurb: "Turn your listing into a one-tap review link.",
     icon: "star",
     group: "Growth & SEO",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "gst-calculator",
@@ -70,7 +70,7 @@ export const TOOLS: Tool[] = [
     blurb: "Add or strip GST at any slab, with the split shown.",
     icon: "calculator",
     group: "Business admin",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "invoice-generator",
@@ -118,7 +118,7 @@ export const TOOLS: Tool[] = [
     blurb: "Make a QR code for any link, menu or UPI ID.",
     icon: "qrCode",
     group: "Build & create",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "ssl-checker",

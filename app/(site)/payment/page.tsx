@@ -17,9 +17,10 @@ import {
   Wallet,
 } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import { getPublicPayments } from "@/lib/payments";
 import { SITE_URL } from "@/lib/site";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Payment Options: UPI, Cards, PayPal & International Wire",
@@ -43,6 +44,7 @@ const ACCEPT_CHIPS = [
 
 const METHODS = [
   {
+    key: "upi" as const,
     icon: Smartphone,
     title: "UPI & Indian bank transfer",
     region: "India · ₹",
@@ -50,6 +52,7 @@ const METHODS = [
     points: ["Settles instantly", "Zero payment fees", "GST tax invoice within 24h"],
   },
   {
+    key: "cashfree" as const,
     icon: CreditCard,
     title: "Cards, netbanking & wallets — via Cashfree",
     region: "India · ₹",
@@ -57,6 +60,7 @@ const METHODS = [
     points: ["PCI-DSS secure checkout", "We never see or store card details", "Link valid until paid"],
   },
   {
+    key: "paypal" as const,
     icon: Wallet,
     title: "PayPal",
     region: "International · $",
@@ -64,6 +68,7 @@ const METHODS = [
     points: ["USD invoicing", "PayPal buyer protection", "No Indian bank account needed"],
   },
   {
+    key: "wire" as const,
     icon: Landmark,
     title: "International wire (SWIFT)",
     region: "USD · AED · GBP · EUR",
@@ -108,7 +113,11 @@ const STEPS = [
   },
 ];
 
-export default function PaymentPage() {
+export default async function PaymentPage() {
+  // Only advertise methods that are switched on in admin Settings.
+  const enabled = await getPublicPayments();
+  const methods = METHODS.filter((m) => enabled[m.key]?.enabled !== false);
+  const extraNote = (key: keyof typeof enabled) => enabled[key]?.note?.trim() || null;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -163,7 +172,7 @@ export default function PaymentPage() {
       <section className="mx-auto max-w-[1280px] px-6">
         {/* Methods */}
         <div className="mt-12 grid gap-5 lg:grid-cols-2">
-          {METHODS.map((m) => (
+          {methods.map((m) => (
             <div
               key={m.title}
               className="group rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#F26419] hover:shadow-[0_16px_40px_rgba(28,25,23,0.08)] sm:p-7"
@@ -180,6 +189,11 @@ export default function PaymentPage() {
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-stone-600">{m.copy}</p>
+              {extraNote(m.key) && (
+                <p className="mt-2 rounded-lg bg-orange-50 px-3 py-2 text-xs font-medium text-orange-900">
+                  {extraNote(m.key)}
+                </p>
+              )}
               <ul className="mt-4 space-y-1.5">
                 {m.points.map((p) => (
                   <li key={p} className="flex items-center gap-2 text-sm text-stone-700">

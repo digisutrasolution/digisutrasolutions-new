@@ -5,9 +5,11 @@ import { db } from "@/lib/db";
 import AdminSection from "@/components/admin/AdminSection";
 import BotNudgeManager from "@/components/admin/BotNudgeManager";
 import FooterInfoManager from "@/components/admin/FooterInfoManager";
+import PaymentGatewayManager from "@/components/admin/PaymentGatewayManager";
 import SocialLinksManager from "@/components/admin/SocialLinksManager";
 import { getBotNudge } from "@/lib/bot-nudge";
 import { DEFAULT_FOOTER_INFO } from "@/lib/footer";
+import { getPayments, maskPayments } from "@/lib/payments";
 
 export const metadata = { title: "Settings" };
 
@@ -17,11 +19,17 @@ export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user.role, "settings.manage")) redirect("/admin");
 
-  const [social, footer, botNudge] = await Promise.all([
+  const [social, footer, botNudge, payments] = await Promise.all([
     db.siteSetting.findUnique({ where: { key: "socialLinks" } }),
     db.siteSetting.findUnique({ where: { key: "footerInfo" } }),
     getBotNudge(),
+    getPayments(),
   ]);
+  const paymentsView = maskPayments(payments);
+  const liveGateways = [
+    payments.cashfree.enabled ? `Cashfree ${payments.cashfree.mode}` : null,
+    payments.paypal.enabled ? `PayPal ${payments.paypal.mode}` : null,
+  ].filter(Boolean);
   const links = Array.isArray(social?.value) ? (social.value as SocialLink[]) : [];
   const footerInfo = { ...DEFAULT_FOOTER_INFO, ...(footer?.value as object | undefined) };
 
@@ -44,6 +52,14 @@ export default async function AdminSettingsPage() {
           defaultOpen
         >
           <BotNudgeManager initial={botNudge} />
+        </AdminSection>
+
+        <AdminSection
+          title="Payment methods"
+          chip={liveGateways.length > 0 ? liveGateways.join(" · ") : "Gateways off"}
+          hint="Which payment methods the /payment page advertises, and the gateway credentials. Test/Live switches the keys a future checkout will use."
+        >
+          <PaymentGatewayManager initial={paymentsView} />
         </AdminSection>
 
         <AdminSection
