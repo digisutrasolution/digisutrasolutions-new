@@ -383,12 +383,14 @@ export default async function Footer() {
   );
 }
 
+/* The bottom bar sits on brand orange, so hovering to #F26419 made links
+   invisible — they darken to charcoal with a matching underline instead. */
 function FooterLegalLink({ label, href, newTab }: { label: string; href: string; newTab?: boolean }) {
   const cls =
-    "group relative font-medium text-white no-underline transition-colors duration-200 hover:text-[#F26419]";
+    "group relative font-medium text-white no-underline transition-colors duration-200 hover:text-stone-900";
   const underline = (
     <span
-      className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-[#F26419] transition-transform duration-200 group-hover:scale-x-100"
+      className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 rounded-full bg-stone-900 transition-transform duration-200 group-hover:scale-x-100"
       aria-hidden
     />
   );
