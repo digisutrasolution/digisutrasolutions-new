@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { createElement } from "react";
+import FaqAccordion from "@/components/FaqAccordion";
 import Reveal from "@/components/Reveal";
-import { navIcon } from "@/components/nav-icons";
 import { getLiveFaqs } from "@/lib/faq";
 
 const WA_HREF =
@@ -43,26 +42,14 @@ export default async function Faq() {
           </span>
         </h2>
       </Reveal>
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        {faqs.map((faq, i) => (
-          <Reveal key={faq.question} delay={0.05 * (i % 2)} className="h-full">
-            <div className="group flex h-full gap-4 rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#F26419] hover:shadow-[0_16px_40px_rgba(28,25,23,0.08)]">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600 transition-colors duration-300 group-hover:bg-[#F26419] group-hover:text-white">
-                {createElement(navIcon(faq.icon), { size: 18, "aria-hidden": true })}
-              </span>
-              <div>
-                <h3 className="font-display text-sm font-bold text-stone-900 sm:text-base">
-                  {faq.question}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  <b className="font-semibold text-orange-800">{faq.lead}</b>{" "}
-                  {faq.rest}
-                </p>
-              </div>
-            </div>
-          </Reveal>
-        ))}
-      </div>
+      <FaqAccordion
+        faqs={faqs.map((f) => ({
+          question: f.question,
+          lead: f.lead,
+          rest: f.rest,
+          icon: f.icon,
+        }))}
+      />
       <Reveal delay={0.15}>
         <p className="mt-8 text-center text-sm text-stone-600">
           <Link href="/faq" className="font-semibold text-[#F26419] hover:underline">

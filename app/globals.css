@@ -253,6 +253,12 @@ body {
   display: none;
 }
 
+/* Mobile: .xfull is in normal flow, but the panel's photo + duotone layers
+   are position:absolute and would paint over static content — lift it. */
+.xpanel .xfull {
+  position: relative;
+}
+
 @media (min-width: 1024px) {
   .xpanel {
     flex: 1 1 0%;
