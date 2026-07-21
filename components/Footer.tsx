@@ -61,7 +61,7 @@ const DEFAULT_SOCIALS: { key: string; label: string; url: string }[] = [
    at Apache); external hrefs open in a new tab. */
 function FooterLink({ label, href, newTab }: { label: string; href: string; newTab?: boolean }) {
   const cls =
-    "group relative inline-block text-[0.92rem] text-white no-underline transition-colors duration-200 hover:text-white";
+    "group relative inline-block text-[0.88rem] text-white no-underline transition-colors duration-200 hover:text-white sm:text-[0.92rem]";
   const underline = (
     <span
       className="absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left scale-x-0 rounded-full bg-[#F26419] transition-transform duration-200 group-hover:scale-x-100"
@@ -149,9 +149,12 @@ export default async function Footer() {
           </div>
         </div>
 
-        <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-16 sm:px-6">
+        <div className="relative z-10 mx-auto max-w-[1280px] px-4 py-12 sm:px-6 sm:py-16">
+          {/* Mobile is a two-part layout: brand and contact span the full
+              width while the CMS link columns sit side by side, so the
+              right half of the screen is never empty. */}
           <div
-            className="footer-grid grid grid-cols-1 gap-8 sm:grid-cols-2 lg:gap-10"
+            className="footer-grid grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-2 sm:gap-8 lg:gap-10"
             style={
               {
                 "--footer-cols": `1.5fr ${"1fr ".repeat(columns.length)}1fr`,
@@ -159,7 +162,7 @@ export default async function Footer() {
             }
           >
             {/* Brand column */}
-            <div>
+            <div className="col-span-2 sm:col-span-1">
               <div className="mb-6">
                 <Image
                   src={withBase("/footer-logo.webp")}
@@ -216,10 +219,10 @@ export default async function Footer() {
             {/* CMS-managed link columns */}
             {columns.map((col: NavNode) => (
               <div key={col.label}>
-                <h3 className="mb-5 text-[1rem] font-black uppercase tracking-wide text-[#F26419]">
+                <h3 className="mb-4 text-[1rem] font-black uppercase tracking-wide text-[#F26419] sm:mb-5">
                   {col.label}
                 </h3>
-                <ul className="space-y-3">
+                <ul className="space-y-2.5 sm:space-y-3">
                   {(col.children ?? []).map((l) => (
                     <li key={l.href + l.label}>
                       <FooterLink label={l.label} href={l.href} newTab={l.newTab} />
@@ -240,7 +243,7 @@ export default async function Footer() {
             ))}
 
             {/* Contact column — content managed in /admin/settings */}
-            <div>
+            <div className="col-span-2 sm:col-span-1">
               <h3 className="mb-5 text-[1rem] font-black uppercase tracking-wide text-[#F26419]">
                 Contact
               </h3>
@@ -270,9 +273,11 @@ export default async function Footer() {
                     ))}
                   </span>
                 </div>
+                {/* Phones pair up side by side on phones; stacked from sm. */}
+                <div className="grid grid-cols-2 gap-x-3 gap-y-3.5 sm:block sm:space-y-3.5">
                 <a
                   href={`tel:+${telDigits(info.phoneIndia)}`}
-                  className="flex items-center gap-3 text-[0.92rem] text-white no-underline transition-colors hover:text-white"
+                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
                 >
                   <svg width="20" height="14" viewBox="0 0 20 14" className="shrink-0" aria-hidden>
                     <rect width="20" height="4.67" fill="#FF9933" />
@@ -285,7 +290,7 @@ export default async function Footer() {
                 </a>
                 <a
                   href={`tel:+${telDigits(info.phoneUs)}`}
-                  className="flex items-center gap-3 text-[0.92rem] text-white no-underline transition-colors hover:text-white"
+                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
                 >
                   <svg width="20" height="14" viewBox="0 0 20 14" className="shrink-0" aria-hidden>
                     <rect width="20" height="14" fill="#B22234" />
@@ -303,7 +308,7 @@ export default async function Footer() {
                   href={`https://wa.me/${telDigits(info.whatsapp)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-[0.92rem] text-white no-underline transition-colors hover:text-white"
+                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366" className="shrink-0" aria-hidden>
                     <path d={SOCIAL_ICONS.whatsapp.path} />
@@ -312,7 +317,7 @@ export default async function Footer() {
                 </a>
                 <a
                   href={`mailto:${info.email}`}
-                  className="flex items-center gap-3 text-[0.92rem] text-white no-underline transition-colors hover:text-white"
+                  className="col-span-2 flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
                     <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
@@ -320,16 +325,17 @@ export default async function Footer() {
                   </svg>
                   {info.email}
                 </a>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* We Accept — mobile */}
-          <div className="mt-8 block border-t border-white/10 pt-6 lg:hidden">
-            <p className="mb-3 text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
+          {/* We Accept — mobile: label and chips share one wrapping row */}
+          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-white/10 pt-5 lg:hidden">
+            <p className="text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
               We Accept
             </p>
-            <div className="grid max-w-[360px] grid-cols-6 gap-2">
+            <div className="flex flex-wrap gap-1.5">
               <PaymentChips compact />
             </div>
           </div>
