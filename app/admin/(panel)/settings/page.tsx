@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { can } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import AdminSection from "@/components/admin/AdminSection";
 import BotNudgeManager from "@/components/admin/BotNudgeManager";
 import FooterInfoManager from "@/components/admin/FooterInfoManager";
 import SocialLinksManager from "@/components/admin/SocialLinksManager";
@@ -26,37 +27,40 @@ export default async function AdminSettingsPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-extrabold tracking-tight">
-        Site settings
-      </h1>
-
-      <h2 className="font-display mt-6 text-base font-bold">DigiSutra Bot greeting</h2>
+      <h1 className="font-display text-2xl font-extrabold tracking-tight">Site settings</h1>
       <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-        The bubble that appears beside the chat button for new visitors. Timing and the message
-        for each page are set here.
+        Open a section to edit it — every change goes live immediately.
       </p>
-      <div className="mt-4">
-        <BotNudgeManager initial={botNudge} />
-      </div>
 
-      <h2 className="font-display mt-8 text-base font-bold">Footer &amp; contact</h2>
-      <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-        The footer&apos;s brand text, address, phone numbers and email. Link
-        columns and the legal bar are managed under Menus (Footer / Footer
-        legal locations).
-      </p>
-      <div className="mt-4">
-        <FooterInfoManager initial={footerInfo} />
-      </div>
+      <div className="mt-6 space-y-3">
+        <AdminSection
+          title="DigiSutra Bot greeting"
+          chip={
+            botNudge.enabled
+              ? `On · ${botNudge.delaySeconds}s / ${botNudge.scrollPercent}% · ${botNudge.rules.length} messages`
+              : "Off"
+          }
+          hint="The bubble that appears beside the chat button for new visitors. It shows once per visitor per week and never on the contact page."
+          defaultOpen
+        >
+          <BotNudgeManager initial={botNudge} />
+        </AdminSection>
 
-      <h2 className="font-display mt-8 text-base font-bold">Social profiles</h2>
-      <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-        Power the footer&apos;s social icons and the blog&apos;s &ldquo;Follow the
-        journal&rdquo; card. With the list empty, the footer shows the built-in
-        profiles and the blog card hides.
-      </p>
-      <div className="mt-4">
-        <SocialLinksManager initial={links} />
+        <AdminSection
+          title="Footer & contact"
+          chip={footerInfo.email}
+          hint="The footer's brand text, address, phone numbers and email. Link columns and the legal bar are managed under Menus."
+        >
+          <FooterInfoManager initial={footerInfo} />
+        </AdminSection>
+
+        <AdminSection
+          title="Social profiles"
+          chip={links.length > 0 ? `${links.length} profiles` : "Using built-in defaults"}
+          hint="Power the footer's social icons and the blog's Follow the journal card. With the list empty, the footer falls back to the built-in profiles."
+        >
+          <SocialLinksManager initial={links} />
+        </AdminSection>
       </div>
     </div>
   );

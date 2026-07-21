@@ -6,8 +6,12 @@ import { useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
 import type { BotNudge } from "@/lib/bot-nudge";
 
-const inputCls =
-  "w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
+/* Width is applied per field — inputCls must NOT carry w-full, or the rule
+   rows stack instead of sitting on one line (Tailwind orders same-family
+   utilities itself, so a later w-40 does not win over w-full). */
+const fieldCls =
+  "rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
+const inputCls = `w-full ${fieldCls}`;
 const labelCls = "mb-1 block text-xs font-semibold text-stone-500 dark:text-stone-400";
 
 export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
@@ -45,7 +49,7 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+    <div>
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-200">
           <input
@@ -82,31 +86,42 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
       <p className="mt-5 text-xs font-semibold text-stone-500 dark:text-stone-400">
         Message per page — the longest matching path wins; &ldquo;/&rdquo; is the fallback.
       </p>
-      <div className="mt-2 space-y-2">
+      <div className="mt-2 space-y-1.5">
         {nudge.rules.map((r, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2">
+          <div
+            key={i}
+            className="grid grid-cols-[minmax(88px,132px)_minmax(0,1fr)_auto] items-center gap-2"
+          >
             <input
               value={r.path}
               onChange={(e) => setRule(i, { path: e.target.value })}
               placeholder="/pricing"
-              className={`${inputCls} w-40 shrink-0`}
+              list="admin-nudge-paths"
+              className={`${fieldCls} w-full font-mono text-xs`}
             />
             <input
               value={r.text}
               onChange={(e) => setRule(i, { text: e.target.value })}
               placeholder="Message shown in the bubble"
               maxLength={160}
-              className={`${inputCls} min-w-52 flex-1`}
+              className={`${fieldCls} w-full`}
             />
             <button
               onClick={() => setNudge((p) => ({ ...p, rules: p.rules.filter((_, idx) => idx !== i) }))}
-              aria-label="Remove"
-              className="cursor-pointer rounded-lg p-2 text-stone-400 hover:text-red-600"
+              aria-label={`Remove rule for ${r.path || "this page"}`}
+              className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:text-red-600"
             >
-              <Trash2 size={15} />
+              <Trash2 size={14} />
             </button>
           </div>
         ))}
+        <datalist id="admin-nudge-paths">
+          {["/", "/pricing", "/services", "/work", "/blog", "/payment", "/resources", "/faq", "/about"].map(
+            (p) => (
+              <option key={p} value={p} />
+            ),
+          )}
+        </datalist>
         {nudge.rules.length < 12 && (
           <button
             onClick={() => setNudge((p) => ({ ...p, rules: [...p.rules, { path: "/", text: "" }] }))}

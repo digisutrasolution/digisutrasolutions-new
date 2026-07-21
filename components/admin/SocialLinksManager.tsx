@@ -59,7 +59,7 @@ export default function SocialLinksManager({ initial }: { initial: SocialLink[] 
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+    <div>
       <div className="space-y-3">
         {links.length === 0 && (
           <p className="py-6 text-center text-sm text-stone-500">

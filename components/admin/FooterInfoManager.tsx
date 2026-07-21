@@ -50,7 +50,7 @@ export default function FooterInfoManager({ initial }: { initial: FooterInfo }) 
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+    <div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className={labelCls}>Brand description (under the footer logo)</label>
