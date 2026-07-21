@@ -3,7 +3,14 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
-import { ItemSchema, markDirty } from "@/lib/menu-admin";
+import {
+  ItemSchema,
+  MAX_MENU_DEPTH,
+  descendantIds,
+  markDirty,
+  menuDepth,
+  subtreeHeight,
+} from "@/lib/menu-admin";
 import { clientIp } from "@/lib/rate-limit";
 
 const PatchSchema = ItemSchema.partial().extend({
@@ -35,27 +42,37 @@ export async function PATCH(
   }
   const { moveTo, parentId: nextParentId, ...fields } = parsed.data;
 
-  // Optional cross-parent move: only leaf items, target must be a top-level
-  // item in the same menu (depth stays at 2), or null for top level.
+  /* Cross-parent move at any depth. Guards: the target must live in this
+     menu, must not be inside the item's own subtree (cycle), and the move
+     must not push the subtree past the depth cap. */
   let parentChange: { parentId: string | null } | undefined;
-  if (nextParentId !== undefined && nextParentId !== item.parentId) {
-    const hasChildren = (await db.menuItem.count({ where: { parentId: id } })) > 0;
-    if (hasChildren) {
-      return NextResponse.json(
-        { ok: false, error: "Items with sub-items can't become sub-items themselves." },
-        { status: 400 },
-      );
-    }
+  if (nextParentId !== undefined && (nextParentId ?? null) !== item.parentId) {
     if (nextParentId) {
       const parent = await db.menuItem.findUnique({ where: { id: nextParentId } });
-      if (!parent || parent.parentId || parent.location !== item.location || parent.id === id) {
+      if (!parent || parent.location !== item.location || parent.deletedAt || parent.id === id) {
         return NextResponse.json(
-          { ok: false, error: "Target parent must be a top-level item in the same menu." },
+          { ok: false, error: "Target parent must be an item in the same menu." },
+          { status: 400 },
+        );
+      }
+      if ((await descendantIds(id)).includes(nextParentId)) {
+        return NextResponse.json(
+          { ok: false, error: "An item can't be moved inside its own sub-menu." },
+          { status: 400 },
+        );
+      }
+      const [parentDepth, height] = await Promise.all([
+        menuDepth(nextParentId),
+        subtreeHeight(id),
+      ]);
+      if (parentDepth + 1 + height >= MAX_MENU_DEPTH) {
+        return NextResponse.json(
+          { ok: false, error: `Menus can nest up to ${MAX_MENU_DEPTH} levels.` },
           { status: 400 },
         );
       }
     }
-    parentChange = { parentId: nextParentId };
+    parentChange = { parentId: nextParentId ?? null };
   }
 
   const updated = await db.menuItem.update({
@@ -78,7 +95,7 @@ export async function PATCH(
 
   if (moveTo !== undefined || parentChange) {
     const siblings = await db.menuItem.findMany({
-      where: { location: item.location, parentId: updated.parentId },
+      where: { location: item.location, parentId: updated.parentId, deletedAt: null },
       orderBy: { order: "asc" },
     });
     const rest = siblings.filter((s) => s.id !== id);
@@ -90,7 +107,7 @@ export async function PATCH(
     if (parentChange) {
       // Close the gap left behind in the old sibling list.
       const old = await db.menuItem.findMany({
-        where: { location: item.location, parentId: item.parentId, NOT: { id } },
+        where: { location: item.location, parentId: item.parentId, deletedAt: null, NOT: { id } },
         orderBy: { order: "asc" },
       });
       await db.$transaction(
@@ -124,16 +141,28 @@ export async function DELETE(
     return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
   }
 
-  await db.menuItem.delete({ where: { id } }); // children cascade
+  /* Soft delete: the item and its whole subtree go to the trash together so
+     Restore brings the branch back intact. */
+  const ids = [id, ...(await descendantIds(id))];
+  const deletedAt = new Date();
+  await db.menuItem.updateMany({ where: { id: { in: ids } }, data: { deletedAt } });
+
+  const siblings = await db.menuItem.findMany({
+    where: { location: item.location, parentId: item.parentId, deletedAt: null },
+    orderBy: { order: "asc" },
+  });
+  await db.$transaction(
+    siblings.map((s, i) => db.menuItem.update({ where: { id: s.id }, data: { order: i } })),
+  );
   await markDirty(item.location);
 
   audit({
     userId: user.id,
-    action: "menu.item.delete",
+    action: "menu.item.trash",
     entity: "menuItem",
     entityId: id,
-    meta: { label: item.label },
+    meta: { label: item.label, itemsTrashed: ids.length },
     ip: clientIp(req),
   });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, trashed: ids.length });
 }

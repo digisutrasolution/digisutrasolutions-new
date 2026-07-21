@@ -402,10 +402,13 @@ model MenuItem {
   panelImage String?
   tagline    String?
   featured   Boolean  @default(false)
+  /* Soft delete: trashed items keep their subtree and can be restored. */
+  deletedAt  DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@index([location, parentId, order])
+  @@index([location, deletedAt])
 }
 
 /* Dynamic service catalog: 7 categories, each with offers. Direct-edit

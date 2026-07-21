@@ -23,6 +23,10 @@ export type NavChild = {
   badge?: string;
   description?: string;
   newTab?: boolean;
+  /* Nesting is unlimited in the data. Surfaces render what their design
+     allows: the mega panel shows two levels, the mobile drawer and footer
+     go deeper. */
+  children?: NavChild[];
 };
 
 export type NavNode = {
@@ -184,20 +188,25 @@ export const DEFAULT_NAV_BY_LOCATION: Record<MenuLocation, NavNode[]> = {
   FOOTER_LEGAL: DEFAULT_FOOTER_LEGAL_NAV,
 };
 
-/** Draft MenuItem rows → NavNode tree (admin preview + publish source). */
+/* Depth is unlimited by design, but the walk is capped so corrupted data
+   (a parent cycle) can never hang a render. */
+const MAX_TREE_DEPTH = 12;
+
+/** Draft MenuItem rows → NavNode tree (admin preview + publish source).
+    Recursive: any nesting depth survives into the published snapshot. */
 export function itemsToTree(items: MenuItem[], opts?: { includeHidden?: boolean }): NavNode[] {
-  const keep = (i: MenuItem) => opts?.includeHidden || i.visible;
+  const keep = (i: MenuItem) =>
+    (opts?.includeHidden || i.visible) && !("deletedAt" in i && i.deletedAt);
   const byOrder = (a: MenuItem, b: MenuItem) => a.order - b.order;
-  return items
-    .filter((i) => !i.parentId)
-    .filter(keep)
-    .sort(byOrder)
-    .map((top) => {
-      const kids = items
-        .filter((i) => i.parentId === top.id)
-        .filter(keep)
-        .sort(byOrder)
-        .map((c) => ({
+  const kept = items.filter(keep).sort(byOrder);
+
+  const childrenOf = (parentId: string | null, depth: number): NavChild[] => {
+    if (depth > MAX_TREE_DEPTH) return [];
+    return kept
+      .filter((i) => (i.parentId ?? null) === parentId)
+      .map((c) => {
+        const kids = childrenOf(c.id, depth + 1);
+        return {
           label: c.label,
           href: c.href,
           ...(c.icon ? { icon: c.icon } : {}),
@@ -205,7 +214,15 @@ export function itemsToTree(items: MenuItem[], opts?: { includeHidden?: boolean 
           ...(c.badge ? { badge: c.badge } : {}),
           ...(c.description ? { description: c.description } : {}),
           ...(c.newTab ? { newTab: true } : {}),
-        }));
+          ...(kids.length ? { children: kids } : {}),
+        };
+      });
+  };
+
+  return kept
+    .filter((i) => !i.parentId)
+    .map((top) => {
+      const kids = childrenOf(top.id, 1);
       return {
         label: top.label,
         href: top.href,

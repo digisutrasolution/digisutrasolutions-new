@@ -593,6 +593,46 @@ function MegaPanel({
 }
 
 /* Mobile accordion row inside the drawer. */
+/* Levels 3+ render as an indented list under their parent link rather than
+   another accordion — the drawer stays predictable however deep the admin
+   nests the menu. */
+function DrawerSubTree({
+  nodes,
+  onClose,
+  depth,
+}: {
+  nodes: NavChild[];
+  onClose: () => void;
+  depth: number;
+}) {
+  return (
+    <div className="ml-9 border-l border-black/[0.08]">
+      {nodes.map((n) => (
+        <div key={n.href + n.label}>
+          <Link
+            href={n.href}
+            onClick={onClose}
+            target={n.newTab ? "_blank" : undefined}
+            className="flex items-center gap-2 py-1.5 pl-3 pr-6 text-[0.9rem] text-gray-700 no-underline"
+          >
+            <span className="h-1 w-1 shrink-0 rounded-full bg-[#F26419]" aria-hidden />
+            <span className="flex-1">{n.label}</span>
+            {n.badge && <MenuBadge badge={n.badge} />}
+          </Link>
+          {n.children?.length ? (
+            <DrawerSubTree nodes={n.children} onClose={onClose} depth={depth + 1} />
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Total nodes in a branch — drives the accordion's max-height. */
+function countTree(nodes: NavChild[]): number {
+  return nodes.reduce((n, c) => n + 1 + (c.children ? countTree(c.children) : 0), 0);
+}
+
 function DrawerItem({ item, onClose }: { item: NavNode; onClose: () => void }) {
   const [open, setOpen] = useState(false);
   const children = item.children;
@@ -632,7 +672,7 @@ function DrawerItem({ item, onClose }: { item: NavNode; onClose: () => void }) {
       </button>
       <div
         className="overflow-hidden bg-gray-50 transition-[max-height] duration-300 ease-in-out"
-        style={{ maxHeight: open ? 44 * children.length + 120 : 0 }}
+        style={{ maxHeight: open ? 44 * countTree(children) + 120 : 0 }}
       >
         <Link
           href={item.href}
@@ -644,19 +684,23 @@ function DrawerItem({ item, onClose }: { item: NavNode; onClose: () => void }) {
         {children.map((sub) => {
           const Icon = navIcon(sub.icon);
           return (
-            <Link
-              key={sub.href + sub.label}
-              href={sub.href}
-              onClick={onClose}
-              target={sub.newTab ? "_blank" : undefined}
-              className="flex items-center gap-3 px-6 py-2 no-underline"
-            >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
-                <Icon size={15} />
-              </span>
-              <span className="text-[0.95rem] font-medium text-gray-800">{sub.label}</span>
-              {sub.badge && <MenuBadge badge={sub.badge} />}
-            </Link>
+            <div key={sub.href + sub.label}>
+              <Link
+                href={sub.href}
+                onClick={onClose}
+                target={sub.newTab ? "_blank" : undefined}
+                className="flex items-center gap-3 px-6 py-2 no-underline"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500">
+                  <Icon size={15} />
+                </span>
+                <span className="text-[0.95rem] font-medium text-gray-800">{sub.label}</span>
+                {sub.badge && <MenuBadge badge={sub.badge} />}
+              </Link>
+              {sub.children?.length ? (
+                <DrawerSubTree nodes={sub.children} onClose={onClose} depth={2} />
+              ) : null}
+            </div>
           );
         })}
         <div className="h-2" />

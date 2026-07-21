@@ -5,7 +5,7 @@ import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { liveKey, type NavNode } from "@/lib/menu";
-import { markDirty, parseLocation } from "@/lib/menu-admin";
+import { createTreeRows, markDirty, parseLocation } from "@/lib/menu-admin";
 import { clientIp } from "@/lib/rate-limit";
 
 export async function GET(req: Request) {
@@ -51,39 +51,9 @@ export async function POST(req: Request) {
     update: { value: tree as unknown as object },
   });
 
-  // Rebuild the draft rows to match the restored snapshot.
+  // Rebuild the draft rows to match the restored snapshot, at any depth.
   await db.menuItem.deleteMany({ where: { location } });
-  for (let i = 0; i < tree.length; i++) {
-    const top = tree[i];
-    const parent = await db.menuItem.create({
-      data: {
-        location,
-        label: top.label,
-        href: top.href,
-        order: i,
-        tagline: top.tagline ?? null,
-        panelImage: top.panelImage ?? null,
-        featured: top.featured ?? false,
-        newTab: top.newTab ?? false,
-      },
-    });
-    if (top.children?.length) {
-      await db.menuItem.createMany({
-        data: top.children.map((c, j) => ({
-          location,
-          parentId: parent.id,
-          label: c.label,
-          href: c.href,
-          order: j,
-          icon: c.icon ?? null,
-          group: c.group ?? null,
-          badge: c.badge ?? null,
-          description: c.description ?? null,
-          newTab: c.newTab ?? false,
-        })),
-      });
-    }
-  }
+  await createTreeRows(location, tree);
   await markDirty(location, false);
   revalidatePath("/", "layout"); // bust ISR pages so the restored nav shows immediately
 

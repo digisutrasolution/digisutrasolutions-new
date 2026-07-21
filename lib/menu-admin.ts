@@ -4,6 +4,8 @@ import {
   DEFAULT_NAV_BY_LOCATION,
   MENU_LOCATIONS,
   type MenuLocation,
+  type NavChild,
+  type NavNode,
   dirtyKey,
   itemsToTree,
   liveKey,
@@ -53,45 +55,104 @@ export async function markDirty(location: string, dirty = true) {
   });
 }
 
-/** Seed draft rows from the location's defaults the first time it loads. */
+/** Write a NavNode/NavChild tree into draft rows at any depth. Shared by
+    bootstrap, version restore and JSON import. */
+export async function createTreeRows(
+  location: string,
+  nodes: (NavNode | NavChild)[],
+  parentId: string | null = null,
+  depth = 0,
+  orderOffset = 0,
+): Promise<number> {
+  if (depth > MAX_MENU_DEPTH) return 0;
+  let written = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i] as NavNode & NavChild;
+    const row = await db.menuItem.create({
+      data: {
+        location,
+        parentId,
+        label: n.label,
+        href: n.href,
+        order: orderOffset + i,
+        icon: n.icon ?? null,
+        group: n.group ?? null,
+        badge: n.badge ?? null,
+        description: n.description ?? null,
+        newTab: n.newTab ?? false,
+        tagline: n.tagline ?? null,
+        panelImage: n.panelImage ?? null,
+        featured: n.featured ?? false,
+      },
+    });
+    written++;
+    if (n.children?.length) {
+      written += await createTreeRows(location, n.children, row.id, depth + 1);
+    }
+  }
+  return written;
+}
+
+/** Seed draft rows from the location's defaults the first time it loads.
+    Trashed rows count, so emptying a menu never silently re-seeds it. */
 export async function bootstrapIfEmpty(location: MenuLocation) {
   const count = await db.menuItem.count({ where: { location } });
   if (count > 0) return;
-  const defaults = DEFAULT_NAV_BY_LOCATION[location] ?? [];
-  for (let i = 0; i < defaults.length; i++) {
-    const top = defaults[i];
-    const parent = await db.menuItem.create({
-      data: {
-        location,
-        label: top.label,
-        href: top.href,
-        order: i,
-        tagline: top.tagline ?? null,
-        panelImage: top.panelImage ?? null,
-        featured: top.featured ?? false,
-      },
+  await createTreeRows(location, DEFAULT_NAV_BY_LOCATION[location] ?? []);
+}
+
+/* Nesting is unbounded by design; this is a safety cap so a runaway import
+   or a bad drag can't build a tree the renderers have to walk forever. */
+export const MAX_MENU_DEPTH = 8;
+
+/** How deep an item sits (0 = top level). */
+export async function menuDepth(id: string): Promise<number> {
+  let depth = 0;
+  let cur = await db.menuItem.findUnique({ where: { id }, select: { parentId: true } });
+  while (cur?.parentId && depth < MAX_MENU_DEPTH + 2) {
+    depth++;
+    cur = await db.menuItem.findUnique({
+      where: { id: cur.parentId },
+      select: { parentId: true },
     });
-    if (top.children) {
-      await db.menuItem.createMany({
-        data: top.children.map((c, j) => ({
-          location,
-          parentId: parent.id,
-          label: c.label,
-          href: c.href,
-          order: j,
-          icon: c.icon ?? null,
-          group: c.group ?? null,
-          badge: c.badge ?? null,
-          description: c.description ?? null,
-        })),
-      });
-    }
   }
+  return depth;
+}
+
+/** Deepest level below an item (0 when it has no children). */
+export async function subtreeHeight(id: string): Promise<number> {
+  let height = 0;
+  let frontier = [id];
+  for (let d = 0; d < MAX_MENU_DEPTH + 2 && frontier.length; d++) {
+    const kids = await db.menuItem.findMany({
+      where: { parentId: { in: frontier }, deletedAt: null },
+      select: { id: true },
+    });
+    if (!kids.length) break;
+    frontier = kids.map((k) => k.id);
+    height++;
+  }
+  return height;
+}
+
+/** Every descendant id of an item (self excluded), depth-safe. */
+export async function descendantIds(id: string): Promise<string[]> {
+  const out: string[] = [];
+  let frontier = [id];
+  for (let depth = 0; depth < 12 && frontier.length; depth++) {
+    const kids = await db.menuItem.findMany({
+      where: { parentId: { in: frontier } },
+      select: { id: true },
+    });
+    frontier = kids.map((k) => k.id);
+    out.push(...frontier);
+  }
+  return out;
 }
 
 /** Serialize the current draft tree and make it the live nav. */
 export async function publishMenu(location: string, authorName?: string | null) {
-  const items = await db.menuItem.findMany({ where: { location } });
+  const items = await db.menuItem.findMany({ where: { location, deletedAt: null } });
   const tree = itemsToTree(items);
   await db.siteSetting.upsert({
     where: { key: liveKey(location) },

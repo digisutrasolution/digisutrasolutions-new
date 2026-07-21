@@ -3,7 +3,14 @@ import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { dirtyKey } from "@/lib/menu";
-import { ItemSchema, bootstrapIfEmpty, markDirty, parseLocation } from "@/lib/menu-admin";
+import {
+  ItemSchema,
+  MAX_MENU_DEPTH,
+  bootstrapIfEmpty,
+  markDirty,
+  menuDepth,
+  parseLocation,
+} from "@/lib/menu-admin";
 import { clientIp } from "@/lib/rate-limit";
 
 export async function GET(req: Request) {
@@ -15,14 +22,18 @@ export async function GET(req: Request) {
   }
 
   await bootstrapIfEmpty(location);
-  const [items, dirty] = await Promise.all([
+  const [items, trash, dirty] = await Promise.all([
     db.menuItem.findMany({
-      where: { location },
+      where: { location, deletedAt: null },
       orderBy: [{ parentId: "asc" }, { order: "asc" }],
+    }),
+    db.menuItem.findMany({
+      where: { location, deletedAt: { not: null } },
+      orderBy: { deletedAt: "desc" },
     }),
     db.siteSetting.findUnique({ where: { key: dirtyKey(location) } }),
   ]);
-  return NextResponse.json({ ok: true, items, dirty: dirty?.value === true });
+  return NextResponse.json({ ok: true, items, trash, dirty: dirty?.value === true });
 }
 
 export async function POST(req: Request) {
@@ -45,18 +56,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Unknown menu location." }, { status: 400 });
   }
 
+  // Nesting is unlimited; the parent only has to be a live item in this menu.
   if (d.parentId) {
     const parent = await db.menuItem.findUnique({ where: { id: d.parentId } });
-    if (!parent || parent.parentId || parent.location !== location) {
+    if (!parent || parent.location !== location || parent.deletedAt) {
       return NextResponse.json(
-        { ok: false, error: "Parent must be a top-level item in the same menu." },
+        { ok: false, error: "Parent must be an item in the same menu." },
+        { status: 400 },
+      );
+    }
+    if ((await menuDepth(parent.id)) + 1 >= MAX_MENU_DEPTH) {
+      return NextResponse.json(
+        { ok: false, error: `Menus can nest up to ${MAX_MENU_DEPTH} levels.` },
         { status: 400 },
       );
     }
   }
 
   const last = await db.menuItem.findFirst({
-    where: { location, parentId: d.parentId ?? null },
+    where: { location, parentId: d.parentId ?? null, deletedAt: null },
     orderBy: { order: "desc" },
   });
   const item = await db.menuItem.create({

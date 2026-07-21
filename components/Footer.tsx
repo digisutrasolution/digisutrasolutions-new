@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { withBase } from "@/lib/base-path";
 import { getFooterInfo, getFooterSocials, telDigits } from "@/lib/footer";
-import { getLiveNav, type NavNode } from "@/lib/menu";
+import { getLiveNav, type NavChild, type NavNode } from "@/lib/menu";
 
 const PAYMENT_METHODS = [
   { label: "Visa", file: "visa.webp" },
@@ -84,6 +84,21 @@ function FooterLink({ label, href, newTab }: { label: string; href: string; newT
   );
 }
 
+/* Sub-items below a footer link, indented one step per level — recursive so
+   however deep the menu is built in admin, the footer renders it. */
+function FooterSubList({ nodes }: { nodes: NavChild[] }) {
+  return (
+    <ul className="mt-2 space-y-2 border-l border-white/15 pl-3">
+      {nodes.map((n) => (
+        <li key={n.href + n.label}>
+          <FooterLink label={n.label} href={n.href} newTab={n.newTab} />
+          {n.children?.length ? <FooterSubList nodes={n.children} /> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function PaymentChips({ compact }: { compact?: boolean }) {
   return (
     <>
@@ -129,6 +144,7 @@ export default async function Footer() {
         {(col.children ?? []).map((l) => (
           <li key={l.href + l.label}>
             <FooterLink label={l.label} href={l.href} newTab={l.newTab} />
+            {l.children?.length ? <FooterSubList nodes={l.children} /> : null}
           </li>
         ))}
         {col.href && col.href !== "#" && (
