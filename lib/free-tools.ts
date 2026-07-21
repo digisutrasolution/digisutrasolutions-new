@@ -30,7 +30,7 @@ export const TOOLS: Tool[] = [
     blurb: "A 15-page report on SEO, speed, UX and conversion — in 48 hours.",
     icon: "fileSearch",
     group: "Growth & SEO",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "keyword-ideas",
@@ -46,7 +46,7 @@ export const TOOLS: Tool[] = [
     blurb: "Check how much authority a domain carries.",
     icon: "award",
     group: "Growth & SEO",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "google-business-profile-audit",
@@ -54,7 +54,7 @@ export const TOOLS: Tool[] = [
     blurb: "Score your local listing and find what's missing.",
     icon: "mapPin",
     group: "Growth & SEO",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "google-review-link",
@@ -86,7 +86,7 @@ export const TOOLS: Tool[] = [
     blurb: "Draft a policy for your site in a few clicks.",
     icon: "scrollText",
     group: "Business admin",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "resume-builder",
@@ -94,7 +94,7 @@ export const TOOLS: Tool[] = [
     blurb: "Build a clean, ATS-friendly resume.",
     icon: "filePen",
     group: "Business admin",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "csv-cleaner",
@@ -102,7 +102,7 @@ export const TOOLS: Tool[] = [
     blurb: "Tidy messy exports before you import them.",
     icon: "fileSpreadsheet",
     group: "Business admin",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "kpi-dashboard",
@@ -110,7 +110,7 @@ export const TOOLS: Tool[] = [
     blurb: "Track the numbers that matter in one view.",
     icon: "chartColumn",
     group: "Business admin",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "qr-code-generator",
@@ -134,7 +134,7 @@ export const TOOLS: Tool[] = [
     blurb: "Get name ideas with domains worth checking.",
     icon: "wandSparkles",
     group: "Build & create",
-    status: "soon",
+    status: "live",
   },
   {
     slug: "ai-blog-writer",
@@ -158,7 +158,7 @@ export const TOOLS: Tool[] = [
     blurb: "Focus in 25-minute blocks.",
     icon: "timer",
     group: "Build & create",
-    status: "soon",
+    status: "live",
   },
 ];
 
