@@ -47,8 +47,8 @@ export default function AuditScoreCard() {
   const ringOffset = RING_C * (1 - (SCORE / 100) * p);
 
   return (
-    <div ref={ref} className="relative mx-auto w-full max-w-sm">
-      <div className="rounded-2xl bg-white p-6 shadow-[0_30px_60px_rgba(124,45,18,0.35)] transition-transform duration-300 hover:-translate-y-1.5">
+    <div ref={ref} className="relative h-full w-full">
+      <div className="flex h-full flex-col rounded-2xl bg-white p-6 shadow-[0_30px_60px_rgba(124,45,18,0.35)] transition-transform duration-300 hover:-translate-y-1.5 sm:p-7">
         <div className="flex items-center gap-2 border-b border-stone-100 pb-3 text-sm text-stone-500">
           <Globe size={15} className="text-[#F26419]" aria-hidden />
           yourwebsite.com
@@ -85,7 +85,7 @@ export default function AuditScoreCard() {
             </p>
           </div>
         </div>
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 flex flex-1 flex-col justify-center space-y-3">
           {SCORE_ROWS.map((r, i) => (
             <div key={r.label}>
               <div className="mb-1 flex justify-between text-xs">

@@ -15,7 +15,7 @@ export default function AuditCta() {
     <section id="audit" className="mx-auto max-w-[1280px] px-6 py-20 sm:py-24">
       <Reveal>
         <div className="bg-dots-light relative overflow-hidden rounded-[2rem] bg-[#F26419] px-6 py-12 sm:px-12 sm:py-14">
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1.2fr_1fr]">
+          <div className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_1fr]">
             <div>
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-100">
                 Free website audit
