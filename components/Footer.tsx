@@ -118,6 +118,32 @@ export default async function Footer() {
     getFooterSocials(),
   ]);
   const socials = socialSetting ?? DEFAULT_SOCIALS;
+  const [firstColumn, ...restColumns] = columns;
+
+  const linkColumn = (col: NavNode) => (
+    <div key={col.label}>
+      <h3 className="mb-4 text-[1rem] font-black uppercase tracking-wide text-[#F26419] sm:mb-5">
+        {col.label}
+      </h3>
+      <ul className="space-y-2.5 sm:space-y-3">
+        {(col.children ?? []).map((l) => (
+          <li key={l.href + l.label}>
+            <FooterLink label={l.label} href={l.href} newTab={l.newTab} />
+          </li>
+        ))}
+        {col.href && col.href !== "#" && (
+          <li className="pt-1">
+            <Link
+              href={col.href}
+              className="inline-flex items-center gap-1.5 text-[0.88rem] font-bold text-[#F26419] no-underline transition-colors duration-200 hover:text-white"
+            >
+              See All {col.label} <span>→</span>
+            </Link>
+          </li>
+        )}
+      </ul>
+    </div>
+  );
 
   return (
     <footer className="font-condensed relative bg-stone-800">
@@ -161,8 +187,12 @@ export default async function Footer() {
               } as React.CSSProperties
             }
           >
+            {/* Part one on phones: brand + first link column. The wrapper
+                dissolves from sm (display: contents) so tablet and desktop
+                grids see the same direct children as before. */}
+            <div className="flex flex-col gap-8 sm:contents">
             {/* Brand column */}
-            <div className="col-span-2 sm:col-span-1">
+            <div>
               <div className="mb-6">
                 <Image
                   src={withBase("/footer-logo.webp")}
@@ -216,34 +246,15 @@ export default async function Footer() {
               </div>
             </div>
 
-            {/* CMS-managed link columns */}
-            {columns.map((col: NavNode) => (
-              <div key={col.label}>
-                <h3 className="mb-4 text-[1rem] font-black uppercase tracking-wide text-[#F26419] sm:mb-5">
-                  {col.label}
-                </h3>
-                <ul className="space-y-2.5 sm:space-y-3">
-                  {(col.children ?? []).map((l) => (
-                    <li key={l.href + l.label}>
-                      <FooterLink label={l.label} href={l.href} newTab={l.newTab} />
-                    </li>
-                  ))}
-                  {col.href && col.href !== "#" && (
-                    <li className="pt-1">
-                      <Link
-                        href={col.href}
-                        className="inline-flex items-center gap-1.5 text-[0.88rem] font-bold text-[#F26419] no-underline transition-colors duration-200 hover:text-white"
-                      >
-                        See All {col.label} <span>→</span>
-                      </Link>
-                    </li>
-                  )}
-                </ul>
-              </div>
-            ))}
+            {firstColumn && linkColumn(firstColumn)}
+            </div>
+
+            {/* Part two on phones: remaining link columns + contact */}
+            <div className="flex flex-col gap-8 sm:contents">
+            {restColumns.map(linkColumn)}
 
             {/* Contact column — content managed in /admin/settings */}
-            <div className="col-span-2 sm:col-span-1">
+            <div>
               <h3 className="mb-5 text-[1rem] font-black uppercase tracking-wide text-[#F26419]">
                 Contact
               </h3>
@@ -273,8 +284,8 @@ export default async function Footer() {
                     ))}
                   </span>
                 </div>
-                {/* Phones pair up side by side on phones; stacked from sm. */}
-                <div className="grid grid-cols-2 gap-x-3 gap-y-3.5 sm:block sm:space-y-3.5">
+                {/* Contact sits in the right half on phones, so rows stack. */}
+                <div className="space-y-3 sm:space-y-3.5">
                 <a
                   href={`tel:+${telDigits(info.phoneIndia)}`}
                   className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
@@ -317,7 +328,7 @@ export default async function Footer() {
                 </a>
                 <a
                   href={`mailto:${info.email}`}
-                  className="col-span-2 flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors hover:text-white sm:gap-3 sm:text-[0.92rem]"
+                  className="flex items-center gap-2 text-[0.88rem] text-white no-underline transition-colors [overflow-wrap:anywhere] hover:text-white sm:gap-3 sm:text-[0.92rem]"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden>
                     <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
@@ -327,6 +338,7 @@ export default async function Footer() {
                 </a>
                 </div>
               </div>
+            </div>
             </div>
           </div>
 
