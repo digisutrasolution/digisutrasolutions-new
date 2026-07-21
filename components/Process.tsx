@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useInView, useReducedMotion } from "framer-motion";
-import { Target } from "lucide-react";
+import { Check, Target } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import { PROCESS_STEPS } from "@/lib/data";
 
@@ -68,11 +68,10 @@ export default function Process() {
   }, [celebrating, reduced]);
 
   return (
-    <section
-      ref={sectionRef}
-      id="process"
-      className="mt-20 overflow-hidden bg-stone-900 py-16 sm:mt-24 sm:py-20"
-    >
+    <section ref={sectionRef} id="process" className="mt-20 overflow-hidden sm:mt-24">
+      {/* Below lg the dark band is inset 24px with rounded corners so it
+          matches every other card band on mobile; desktop stays full-bleed. */}
+      <div className="mx-6 overflow-hidden rounded-[2rem] bg-stone-900 py-12 sm:py-20 lg:mx-0 lg:rounded-none">
       <div className="mx-auto max-w-[1280px] px-6">
         <Reveal>
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-300">
@@ -86,8 +85,74 @@ export default function Process() {
             guesswork.
           </h2>
         </Reveal>
+        {/* Phones: live timeline — every step visible as a slim row, the
+            running one expands with copy + progress; same state machine. */}
+        <div className="mt-10 sm:hidden">
+          <ol className="ml-1.5 space-y-3 border-l-2 border-stone-700 pl-5">
+            {PROCESS_STEPS.map((s, j) => {
+              const done = reduced || celebrating || active > j;
+              const running = !reduced && active === j;
+              return (
+                <li key={s.step} className="relative">
+                  <span
+                    className={`absolute -left-[27px] top-1.5 h-3 w-3 rounded-full border-2 transition-colors duration-300 ${
+                      done
+                        ? "border-green-400 bg-green-400/40"
+                        : running
+                          ? "border-[#F26419] bg-[#F26419]"
+                          : "border-stone-600 bg-stone-800"
+                    }`}
+                    aria-hidden
+                  />
+                  {running ? (
+                    <div className="-translate-y-0.5 rounded-xl border border-[#F26419] bg-stone-800 p-3.5 shadow-[0_10px_24px_rgba(242,100,25,0.2)]">
+                      <p className="font-display text-sm font-bold text-stone-100">
+                        <span className="text-orange-400">0{j + 1}</span> · {s.step}{" "}
+                        <span className="text-[11px] font-semibold text-orange-300">
+                          running…
+                        </span>
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-stone-400">{s.copy}</p>
+                      <div className="mt-2.5 h-[3px] overflow-hidden rounded-full bg-stone-700">
+                        <span className="step-bar-run block h-full rounded-full bg-[#F26419]" />
+                      </div>
+                    </div>
+                  ) : (
+                    <p
+                      className={`flex items-center gap-2 py-0.5 text-sm font-semibold ${
+                        done ? "text-stone-300" : "text-stone-500"
+                      }`}
+                    >
+                      {done ? (
+                        <Check size={14} className="shrink-0 text-green-400" aria-hidden />
+                      ) : (
+                        <span className="font-display text-xs font-extrabold text-stone-600">
+                          0{j + 1}
+                        </span>
+                      )}
+                      {s.step}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+          {celebrating && !reduced && (
+            <div className="congrats-pop mt-5 rounded-xl border border-[#F26419] bg-stone-800 px-4 py-3.5 text-center">
+              <p className="font-display text-sm font-extrabold text-stone-50">
+                <Target size={15} className="mr-1.5 inline text-[#F26419]" aria-hidden />
+                Target hit — and compounding
+              </p>
+              <p className="mt-0.5 text-[11px] text-orange-300">
+                The loop restarts — optimize → scale → report, every month
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Tablet and up: the animated pipeline card grid */}
         <div
-          className="relative mt-12"
+          className="relative mt-12 hidden sm:block"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
@@ -190,7 +255,7 @@ export default function Process() {
             </div>
           </div>
         </div>
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center sm:mt-10">
           <Link
             href="/contact"
             className="shine-sweep inline-block rounded-full bg-[#F26419] px-7 py-3.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
@@ -198,6 +263,7 @@ export default function Process() {
             Claim your free expert call →
           </Link>
         </div>
+      </div>
       </div>
     </section>
   );
