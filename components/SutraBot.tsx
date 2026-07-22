@@ -105,9 +105,22 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
       if (max > 0 && (window.scrollY / max) * 100 >= nudge.scrollPercent) fire();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    /* Exit intent: pointer crosses the top edge of the viewport. Guarded on
+       a fine pointer so a touch device, where the event is meaningless and
+       can fire spuriously, never triggers it. */
+    const onExit = (e: MouseEvent) => {
+      if (e.clientY <= 0 && e.relatedTarget === null) fire();
+    };
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    if (nudge.exitIntent && fine) {
+      document.addEventListener("mouseout", onExit);
+    }
+
     return () => {
       clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("mouseout", onExit);
     };
   }, [nudge, pathname, open, teaser]);
 

@@ -3,10 +3,12 @@ import { can } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import AdminSection from "@/components/admin/AdminSection";
+import AnalyticsManager from "@/components/admin/AnalyticsManager";
 import BotNudgeManager from "@/components/admin/BotNudgeManager";
 import FooterInfoManager from "@/components/admin/FooterInfoManager";
 import PaymentGatewayManager from "@/components/admin/PaymentGatewayManager";
 import SocialLinksManager from "@/components/admin/SocialLinksManager";
+import { getAnalytics } from "@/lib/analytics";
 import { getBotNudge } from "@/lib/bot-nudge";
 import { DEFAULT_FOOTER_INFO } from "@/lib/footer";
 import { getPayments, maskPayments } from "@/lib/payments";
@@ -19,11 +21,12 @@ export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user.role, "settings.manage")) redirect("/admin");
 
-  const [social, footer, botNudge, payments] = await Promise.all([
+  const [social, footer, botNudge, payments, analytics] = await Promise.all([
     db.siteSetting.findUnique({ where: { key: "socialLinks" } }),
     db.siteSetting.findUnique({ where: { key: "footerInfo" } }),
     getBotNudge(),
     getPayments(),
+    getAnalytics(),
   ]);
   const paymentsView = maskPayments(payments);
   const liveGateways = [
@@ -41,6 +44,25 @@ export default async function AdminSettingsPage() {
       </p>
 
       <div className="mt-6 space-y-3">
+        <AdminSection
+          title="Analytics & tracking"
+          chip={
+            analytics.enabled
+              ? [
+                  analytics.ga4Id && "GA4",
+                  analytics.gtmId && "GTM",
+                  analytics.metaPixelId && "Meta",
+                  analytics.clarityId && "Clarity",
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "On · no IDs set"
+              : "Off"
+          }
+          hint="Google Analytics, Tag Manager, Meta Pixel and Clarity. Nothing loads until you add an ID and switch tracking on."
+        >
+          <AnalyticsManager settings={analytics} />
+        </AdminSection>
+
         <AdminSection
           title="DigiSutra Bot greeting"
           chip={

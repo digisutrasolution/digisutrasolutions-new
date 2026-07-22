@@ -3,6 +3,7 @@
 import { withBase } from "@/lib/base-path";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   getCountries,
   getCountryCallingCode,
@@ -90,6 +91,7 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [errMsg, setErrMsg] = useState("");
   const startedAt = useRef<number>(0);
+  const router = useRouter();
 
   // Restore autosaved draft + arm the time-trap (deferred past first paint).
   useEffect(() => {
@@ -173,7 +175,10 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
-      setStatus("done");
+      /* A distinct URL is what makes the completion measurable — an inline
+         success state produces no pageview, so no analytics tool can count
+         it as a conversion. */
+      router.push("/thank-you");
     } catch (e) {
       setErrMsg(e instanceof Error ? e.message : "Something went wrong — try WhatsApp instead.");
       setStatus("error");

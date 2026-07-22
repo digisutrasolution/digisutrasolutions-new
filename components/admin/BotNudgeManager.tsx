@@ -83,6 +83,23 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
         </div>
       </div>
 
+      <label className="mt-4 flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-200">
+        <input
+          type="checkbox"
+          checked={nudge.exitIntent}
+          onChange={(e) => setNudge((p) => ({ ...p, exitIntent: e.target.checked }))}
+          className="mt-0.5 h-4 w-4 accent-orange-600"
+        />
+        <span>
+          Also show on exit intent
+          <span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">
+            Fires when the mouse leaves toward the tab bar. Desktop only —
+            touch devices have no equivalent signal, and the same weekly
+            cooldown applies.
+          </span>
+        </span>
+      </label>
+
       <p className="mt-5 text-xs font-semibold text-stone-500 dark:text-stone-400">
         Message per page — the longest matching path wins; &ldquo;/&rdquo; is the fallback.
       </p>

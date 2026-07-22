@@ -1,8 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Analytics from "@/components/Analytics";
 import TrackPageview from "@/components/TrackPageview";
 import BackToTop from "@/components/BackToTop";
 import SutraBot from "@/components/SutraBot";
+import { getAnalytics } from "@/lib/analytics";
 import { getBotNudge } from "@/lib/bot-nudge";
 import { getFeaturedPost, getLiveNav } from "@/lib/menu";
 import { SITE_URL } from "@/lib/site";
@@ -13,10 +15,11 @@ export default async function SiteLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [nav, featuredPost, botNudge] = await Promise.all([
+  const [nav, featuredPost, botNudge, analytics] = await Promise.all([
     getLiveNav(),
     getFeaturedPost(),
     getBotNudge(),
+    getAnalytics(),
   ]);
   const toUrl = (href: string) => (href.startsWith("/") ? `${SITE_URL}${href}` : href);
   const navJsonLd = {
@@ -44,6 +47,7 @@ export default async function SiteLayout({
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(navJsonLd)}
       />
+      <Analytics settings={analytics} />
       <TrackPageview />
       <Navbar nav={nav} featuredPost={featuredPost} />
       <main

@@ -16,6 +16,12 @@ export const BotNudgeSchema = z.object({
   enabled: z.boolean(),
   delaySeconds: z.number().int().min(5).max(180),
   scrollPercent: z.number().int().min(0).max(100),
+  /** Also fire when the pointer leaves toward the browser chrome — the
+      last moment a leaving desktop visitor can be offered something.
+      Deliberately desktop-only: there is no equivalent signal on touch,
+      and the usual mobile substitutes (scroll-up, back-button traps) are
+      hostile. */
+  exitIntent: z.boolean().default(true),
   rules: z.array(NudgeRuleSchema).max(12),
 });
 
@@ -32,6 +38,7 @@ export const DEFAULT_BOT_NUDGE: BotNudge = {
   enabled: true,
   delaySeconds: 15,
   scrollPercent: 40,
+  exitIntent: true,
   rules: [
     { path: "/pricing", text: "Not sure which plan fits? Tell me your budget and I'll pick one." },
     { path: "/services", text: "Want to know what this would cost for your business?" },
