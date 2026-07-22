@@ -14,6 +14,8 @@ type Lead = {
   services: string[];
   budget: string | null;
   timeline: string | null;
+  department: string | null;
+  heardFrom: string | null;
   message: string | null;
   source: string;
   status: string;
@@ -165,6 +167,8 @@ export default function LeadsManager() {
                               </p>
                             )}
                             {l.timeline && <p><b className="font-semibold">Timeline:</b> {l.timeline}</p>}
+                            {l.department && <p><b className="font-semibold">Desk:</b> {l.department}</p>}
+                            {l.heardFrom && <p><b className="font-semibold">Found us via:</b> {l.heardFrom}</p>}
                             {l.message && <p className="whitespace-pre-wrap"><b className="font-semibold">Message:</b> {l.message}</p>}
                           </div>
                           <div>

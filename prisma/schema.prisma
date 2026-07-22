@@ -527,6 +527,10 @@ model Lead {
   budget    String?
   timeline  String?
   message   String?
+  /** Which desk the enquiry asked for: SALES | SUPPORT | GENERAL. */
+  department String?
+  /** Answer to "How did you find us?" — attribution, countable in admin. */
+  heardFrom String?
   source    LeadSource @default(CONTACT)
   status    LeadStatus @default(NEW)
   verified  Boolean    @default(false)
