@@ -49,19 +49,39 @@ function HeroBlock({ s }: { s: Extract<Section, { type: "hero" }> }) {
   );
 }
 
+/* Editorial split: the heading holds the left half of the 1280 grid and the
+   prose the right, so the block lines up with the header, stats and CTA
+   bands instead of floating in a narrow centred column. A headless block
+   has no left half to fill, so its copy flows into two text columns —
+   same full-grid width, same readable line length. */
 function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
   const paragraphs = s.body.split(/\n{2,}/).filter((p) => p.trim());
+  const copy = (cls: string) => (
+    <div className={cls}>
+      {paragraphs.map((p, i) => (
+        <p key={i} className="text-sm leading-relaxed text-stone-600 sm:text-base">
+          {p}
+        </p>
+      ))}
+    </div>
+  );
   return (
-    <section className="mx-auto max-w-3xl px-6 pt-16 sm:pt-20">
+    <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
       <Reveal>
-        {s.heading && <Heading text={s.heading} />}
-        <div className="mt-5 space-y-4">
-          {paragraphs.map((p, i) => (
-            <p key={i} className="text-sm leading-relaxed text-stone-600 sm:text-base">
-              {p}
-            </p>
-          ))}
-        </div>
+        {s.heading ? (
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-14">
+            <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+              {s.heading}
+            </h2>
+            {copy("space-y-4")}
+          </div>
+        ) : paragraphs.length > 1 ? (
+          copy(
+            "[&>p]:mb-4 [&>p]:break-inside-avoid [&>p:last-child]:mb-0 lg:columns-2 lg:gap-14",
+          )
+        ) : (
+          copy("max-w-3xl")
+        )}
       </Reveal>
     </section>
   );

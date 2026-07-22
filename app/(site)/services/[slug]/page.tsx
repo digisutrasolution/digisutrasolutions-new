@@ -235,7 +235,7 @@ export default async function ServiceCategoryPage({
                   <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
                 </div>
               )}
-              <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-stone-600">
+              <p className="mt-4 text-[15px] leading-relaxed text-stone-600">
                 {o.description ?? o.blurb}
               </p>
               {o.features && o.features.length > 0 && (
