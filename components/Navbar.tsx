@@ -357,7 +357,7 @@ function LogoMark() {
       <motion.div style={{ x, y, scale, willChange: "transform" }}>
         <Link href="/" aria-label="Digisutra Solutions — home">
           <Image
-            src={withBase("/logo.png")}
+            src={withBase("/logo.webp")}
             alt="Digisutra Solutions"
             width={200}
             height={70}
@@ -534,11 +534,12 @@ function MegaPanel({
             >
               <span className="relative block h-24 overflow-hidden">
                 {featuredPost.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={withBase(featuredPost.coverUrl)}
                     alt=""
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="320px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <span className="absolute inset-0 bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400" />
@@ -743,7 +744,7 @@ function MobileDrawer({
         <div className="flex items-center justify-between border-b border-black/[0.07] px-5 py-3.5">
           <Link href="/" onClick={onClose}>
             <Image
-              src={withBase("/logo.png")}
+              src={withBase("/logo.webp")}
               alt="Digisutra Solutions"
               width={120}
               height={40}

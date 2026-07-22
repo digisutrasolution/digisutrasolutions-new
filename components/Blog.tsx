@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Newspaper } from "lucide-react";
 import HomeSubscribe from "@/components/HomeSubscribe";
@@ -113,11 +114,12 @@ export default async function Blog() {
             >
               <div className="relative h-52 overflow-hidden sm:h-60">
                 {featured.coverUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={withBase(featured.coverUrl)}
                     alt=""
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 620px"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
@@ -171,11 +173,12 @@ export default async function Blog() {
               >
                 <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-900">
                   {post.coverUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={withBase(post.coverUrl)}
                       alt=""
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      fill
+                      sizes="80px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
                     <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
