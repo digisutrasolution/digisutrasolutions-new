@@ -46,3 +46,4 @@ next-env.d.ts
 
 # local contact form fallback
 contact-submissions.log
+.msg.txt
