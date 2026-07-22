@@ -3,6 +3,7 @@ import Reveal from "@/components/Reveal";
 import { CASE_STUDIES } from "@/lib/data";
 
 export default function CaseStudies() {
+  if (CASE_STUDIES.length === 0) return null;
   return (
     <section id="case-studies" className="mx-auto max-w-[1280px] px-6 pt-20 sm:pt-24">
       <Reveal>

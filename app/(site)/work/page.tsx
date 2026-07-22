@@ -29,16 +29,22 @@ export default function WorkPage() {
           { "@type": "ListItem", position: 2, name: "Work", item: `${SITE_URL}/work` },
         ],
       },
-      {
-        "@type": "ItemList",
-        name: "DigiSutra Solutions case studies",
-        itemListElement: WORK_CASES.map((c, i) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          name: `${c.client} — ${c.title}`,
-          url: `${SITE_URL}/work`,
-        })),
-      },
+      /* Schema is emitted only for cases that exist — an empty or invented
+         ItemList is worse than none. */
+      ...(WORK_CASES.length > 0
+        ? [
+            {
+              "@type": "ItemList",
+              name: "DigiSutra Solutions case studies",
+              itemListElement: WORK_CASES.map((c, i) => ({
+                "@type": "ListItem",
+                position: i + 1,
+                name: `${c.client} — ${c.title}`,
+                url: `${SITE_URL}/work`,
+              })),
+            },
+          ]
+        : []),
     ],
   };
 

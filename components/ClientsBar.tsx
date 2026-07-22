@@ -6,20 +6,13 @@ import type { ReactNode } from "react";
 
 type Mark = { key: string; node: ReactNode; className?: string };
 
-const MARKS: Mark[] = [
-  { key: "kart360", node: <>KART<span className="text-[#F26419]">360</span></>, className: "font-extrabold" },
-  { key: "medline", node: <>Medline<span className="text-[#F26419]">+</span></>, className: "font-serif-accent font-bold" },
-  { key: "agrolink", node: "AGROLINK", className: "font-bold tracking-[0.14em]" },
-  { key: "finedge", node: "FinEdge", className: "font-bold italic" },
-  { key: "zenpay", node: "zen_pay", className: "font-mono font-bold" },
-  { key: "urbannest", node: "URBANNEST", className: "font-bold tracking-[0.18em]" },
-  { key: "trekyatra", node: "TrekYatra", className: "font-serif-accent italic" },
-  { key: "novamed", node: <>Nova<span className="text-[#F26419]">Med</span></>, className: "font-extrabold" },
-  { key: "hexbuild", node: "⬡ HEXBUILD", className: "font-bold" },
-  { key: "craftly", node: "craftly.io", className: "font-mono font-bold" },
-];
+/* Real client wordmarks only — a bar headed "Trusted by our clients"
+   listing companies that are not clients is a false statement, not
+   decoration. The whole bar hides while this is empty. */
+const MARKS: Mark[] = [];
 
 export default function ClientsBar() {
+  if (MARKS.length === 0) return null;
   // Two copies per animation half so -50% loops seamlessly on ultrawide.
   const row = [...MARKS, ...MARKS, ...MARKS, ...MARKS];
 

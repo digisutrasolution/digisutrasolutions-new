@@ -49,7 +49,10 @@ export default function PartnerProof() {
   }, [tick, reduced, inView, paused]);
 
   const active = reduced ? -1 : tick % REASONS.length;
-  const t = reduced ? 0 : Math.floor(tick / 2) % TESTIMONIALS.length;
+  /* No real quotes yet -> no panel. Guarding on length keeps the modulo
+     from producing NaN and the layout from rendering an empty card. */
+  const hasQuotes = TESTIMONIALS.length > 0;
+  const t = reduced || !hasQuotes ? 0 : Math.floor(tick / 2) % TESTIMONIALS.length;
   const quote = TESTIMONIALS[t];
 
   return (
@@ -103,6 +106,7 @@ export default function PartnerProof() {
           </div>
 
           {/* What clients say — rotating quotes + retention ring */}
+          {hasQuotes && quote && (
           <div className="relative flex flex-col overflow-hidden rounded-3xl bg-stone-900 p-7 sm:p-8">
             <span
               className="pointer-events-none absolute -bottom-8 -left-8 h-36 w-36 rounded-full bg-[#F26419] opacity-25 blur-[32px]"
@@ -172,6 +176,7 @@ export default function PartnerProof() {
               ))}
             </div>
           </div>
+          )}
         </div>
       </Reveal>
     </section>

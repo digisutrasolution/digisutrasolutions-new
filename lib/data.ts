@@ -89,12 +89,11 @@ export const STATS = [
   { value: 12, suffix: "", label: "countries served" },
 ];
 
-export const CERTS = [
-  "Google Partner",
-  "Meta Business Partner",
-  "AWS Partner",
-  "ISO 27001",
-];
+/* Partner programmes and certifications DigiSutra actually holds.
+   Every entry here is a public, verifiable claim — Google Partner and Meta
+   Business Partner appear in their own directories, and ISO 27001 is an
+   audited certificate. Add one only when the certificate exists. */
+export const CERTS: string[] = [];
 
 /* Home "studios" panels — 4 lanes mapping the 7 service categories. */
 export const SERVICE_CATEGORIES = [
@@ -158,42 +157,16 @@ export const PROCESS_STEPS = [
   { step: "Report & grow", copy: "Live dashboards, monthly reviews" },
 ];
 
-export const CASE_STUDIES = [
-  {
-    client: "Kart360",
-    category: "E-commerce · SEO + development",
-    title: "4.2× revenue in 9 months",
-    challenge:
-      "Legacy store, 6-second load times, 92% of traffic from a single paid channel.",
-    solution:
-      "Next.js storefront, automated inventory sync, technical SEO and diversified paid media.",
-    result:
-      "Sub-second pages, organic became the #1 channel, revenue up 4.2×.",
-    metrics: [
-      { value: "+312%", label: "organic traffic" },
-      { value: "4.2×", label: "revenue growth" },
-      { value: "5.8×", label: "ad ROAS" },
-      { value: "-62%", label: "cost per acquisition" },
-    ],
-  },
-  {
-    client: "FinEdge",
-    category: "Fintech · growth program",
-    title: "3× qualified leads in 6 months",
-    challenge:
-      "High CPL from broad targeting, landing pages converting under 1%.",
-    solution:
-      "Full-funnel rebuild — intent-based keywords, CRO landing system and lead scoring automation.",
-    result:
-      "Cost per lead cut by more than half while lead quality and volume tripled.",
-    metrics: [
-      { value: "3×", label: "qualified leads" },
-      { value: "-54%", label: "cost per lead" },
-      { value: "4.1%", label: "landing conversion" },
-      { value: "+89%", label: "sales-accepted rate" },
-    ],
-  },
-];
+/* Real engagements only. The homepage section hides itself while empty. */
+export const CASE_STUDIES: {
+  client: string;
+  category: string;
+  title: string;
+  challenge: string;
+  solution: string;
+  result: string;
+  metrics: { value: string; label: string }[];
+}[] = [];
 
 export const TECHNOLOGIES = [
   { group: "Frontend", items: ["HTML", "CSS", "JavaScript", "React", "Next.js", "Vue"] },
@@ -215,29 +188,15 @@ export const WHY_US = [
   { title: "Scalable architecture", copy: "Built for 10× traffic from day one.", icon: "layers" },
 ];
 
-export const TESTIMONIALS = [
-  {
-    quote:
-      "One team for ads, site and automation — a game changer. Every rupee is accounted for and the reporting is the best we've seen.",
-    name: "Rohit Malhotra",
-    role: "Founder, FinEdge",
-    rating: 5,
-  },
-  {
-    quote:
-      "DigiSutra rebuilt our store and our marketing in one program. Revenue is up 4.2× and pages load in under a second.",
-    name: "Priya Sharma",
-    role: "Founder, Kart360",
-    rating: 5,
-  },
-  {
-    quote:
-      "Their lead engine keeps our pipeline full — WhatsApp, SMS and email flows that actually convert. Support is genuinely same-day.",
-    name: "Arvind Kulkarni",
-    role: "Director, AgroLink",
-    rating: 5,
-  },
-];
+/* Real client quotes only — a named person attributed to a quote they
+   never gave is a fabricated endorsement. The homepage proof panel hides
+   itself while this is empty. */
+export const TESTIMONIALS: {
+  quote: string;
+  name: string;
+  role: string;
+  rating: number;
+}[] = [];
 
 export const PRICING = [
   {

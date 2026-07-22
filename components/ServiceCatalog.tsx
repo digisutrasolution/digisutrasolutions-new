@@ -52,7 +52,7 @@ export default function ServiceCatalog() {
               <b className="font-semibold text-orange-700">AI Automation</b>.
             </span>
           </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3 empty:hidden">
             {CERTS.map((cert) => (
               <span
                 key={cert}
