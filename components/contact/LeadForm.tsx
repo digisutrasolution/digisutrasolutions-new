@@ -133,18 +133,6 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
   const servicesOk = f.services.length > 0;
   const canSubmit = nameOk && phoneOk && emailOk && servicesOk && status !== "sending";
 
-  // Lead-quality meter: 4 segments.
-  const quality =
-    (nameOk && phoneOk ? 1 : 0) +
-    (servicesOk ? 1 : 0) +
-    (f.budget ? 1 : 0) +
-    (f.website.trim() ? 1 : 0);
-  const qualityLabel =
-    quality >= 4 ? "Priority response unlocked ✦"
-    : quality === 3 ? "Add your website — we bring the audit to the first call"
-    : quality === 2 ? "Pick a budget for a plan that actually fits"
-    : "Start with your name and phone number";
-
   const submit = async () => {
     setStatus("sending");
     setErrMsg("");
@@ -215,21 +203,6 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
             </span>
           </li>
         </ul>
-        <div className="mt-8 rounded-2xl bg-stone-800/70 p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">Lead quality</span>
-            <span className="text-[11px] font-semibold text-[#FDBA74]">{qualityLabel}</span>
-          </div>
-          <div className="mt-2 flex gap-1">
-            {[0, 1, 2, 3].map((i) => (
-              <span
-                key={i}
-                className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${i < quality ? "bg-[#F26419]" : "bg-stone-700"}`}
-              />
-            ))}
-          </div>
-        </div>
-
         {/* Desks: every address and number reachable without the form. */}
         <div className="mt-8 space-y-5 border-t border-stone-800 pt-7">
           {DEPARTMENTS.map((d) => (
@@ -280,7 +253,7 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
       </div>
 
       {/* Form */}
-      <div className="bg-white p-6 sm:p-10">
+      <div className="flex flex-col bg-white p-6 sm:p-10">
         {status === "done" ? (
           <div className="flex h-full flex-col items-center justify-center py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -301,8 +274,16 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
             </a>
           </div>
         ) : (
-          <div>
-            <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-1 flex-col">
+            <h2 className="font-display text-2xl font-extrabold tracking-tight text-stone-900">
+              Send us a message
+            </h2>
+            <p className="mt-1.5 text-sm text-stone-500">
+              We reply within 2 business hours — every enquiry gets the free
+              15-page audit.
+            </p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="lf-name" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">Name *</label>
                 <input
@@ -448,13 +429,16 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
               </div>
             </div>
 
-            <div className="mt-5">
+            {/* flex-1: the rail is taller than the form, and the textarea
+                stretching to absorb the difference is what keeps the panel
+                gap-free at every viewport width. */}
+            <div className="mt-5 flex flex-1 flex-col">
               <label htmlFor="lf-msg" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">Anything else? <span className="font-medium normal-case text-stone-400">(optional)</span></label>
               <textarea
                 id="lf-msg"
                 value={f.message}
                 onChange={(e) => set("message", e.target.value)}
-                className={`${inputCls(false)} min-h-20`}
+                className={`${inputCls(false)} min-h-24 flex-1`}
                 placeholder="Goals, deadlines, what's not working…"
               />
             </div>
