@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Landmark } from "lucide-react";
 import Image from "next/image";
 import { withBase } from "@/lib/base-path";
 import { getFooterInfo, getFooterSocials, telDigits } from "@/lib/footer";
@@ -10,7 +11,6 @@ const PAYMENT_METHODS = [
   { label: "PayPal", file: "paypal.webp" },
   { label: "UPI", file: "upi.webp" },
   { label: "Cashfree", file: "cashfree-payments.webp" },
-  { label: "Bank Transfer", file: "bank-transfer.webp" },
 ];
 
 /* Brand glyphs by platform key (lucide has no brand icons). Keys match the
@@ -114,27 +114,38 @@ function FooterSubList({ nodes }: { nodes: NavChild[] }) {
 }
 
 function PaymentChips({ compact }: { compact?: boolean }) {
+  /* Logos render at 20px (16px compact) from ~2x source requests so the
+     optimizer never ships a blurry 44px asset. */
+  const chip = `flex cursor-default items-center justify-center rounded-lg border border-white/10 bg-white ${
+    compact ? "h-8 px-2" : "h-9 px-2.5 transition-transform duration-200 hover:scale-105"
+  }`;
   return (
     <>
       {PAYMENT_METHODS.map((m) => (
-        <div
-          key={m.file}
-          className={`flex h-8 cursor-default items-center justify-center rounded-md border border-white/10 bg-white py-1 ${
-            compact
-              ? "px-1.5"
-              : "px-2 transition-transform duration-200 hover:scale-105"
-          }`}
-        >
+        <div key={m.file} className={chip}>
           <Image
             src={withBase(`/payment-methods/${m.file}`)}
             alt={m.label}
-            width={44}
-            height={24}
-            className="h-4 w-auto object-contain"
-            style={{ width: "auto", height: "1rem" }}
+            width={90}
+            height={40}
+            className={`${compact ? "h-4" : "h-5"} w-auto object-contain`}
           />
         </div>
       ))}
+      {/* The bank-transfer source graphic is a square upscale that blurs at
+          chip size, so this one is drawn in code and stays crisp. */}
+      <div className={`${chip} gap-1.5`}>
+        <Landmark size={compact ? 13 : 15} aria-hidden className="shrink-0 text-[#1b3f8f]" />
+        <span
+          aria-label="Bank transfer"
+          className={`flex flex-col font-black uppercase leading-[1.05] tracking-tight ${
+            compact ? "text-[8px]" : "text-[9px]"
+          }`}
+        >
+          <span className="text-[#1b3f8f]">Bank</span>
+          <span className="text-[#0a9bb5]">Transfer</span>
+        </span>
+      </div>
     </>
   );
 }
@@ -269,7 +280,7 @@ export default async function Footer() {
                 <p className="mb-3 text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
                   We Accept
                 </p>
-                <div className="grid max-w-[260px] grid-cols-3 gap-1.5">
+                <div className="flex max-w-[290px] flex-wrap gap-1.5">
                   <PaymentChips />
                 </div>
               </div>
