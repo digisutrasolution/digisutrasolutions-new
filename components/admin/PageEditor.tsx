@@ -576,8 +576,11 @@ function SectionFields({
     case "richText":
       return (
         <div className="space-y-3">
+          <div><label className={labelCls}>Eyebrow (small label above the heading)</label><input value={section.eyebrow} disabled={disabled} onChange={(e) => onChange({ eyebrow: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>Body (blank line = new paragraph)</label><textarea rows={6} value={section.body} disabled={disabled} onChange={(e) => onChange({ body: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>Side image (optional — shows left of the text)</label><input value={section.image} disabled={disabled} onChange={(e) => onChange({ image: e.target.value })} className={inputCls} placeholder="/section-images/… or /uploads/…" /></div>
+          <div><label className={labelCls}>Image alt text</label><input value={section.imageAlt} disabled={disabled} onChange={(e) => onChange({ imageAlt: e.target.value })} className={inputCls} placeholder="Describe the photo for screen readers" /></div>
         </div>
       );
     case "cards":

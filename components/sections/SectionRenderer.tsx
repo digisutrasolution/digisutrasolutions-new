@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import FormEmbed from "@/components/sections/FormEmbed";
 import VideoBlock from "@/components/sections/VideoBlock";
+import { withBase } from "@/lib/base-path";
 import type { Section } from "@/lib/cms/sections";
 
 function Heading({ text }: { text: string }) {
@@ -49,11 +51,11 @@ function HeroBlock({ s }: { s: Extract<Section, { type: "hero" }> }) {
   );
 }
 
-/* Editorial split: the heading holds the left half of the 1280 grid and the
-   prose the right, so the block lines up with the header, stats and CTA
-   bands instead of floating in a narrow centred column. A headless block
-   has no left half to fill, so its copy flows into two text columns —
-   same full-grid width, same readable line length. */
+/* Three layouts, all on the 1280 grid so the block lines up with the
+   header, stats and CTA bands instead of floating in a centred column:
+   with an image, the photo takes the left and eyebrow + heading + copy
+   the right; without one, the heading itself holds the left; and a
+   headless block flows into two text columns. */
 function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
   const paragraphs = s.body.split(/\n{2,}/).filter((p) => p.trim());
   const copy = (cls: string) => (
@@ -65,14 +67,55 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
       ))}
     </div>
   );
+  if (s.image) {
+    return (
+      <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
+        <Reveal>
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)] lg:gap-14">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-stone-900">
+              <Image
+                src={withBase(s.image)}
+                alt={s.imageAlt}
+                fill
+                sizes="(max-width: 1024px) 100vw, 520px"
+                className="object-cover"
+              />
+              <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
+            </div>
+            <div>
+              {s.eyebrow && (
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
+                  {s.eyebrow}
+                </p>
+              )}
+              {s.heading && (
+                <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+                  {s.heading}
+                </h2>
+              )}
+              {copy("mt-5 space-y-4")}
+            </div>
+          </div>
+        </Reveal>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
       <Reveal>
         {s.heading ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-14">
-            <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
-              {s.heading}
-            </h2>
+            <div>
+              {s.eyebrow && (
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
+                  {s.eyebrow}
+                </p>
+              )}
+              <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+                {s.heading}
+              </h2>
+            </div>
             {copy("space-y-4")}
           </div>
         ) : paragraphs.length > 1 ? (

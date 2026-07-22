@@ -18,8 +18,13 @@ export const HeroSectionSchema = z.object({
 
 export const RichTextSectionSchema = z.object({
   type: z.literal("richText"),
+  eyebrow: z.string().max(80).default(""),
   heading: z.string().max(160).default(""),
   body: z.string().max(20000).default(""),
+  /* Optional side image. Set it and the block renders image-left /
+     copy-right; leave it blank and the copy keeps the full grid. */
+  image: z.string().max(300).default(""),
+  imageAlt: z.string().max(160).default(""),
 });
 
 export const CardsSectionSchema = z.object({
