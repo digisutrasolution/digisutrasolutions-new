@@ -54,7 +54,7 @@ export default function ToolShell({
   };
 
   return (
-    <div className="pb-16 sm:pb-24">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -67,8 +67,8 @@ export default function ToolShell({
         image="/free-tools-hero.jpg"
       />
 
-      <section className="mx-auto max-w-[1280px] px-6">
-        <div className="-mt-6">{children}</div>
+      <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
+        <div>{children}</div>
 
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-dashed border-stone-200 pt-6">
           <Link
@@ -92,7 +92,7 @@ export default function ToolShell({
         </div>
 
         <CtaBand
-          className="mt-12"
+          className="mt-12 sm:mt-16"
           title="Want us to do the heavy lifting?"
           body="A free 30-minute expert call, plus the 15-page audit — whether or not you hire us."
         />

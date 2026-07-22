@@ -17,6 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 import CtaBand from "@/components/CtaBand";
+import PageHero from "@/components/PageHero";
 import { withBase } from "@/lib/base-path";
 import { getPublicPayments } from "@/lib/payments";
 import { SITE_URL } from "@/lib/site";
@@ -129,50 +130,39 @@ export default async function PaymentPage() {
   };
 
   return (
-    <div className="pb-12 sm:pb-16">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Dark hero */}
-      <div className="bg-stone-900">
-        <div className="mx-auto max-w-[1280px] px-6 pb-14 pt-10 text-center sm:pb-16 sm:pt-12">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">
-            Payment options
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Pay your way —{" "}
-            <span className="font-serif-accent font-medium italic text-[#F26419]">
-              ₹, $ or AED
+      <PageHero
+        eyebrow="Payment options"
+        title="Pay your way —"
+        titleAccent="₹, $ or AED"
+        image="/payment-hero.jpg"
+        intro="UPI and cards in India, PayPal and wire transfers for the USA, UK, Australia, Dubai and everywhere else we work. Every payment comes with a proper GST tax invoice."
+      >
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          {ACCEPT_CHIPS.map((c) => (
+            <span
+              key={c.label}
+              className="flex h-10 items-center rounded-lg bg-white px-3 py-1.5"
+            >
+              <Image
+                src={withBase(c.src)}
+                alt={c.label}
+                width={64}
+                height={28}
+                className="h-6 w-auto object-contain"
+              />
             </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-stone-400 sm:text-base">
-            UPI and cards in India, PayPal and wire transfers for the USA, UK,
-            Australia, Dubai and everywhere else we work. Every payment comes
-            with a proper GST tax invoice.
-          </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            {ACCEPT_CHIPS.map((c) => (
-              <span
-                key={c.label}
-                className="flex h-10 items-center rounded-lg bg-white px-3 py-1.5"
-              >
-                <Image
-                  src={withBase(c.src)}
-                  alt={c.label}
-                  width={64}
-                  height={28}
-                  className="h-6 w-auto object-contain"
-                />
-              </span>
-            ))}
-          </div>
+          ))}
         </div>
-      </div>
+      </PageHero>
 
-      <section className="mx-auto max-w-[1280px] px-6">
+      <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
         {/* Methods */}
-        <div className="mt-12 grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2">
           {methods.map((m) => (
             <div
               key={m.title}
@@ -266,6 +256,7 @@ export default async function PaymentPage() {
 
         {/* CTA */}
         <CtaBand
+          className="mt-12 sm:mt-16"
           title="Ready to pay or need an invoice?"
           body="Message us on WhatsApp and the payment link or account details are with you in minutes — or start a new project with a free expert call."
         >

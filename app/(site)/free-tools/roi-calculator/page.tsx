@@ -42,7 +42,7 @@ export default function RoiCalculatorPage() {
   };
 
   return (
-    <div className="pb-16 sm:pb-24">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -55,10 +55,8 @@ export default function RoiCalculatorPage() {
         intro={`Move the sliders to see what a monthly budget could return in enquiries, orders and revenue — modelled on the ${ROAS_LOW}×–${ROAS_HIGH}× range our clients see over ${RAMP_MONTHS}, with every assumption on screen.`}
       />
 
-      <section className="mx-auto max-w-[1280px] px-6">
-        <div className="-mt-6">
-          <RoiCalculator />
-        </div>
+      <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
+        <RoiCalculator />
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-dashed border-stone-200 pt-6 text-sm text-stone-600">
           <span className="flex items-center gap-1.5">
@@ -74,6 +72,7 @@ export default function RoiCalculatorPage() {
         </div>
 
         <CtaBand
+          className="mt-12 sm:mt-16"
           title="These numbers depend on your market"
           body="A 30-minute expert call replaces the estimate with a plan built on your data — channels, budget split and the timeline to get there."
         />

@@ -41,7 +41,7 @@ export default function ResourcesPage() {
   };
 
   return (
-    <div className="pb-16 sm:pb-24">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -54,12 +54,12 @@ export default function ResourcesPage() {
         intro={`No signup, no credit card. All ${live.length} are live today — built for Indian businesses and the teams that run them.`}
       />
 
-      <section className="mx-auto max-w-[1280px] px-6">
+      <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
         {TOOL_GROUPS.map((group, gi) => {
           const tools = TOOLS.filter((t) => t.group === group);
           if (tools.length === 0) return null;
           return (
-            <div key={group} className={gi === 0 ? "mt-12" : "mt-14"}>
+            <div key={group} className={gi === 0 ? "" : "mt-14"}>
               <h2 className="font-display text-xl font-extrabold tracking-tight text-stone-900">
                 {group}
               </h2>
@@ -119,7 +119,7 @@ export default function ResourcesPage() {
         })}
 
         <CtaBand
-          className="mt-16"
+          className="mt-12 sm:mt-16"
           title="Want the tool to do the work for you?"
           body="A strategist will run the numbers on your business in a free 30-minute call — and you'll get the 15-page audit either way."
         />
