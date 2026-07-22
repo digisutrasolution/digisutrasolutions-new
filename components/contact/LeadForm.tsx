@@ -4,6 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
+import ServicePicker from "@/components/contact/ServicePicker";
 import {
   DEPARTMENTS,
   HEARD_FROM,
@@ -104,12 +105,6 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
   const servicesOk = !isSales || f.services.length > 0;
   const canSubmit = nameOk && waOk && emailOk && servicesOk && status !== "sending";
   const activeDept = DEPARTMENTS.find((d) => d.key === f.department) ?? DEPARTMENTS[0];
-
-  const toggleService = (name: string) => {
-    set("services", f.services.includes(name)
-      ? f.services.filter((s) => s !== name)
-      : [...f.services, name]);
-  };
 
   const submit = async () => {
     setStatus("sending");
@@ -306,28 +301,12 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
             </div>
 
             <div className={`mt-5 ${isSales ? "" : "hidden"}`}>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-                I&rsquo;m interested in * <span className="font-medium normal-case text-stone-400">— pick any</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {serviceNames.map((name) => {
-                  const on = f.services.includes(name);
-                  return (
-                    <button
-                      key={name}
-                      onClick={() => toggleService(name)}
-                      aria-pressed={on}
-                      className={`cursor-pointer rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
-                        on
-                          ? "bg-stone-900 text-white"
-                          : "border border-stone-200 bg-white text-stone-600 hover:border-orange-400"
-                      }`}
-                    >
-                      {on ? "✓ " : ""}{name}
-                    </button>
-                  );
-                })}
-              </div>
+              <ServicePicker
+                options={serviceNames}
+                value={f.services}
+                onChange={(next) => set("services", next)}
+                invalid={Boolean(touched.submit && !servicesOk)}
+              />
               {touched.submit && !servicesOk && (
                 <p className="mt-1 text-xs text-red-600">Pick at least one — it routes you to the right specialist.</p>
               )}
