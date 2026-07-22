@@ -2,6 +2,11 @@
    self-hosted deploys where the build runs before the DB is reachable. */
 export const revalidate = 300;
 
+import {
+  getLiveCaseStudies,
+  getLiveClientLogos,
+  getLiveTestimonials,
+} from "@/lib/proof";
 import HeroCarousel from "@/components/HeroCarousel";
 import Ticker from "@/components/Ticker";
 import ClientsBar from "@/components/ClientsBar";
@@ -13,19 +18,25 @@ import Faq from "@/components/Faq";
 import Blog from "@/components/Blog";
 import AuditCta from "@/components/AuditCta";
 
-export default function Home() {
+export default async function Home() {
+  const [testimonials, clients, cases] = await Promise.all([
+    getLiveTestimonials(),
+    getLiveClientLogos(),
+    getLiveCaseStudies(),
+  ]);
+
   return (
     <>
       <HeroCarousel />
       <Ticker />
       <ServiceCatalog />
-      <CaseStudies />
-      <PartnerProof />
+      <CaseStudies cases={cases} />
+      <PartnerProof testimonials={testimonials} />
       <Process />
       <Faq />
       <Blog />
       <AuditCta />
-      <ClientsBar />
+      <ClientsBar clients={clients} />
     </>
   );
 }

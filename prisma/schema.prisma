@@ -554,3 +554,57 @@ model MenuVersion {
 
   @@index([location, createdAt])
 }
+
+/// Social proof — every row is a factual claim about a real client, so
+/// nothing here is seeded with sample data. Empty tables render nothing.
+model Testimonial {
+  id        String   @id @default(cuid())
+  quote     String
+  name      String
+  role      String   @default("")
+  rating    Int      @default(5)
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visible, order])
+}
+
+model ClientLogo {
+  id        String   @id @default(cuid())
+  name      String
+  /// Optional logo file; without one the name renders as a wordmark.
+  imageUrl  String?
+  websiteUrl String?
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visible, order])
+}
+
+model CaseStudy {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  client    String
+  title     String
+  industry  String   @default("")
+  /// Web | Marketing | AI — drives the /work filter tabs.
+  category  String   @default("Web")
+  services  String[] @default([])
+  challenge String   @default("")
+  solution  String   @default("")
+  result    String   @default("")
+  /// [{ value, label }] — shown as the metric row on the card.
+  metrics   Json     @default("[]")
+  timeframe String   @default("")
+  image     String?
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visible, order])
+}

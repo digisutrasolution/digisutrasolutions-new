@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import Reveal from "@/components/Reveal";
-import { TESTIMONIALS } from "@/lib/data";
+import type { Testimonial } from "@/lib/proof";
 
 const REASONS: { icon: LucideIcon; label: string }[] = [
   { icon: Users, label: "Senior marketers & engineers on every account" },
@@ -35,7 +35,11 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-export default function PartnerProof() {
+export default function PartnerProof({
+  testimonials = [],
+}: {
+  testimonials?: Testimonial[];
+}) {
   const sectionRef = useRef<HTMLElement>(null);
   const inView = useInView(sectionRef, { margin: "-120px" });
   const reduced = useReducedMotion();
@@ -51,9 +55,9 @@ export default function PartnerProof() {
   const active = reduced ? -1 : tick % REASONS.length;
   /* No real quotes yet -> no panel. Guarding on length keeps the modulo
      from producing NaN and the layout from rendering an empty card. */
-  const hasQuotes = TESTIMONIALS.length > 0;
-  const t = reduced || !hasQuotes ? 0 : Math.floor(tick / 2) % TESTIMONIALS.length;
-  const quote = TESTIMONIALS[t];
+  const hasQuotes = testimonials.length > 0;
+  const t = reduced || !hasQuotes ? 0 : Math.floor(tick / 2) % testimonials.length;
+  const quote = testimonials[t];
 
   return (
     <section
@@ -162,7 +166,7 @@ export default function PartnerProof() {
               </div>
             </div>
             <div className="mt-6 flex gap-1.5" role="tablist" aria-label="Testimonials">
-              {TESTIMONIALS.map((tm, j) => (
+              {testimonials.map((tm, j) => (
                 <button
                   key={tm.name}
                   role="tab"

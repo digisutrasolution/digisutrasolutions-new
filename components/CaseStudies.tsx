@@ -1,9 +1,13 @@
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
-import { CASE_STUDIES } from "@/lib/data";
+import type { WorkCase } from "@/lib/work-data";
 
-export default function CaseStudies() {
-  if (CASE_STUDIES.length === 0) return null;
+export default function CaseStudies({
+  cases = [],
+}: {
+  cases?: WorkCase[];
+}) {
+  if (cases.length === 0) return null;
   return (
     <section id="case-studies" className="mx-auto max-w-[1280px] px-6 pt-20 sm:pt-24">
       <Reveal>
@@ -28,7 +32,7 @@ export default function CaseStudies() {
         </div>
       </Reveal>
       <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {CASE_STUDIES.map((cs, i) => (
+        {cases.map((cs, i) => (
           <Reveal key={cs.client} delay={i * 0.08}>
             <article className="h-full rounded-3xl border border-stone-200 bg-white p-7 transition-transform duration-300 hover:-translate-y-1.5 sm:p-8">
               <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-900">

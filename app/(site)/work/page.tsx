@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Reveal from "@/components/Reveal";
 import CaseShowcase from "@/components/work/CaseShowcase";
-import { WORK_CASES } from "@/lib/work-data";
+import { getLiveCaseStudies } from "@/lib/proof";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -18,7 +18,8 @@ const STATS = [
   { value: "5.8×", label: "average ROAS" },
 ];
 
-export default function WorkPage() {
+export default async function WorkPage() {
+  const cases = await getLiveCaseStudies();
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -31,12 +32,12 @@ export default function WorkPage() {
       },
       /* Schema is emitted only for cases that exist — an empty or invented
          ItemList is worse than none. */
-      ...(WORK_CASES.length > 0
+      ...(cases.length > 0
         ? [
             {
               "@type": "ItemList",
               name: "DigiSutra Solutions case studies",
-              itemListElement: WORK_CASES.map((c, i) => ({
+              itemListElement: cases.map((c, i) => ({
                 "@type": "ListItem",
                 position: i + 1,
                 name: `${c.client} — ${c.title}`,
@@ -87,7 +88,7 @@ export default function WorkPage() {
         </div>
       </Reveal>
       <div className="mt-10">
-        <CaseShowcase cases={WORK_CASES} />
+        <CaseShowcase cases={cases} />
       </div>
     </section>
   );

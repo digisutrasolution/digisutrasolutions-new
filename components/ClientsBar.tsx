@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ClientLogo } from "@/lib/proof";
 
 /* Slim trust bar just above the footer: inline label, one compact wordmark
    marquee (clipped lane with edge fades, pause on hover), key stats right.
@@ -6,13 +7,22 @@ import type { ReactNode } from "react";
 
 type Mark = { key: string; node: ReactNode; className?: string };
 
-/* Real client wordmarks only — a bar headed "Trusted by our clients"
-   listing companies that are not clients is a false statement, not
-   decoration. The whole bar hides while this is empty. */
-const MARKS: Mark[] = [];
 
-export default function ClientsBar() {
-  if (MARKS.length === 0) return null;
+
+export default function ClientsBar({
+  clients = [],
+}: {
+  clients?: ClientLogo[];
+}) {
+  /* Real client wordmarks only — a bar headed "Trusted by our clients"
+     listing companies that are not clients is a false statement, not
+     decoration, so the whole bar hides while there are none. */
+  if (clients.length === 0) return null;
+  const MARKS: Mark[] = clients.map((c) => ({
+    key: c.name,
+    node: c.name,
+    className: "font-bold",
+  }));
   // Two copies per animation half so -50% loops seamlessly on ultrawide.
   const row = [...MARKS, ...MARKS, ...MARKS, ...MARKS];
 
