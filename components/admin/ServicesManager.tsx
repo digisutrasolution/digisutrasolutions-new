@@ -41,6 +41,7 @@ type Category = {
   statLabel: string | null;
   priceFrom: string | null;
   marketNote: string | null;
+  group: string | null;
   order: number;
   visible: boolean;
   offers: Offer[];
@@ -87,6 +88,7 @@ function CategoryForm({
     statLabel: category.statLabel ?? "",
     priceFrom: category.priceFrom ?? "",
     marketNote: category.marketNote ?? "",
+    group: category.group ?? "",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -111,6 +113,7 @@ function CategoryForm({
           statLabel: f.statLabel || null,
           priceFrom: f.priceFrom || null,
           marketNote: f.marketNote || null,
+          group: f.group || null,
         }),
       });
       const data = await res.json();
@@ -150,6 +153,7 @@ function CategoryForm({
         </div>
         <div><label className={labelCls}>Price from</label><input value={f.priceFrom} onChange={(e) => set("priceFrom", e.target.value)} className={inputCls} placeholder="from ₹15,000/mo" maxLength={60} /></div>
         <div><label className={labelCls}>Market note</label><input value={f.marketNote} onChange={(e) => set("marketNote", e.target.value)} className={inputCls} placeholder="market: ₹20k–50k/mo" maxLength={80} /></div>
+        <div><label className={labelCls}>Group (contact-form heading)</label><input value={f.group} onChange={(e) => set("group", e.target.value)} className={inputCls} placeholder="Marketing / Build / AI" maxLength={40} /></div>
       </div>
       <div className="mt-3 flex items-center justify-end gap-2">
         {err && <span className="text-xs text-red-600">{err}</span>}

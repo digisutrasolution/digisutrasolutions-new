@@ -26,6 +26,8 @@ export type ServiceDef = {
   statLabel?: string;
   priceFrom?: string;
   marketNote?: string;
+  /** Optional heading this service sits under in the contact picker. */
+  group?: string;
   offers: OfferDef[];
 };
 
@@ -212,6 +214,7 @@ export async function getLiveServices(): Promise<LiveService[]> {
         statLabel: c.statLabel ?? undefined,
         priceFrom: c.priceFrom ?? undefined,
         marketNote: c.marketNote ?? undefined,
+        group: c.group ?? undefined,
         offers: c.offers.map((o) => ({
           name: o.name,
           blurb: o.blurb || undefined,

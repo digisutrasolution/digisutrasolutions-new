@@ -13,13 +13,15 @@ import { Check, ChevronDown, Search, X } from "lucide-react";
  * active option is announced with aria-activedescendant, which is what
  * makes a custom listbox usable without a mouse.
  */
+export type ServiceOption = { name: string; group?: string };
+
 export default function ServicePicker({
   options,
   value,
   onChange,
   invalid,
 }: {
-  options: string[];
+  options: ServiceOption[];
   value: string[];
   onChange: (next: string[]) => void;
   invalid?: boolean;
@@ -31,10 +33,41 @@ export default function ServicePicker({
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
 
+  /* Cluster by group so each heading appears once, without forcing the
+     admin to keep same-group services adjacent in the services list.
+     Group order follows first appearance; ungrouped services fall last. */
+  const ordered = useMemo(() => {
+    const groups: string[] = [];
+    for (const o of options) {
+      if (o.group && !groups.includes(o.group)) groups.push(o.group);
+    }
+    const rank = (o: ServiceOption) =>
+      o.group ? groups.indexOf(o.group) : groups.length;
+    return options
+      .map((o, i) => ({ o, i }))
+      .sort((a, b) => rank(a.o) - rank(b.o) || a.i - b.i)
+      .map(({ o }) => o);
+  }, [options]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? options.filter((o) => o.toLowerCase().includes(q)) : options;
-  }, [options, query]);
+    return q
+      ? ordered.filter((o) => o.name.toLowerCase().includes(q))
+      : ordered;
+  }, [ordered, query]);
+
+  /* A heading is drawn whenever the group changes down the list, so the
+     admin's own order decides the grouping — services with no group set
+     simply render without one. */
+  const rows = useMemo(
+    () =>
+      filtered.map((o, i) => ({
+        ...o,
+        index: i,
+        heading: o.group && o.group !== filtered[i - 1]?.group ? o.group : null,
+      })),
+    [filtered],
+  );
 
   // Close on outside click / Escape anywhere.
   useEffect(() => {
@@ -89,9 +122,9 @@ export default function ServicePicker({
         setOpen(true);
         return;
       }
-      const name = filtered[active];
-      if (name) {
-        toggle(name);
+      const opt = filtered[active];
+      if (opt) {
+        toggle(opt.name);
         setQuery("");
       }
     }
@@ -180,23 +213,31 @@ export default function ServicePicker({
             {filtered.length} of {options.length} services
           </div>
           <ul id={listId} role="listbox" aria-multiselectable className="max-h-64 overflow-y-auto py-1">
-            {filtered.map((name, i) => {
-              const on = value.includes(name);
+            {rows.map((o) => {
+              const on = value.includes(o.name);
               return (
-                <li key={name}>
+                <li key={o.name}>
+                  {o.heading && (
+                    <p
+                      role="presentation"
+                      className="px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-400"
+                    >
+                      {o.heading}
+                    </p>
+                  )}
                   <button
                     type="button"
-                    id={`${listId}-${i}`}
+                    id={`${listId}-${o.index}`}
                     role="option"
                     aria-selected={on}
-                    onMouseEnter={() => setActive(i)}
+                    onMouseEnter={() => setActive(o.index)}
                     onClick={() => {
-                      toggle(name);
+                      toggle(o.name);
                       setQuery("");
                       inputRef.current?.focus();
                     }}
                     className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
-                      i === active ? "bg-[#FFF7F0]" : ""
+                      o.index === active ? "bg-[#FFF7F0]" : ""
                     } ${on ? "font-semibold text-stone-900" : "text-stone-600"}`}
                   >
                     <span
@@ -208,7 +249,7 @@ export default function ServicePicker({
                     >
                       {on && <Check size={11} strokeWidth={3} aria-hidden />}
                     </span>
-                    {name}
+                    {o.name}
                   </button>
                 </li>
               );

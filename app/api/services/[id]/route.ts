@@ -53,6 +53,7 @@ export async function PATCH(
       ...(d.statLabel !== undefined ? { statLabel: d.statLabel } : {}),
       ...(d.priceFrom !== undefined ? { priceFrom: d.priceFrom } : {}),
       ...(d.marketNote !== undefined ? { marketNote: d.marketNote } : {}),
+      ...(d.group !== undefined ? { group: d.group } : {}),
       ...(d.visible !== undefined ? { visible: d.visible } : {}),
     },
   });

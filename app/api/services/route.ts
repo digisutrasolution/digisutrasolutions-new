@@ -46,6 +46,7 @@ export async function POST(req: Request) {
       statLabel: d.statLabel ?? null,
       priceFrom: d.priceFrom ?? null,
       marketNote: d.marketNote ?? null,
+      group: d.group ?? null,
       visible: d.visible ?? true,
       order: (last?.order ?? -1) + 1,
     },

@@ -4,7 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
-import ServicePicker from "@/components/contact/ServicePicker";
+import ServicePicker, { type ServiceOption } from "@/components/contact/ServicePicker";
 import {
   DEPARTMENTS,
   HEARD_FROM,
@@ -58,7 +58,7 @@ const inputCls = (invalid: boolean, valid?: boolean) =>
         : "border-stone-200 focus:border-[#F26419]"
   }`;
 
-export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
+export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOption[] }) {
   const [f, setF] = useState<Fields>(EMPTY);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
@@ -302,7 +302,7 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
 
             <div className={`mt-5 ${isSales ? "" : "hidden"}`}>
               <ServicePicker
-                options={serviceNames}
+                options={serviceOptions}
                 value={f.services}
                 onChange={(next) => set("services", next)}
                 invalid={Boolean(touched.submit && !servicesOk)}

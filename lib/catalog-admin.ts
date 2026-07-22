@@ -17,6 +17,7 @@ export const CategorySchema = z.object({
   statLabel: z.string().trim().max(60).nullable().optional(),
   priceFrom: z.string().trim().max(60).nullable().optional(),
   marketNote: z.string().trim().max(80).nullable().optional(),
+  group: z.string().trim().max(40).nullable().optional(),
   visible: z.boolean().optional(),
 });
 

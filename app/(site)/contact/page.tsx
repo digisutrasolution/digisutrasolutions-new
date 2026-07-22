@@ -100,7 +100,9 @@ export default async function ContactPage() {
           <ContactChannels />
         </div>
         <div className="order-1 lg:order-2">
-          <LeadForm serviceNames={services.map((s) => s.name)} />
+          <LeadForm
+            serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}
+          />
         </div>
       </div>
     </section>
