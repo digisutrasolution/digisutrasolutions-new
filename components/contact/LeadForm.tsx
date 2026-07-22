@@ -10,6 +10,7 @@ import {
   type CountryCode,
 } from "libphonenumber-js/min";
 import { ArrowRight, Check, Clock, FileSearch, MapPin, ShieldCheck, Timer } from "lucide-react";
+import CountrySelect from "@/components/contact/CountrySelect";
 import ServicePicker, { type ServiceOption } from "@/components/contact/ServicePicker";
 import { DEPARTMENTS, HEARD_FROM } from "@/lib/contact-channels";
 
@@ -100,6 +101,19 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
       } catch {
         /* ignore corrupt draft */
       }
+      // Preselect the visitor's country from the edge header — but never
+      // override a saved draft or a number already being typed.
+      fetch(withBase("/api/geo"))
+        .then((r) => r.json())
+        .then(({ country }) => {
+          if (!country) return;
+          setF((prev) =>
+            prev.phone === "" && prev.country === "IN" && country !== "IN"
+              ? { ...prev, country: country as CountryCode }
+              : prev,
+          );
+        })
+        .catch(() => {});
     }, 0);
     return () => clearTimeout(t);
   }, []);
@@ -170,13 +184,15 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
     <div className="grid overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-[0_16px_48px_rgba(28,25,23,0.08)] lg:grid-cols-[0.85fr_1.15fr]">
       {/* Dark rail */}
       <div className="border-b border-stone-800 p-8 sm:p-10 lg:border-b-0 lg:border-r">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">Contact</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">Contact us</p>
         <h1 className="font-display mt-3 text-3xl font-extrabold leading-tight text-white sm:text-4xl">
-          60 seconds to a{" "}
-          <span className="font-serif-accent font-medium italic text-[#F26419]">
-            real growth plan
-          </span>
+          We&rsquo;re here to{" "}
+          <span className="font-serif-accent font-medium italic text-[#F26419]">help</span>
         </h1>
+        <p className="mt-3 text-sm leading-relaxed text-stone-400">
+          Digital marketing, web development, AI automation and technical
+          support — reach the right desk directly.
+        </p>
         <ul className="mt-8 space-y-4">
           <li className="flex items-start gap-3">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-emerald-400"><Timer size={13} aria-hidden /></span>
@@ -302,21 +318,11 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
               <div>
                 <label htmlFor="lf-phone" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">Phone number *</label>
                 <div className="flex gap-2">
-                  {/* Not inputCls: it carries w-full, and an appended width
-                      class never beats it (Tailwind orders same-family
-                      utilities itself). */}
-                  <select
-                    aria-label="Country code"
+                  <CountrySelect
                     value={f.country}
-                    onChange={(e) => set("country", e.target.value as CountryCode)}
-                    className="w-[6.8rem] shrink-0 rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-sm text-stone-900 outline-none transition-colors focus:border-[#F26419]"
-                  >
-                    {COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.code} +{c.dial}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(c) => set("country", c)}
+                    countries={COUNTRIES}
+                  />
                   <input
                     id="lf-phone"
                     value={f.phone}
