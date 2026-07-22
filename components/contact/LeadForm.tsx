@@ -220,7 +220,7 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
           </li>
         </ul>
         {/* Desks: every address and number reachable without the form. */}
-        <div className="mt-8 space-y-5 border-t border-stone-800 pt-7">
+        <div className="mt-8 space-y-5 border-t border-[lab(99_0_0)] pt-7">
           {DEPARTMENTS.map((d) => (
             <div key={d.key}>
               <p className="font-display flex items-center gap-2 text-sm font-bold text-white">
