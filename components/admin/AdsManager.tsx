@@ -22,7 +22,8 @@ type AdRow = {
 
 const PLACEMENTS = [
   { value: "BLOG_SIDEBAR", label: "Blog sidebar" },
-  { value: "ARTICLE_SIDEBAR", label: "Article sidebar" },
+  { value: "ARTICLE_SIDEBAR", label: "Article sidebar (left rail)" },
+  { value: "ARTICLE_RIGHT", label: "Article sidebar (right rail)" },
   { value: "BLOG_INLINE", label: "Blog inline (future)" },
   { value: "SERVICE_SIDEBAR", label: "Service page sidebar" },
 ];

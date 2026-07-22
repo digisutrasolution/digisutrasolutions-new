@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Newspaper } from "lucide-react";
+import Pagination from "@/components/blog/Pagination";
 import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
 import { BLOG_CATEGORIES, categoryBySlug } from "@/lib/blog";
@@ -10,6 +11,8 @@ import { BLOG_CATEGORIES, categoryBySlug } from "@/lib/blog";
 export const dynamic = "force-dynamic";
 
 import { SITE_URL } from "@/lib/site";
+
+const PAGE_SIZE = 9;
 
 export async function generateMetadata({
   params,
@@ -28,16 +31,29 @@ export async function generateMetadata({
 
 export default async function BlogCategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { category } = await params;
+  const { page: pageParam } = await searchParams;
   const cat = categoryBySlug(category);
   if (!cat) notFound();
 
+  const where = { status: "PUBLISHED" as const, category: cat.db };
+  const total = await db.blogPost.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const current = Math.min(
+    Math.max(1, parseInt(pageParam ?? "1", 10) || 1),
+    totalPages,
+  );
+
   const posts = await db.blogPost.findMany({
-    where: { status: "PUBLISHED", category: cat.db },
+    where,
     orderBy: { publishedAt: "desc" },
+    skip: (current - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
     select: {
       slug: true,
       title: true,
@@ -150,6 +166,15 @@ export default async function BlogCategoryPage({
           ))}
         </div>
       )}
+
+      <Pagination
+        page={current}
+        totalPages={totalPages}
+        totalItems={total}
+        pageSize={PAGE_SIZE}
+        basePath={`/blog/category/${cat.slug}`}
+        label="guides"
+      />
 
       <div className="mt-14 border-t border-stone-200 pt-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-800">

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { ArrowRight, Lightbulb, Newspaper } from "lucide-react";
 import AdSlot from "@/components/blog/AdSlot";
+import ArticleRightRail from "@/components/blog/ArticleRightRail";
 import ArticleToc from "@/components/blog/ArticleToc";
 import Reviews from "@/components/blog/Reviews";
 import ShareRail from "@/components/blog/ShareRail";
@@ -126,10 +127,13 @@ export default async function BlogPostPage({
       ? ratings.reduce((a, b) => a + b, 0) / ratings.length
       : null;
   // Same-category first, newest first, two cards.
-  const relatedSorted = [
+  const relatedRanked = [
     ...related.filter((r) => r.category === post.category),
     ...related.filter((r) => r.category !== post.category),
-  ].slice(0, 2);
+  ];
+  const relatedSorted = relatedRanked.slice(0, 2);
+  // The rail continues where the in-article cards stop, so nothing repeats.
+  const railPosts = relatedRanked.slice(2, 5);
 
   const url = `${SITE_URL}/blog/${post.slug}`;
   const cat = categoryByDb(post.category);
@@ -212,7 +216,10 @@ export default async function BlogPostPage({
         )}
       </nav>
 
-      <div className="mt-4 lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12">
+      {/* Two rails on xl: the article keeps a ~65-character measure and the
+          space that used to sit empty on the right carries the sponsor
+          slot, newsletter and more-reading list. */}
+      <div className="mt-4 lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[230px_minmax(0,1fr)_240px] xl:gap-7">
         {/* Sticky rail */}
         <aside className="hidden lg:block">
           <div className="sticky top-40 space-y-4">
@@ -236,7 +243,7 @@ export default async function BlogPostPage({
         </aside>
 
         {/* Article */}
-        <article className="mt-2 max-w-3xl lg:mt-0">
+        <article className="mt-2 max-w-3xl lg:mt-0 xl:max-w-none">
           <h1 className="font-display text-3xl font-extrabold leading-tight tracking-tight text-stone-900 sm:text-4xl">
             {post.title}
           </h1>
@@ -383,6 +390,8 @@ export default async function BlogPostPage({
             articles
           </Link>
         </article>
+
+        <ArticleRightRail posts={railPosts} />
       </div>
     </div>
   );

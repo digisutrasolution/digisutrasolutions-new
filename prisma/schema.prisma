@@ -325,6 +325,7 @@ enum CommentStatus {
 enum AdPlacement {
   BLOG_SIDEBAR
   ARTICLE_SIDEBAR
+  ARTICLE_RIGHT
   BLOG_INLINE
   SERVICE_SIDEBAR
 }
