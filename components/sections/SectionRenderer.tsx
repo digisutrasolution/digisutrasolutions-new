@@ -55,7 +55,9 @@ function HeroBlock({ s }: { s: Extract<Section, { type: "hero" }> }) {
    header, stats and CTA bands instead of floating in a centred column:
    with an image, the photo takes the left and eyebrow + heading + copy
    the right; without one, the heading itself holds the left; and a
-   headless block flows into two text columns. */
+   headless block flows into two text columns. Copy is justified in the
+   wide layouts but left as-is in the two-column one, where narrow
+   measures + justification open up rivers of white space. */
 function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
   const paragraphs = s.body.split(/\n{2,}/).filter((p) => p.trim());
   const copy = (cls: string) => (
@@ -93,7 +95,7 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
                   {s.heading}
                 </h2>
               )}
-              {copy("mt-5 space-y-4")}
+              {copy("mt-5 space-y-4 hyphens-auto text-justify")}
             </div>
           </div>
         </Reveal>
@@ -116,14 +118,14 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
                 {s.heading}
               </h2>
             </div>
-            {copy("space-y-4")}
+            {copy("space-y-4 hyphens-auto text-justify")}
           </div>
         ) : paragraphs.length > 1 ? (
           copy(
             "[&>p]:mb-4 [&>p]:break-inside-avoid [&>p:last-child]:mb-0 lg:columns-2 lg:gap-14",
           )
         ) : (
-          copy("max-w-3xl")
+          copy("max-w-3xl hyphens-auto text-justify")
         )}
       </Reveal>
     </section>
