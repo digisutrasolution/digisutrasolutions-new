@@ -117,7 +117,9 @@ function PaymentChips({ compact }: { compact?: boolean }) {
   /* Logos render at 20px (16px compact) from ~2x source requests so the
      optimizer never ships a blurry 44px asset. */
   const chip = `flex cursor-default items-center justify-center rounded-lg border border-white/10 bg-white ${
-    compact ? "h-8 px-2" : "h-9 px-2.5 transition-transform duration-200 hover:scale-105"
+    compact
+      ? "h-8 px-2"
+      : "h-9 w-full px-2.5 transition-transform duration-200 hover:scale-105"
   }`;
   return (
     <>
@@ -128,7 +130,7 @@ function PaymentChips({ compact }: { compact?: boolean }) {
             alt={m.label}
             width={90}
             height={40}
-            className={`${compact ? "h-4" : "h-5"} w-auto object-contain`}
+            className={`${compact ? "h-4" : "h-5"} w-auto max-w-full object-contain`}
           />
         </div>
       ))}
@@ -280,7 +282,7 @@ export default async function Footer() {
                 <p className="mb-3 text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
                   We Accept
                 </p>
-                <div className="flex max-w-[290px] flex-wrap gap-1.5">
+                <div className="grid max-w-[290px] grid-cols-3 gap-1.5">
                   <PaymentChips />
                 </div>
               </div>
