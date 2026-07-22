@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createElement } from "react";
+import CtaBand from "@/components/CtaBand";
 import { ArrowRight } from "lucide-react";
 import { navIcon } from "@/components/nav-icons";
 import { slugifyHeading } from "@/lib/blog";
@@ -116,14 +117,10 @@ export default async function FaqPage() {
       ))}
 
       {/* Still stuck */}
-      <div className="mt-14 rounded-[2rem] bg-stone-900 px-6 py-10 text-center sm:px-12">
-        <h2 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-          Question not on the list?
-        </h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-400">
-          Message us on WhatsApp — a real human replies the same day. Or book a
-          free 30-minute expert call and get answers specific to your business.
-        </p>
+      <CtaBand
+        title="Question not on the list?"
+        body="Message us on WhatsApp — a real human replies the same day. Or book a free 30-minute expert call and get answers specific to your business."
+      >
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/contact"
@@ -140,7 +137,7 @@ export default async function FaqPage() {
             WhatsApp us
           </a>
         </div>
-      </div>
+      </CtaBand>
     </section>
   );
 }

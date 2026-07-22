@@ -16,6 +16,7 @@ import {
   Smartphone,
   Wallet,
 } from "lucide-react";
+import CtaBand from "@/components/CtaBand";
 import { withBase } from "@/lib/base-path";
 import { getPublicPayments } from "@/lib/payments";
 import { SITE_URL } from "@/lib/site";
@@ -264,14 +265,10 @@ export default async function PaymentPage() {
         </div>
 
         {/* CTA */}
-        <div className="mt-14 rounded-[2rem] bg-stone-900 px-6 py-10 text-center sm:px-12">
-          <h2 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Ready to pay or need an invoice?
-          </h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-400">
-            Message us on WhatsApp and the payment link or account details are
-            with you in minutes — or start a new project with a free expert call.
-          </p>
+        <CtaBand
+          title="Ready to pay or need an invoice?"
+          body="Message us on WhatsApp and the payment link or account details are with you in minutes — or start a new project with a free expert call."
+        >
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
               href={WA_HREF}
@@ -288,7 +285,7 @@ export default async function PaymentPage() {
               Claim your free expert call <ArrowRight size={14} aria-hidden />
             </Link>
           </div>
-        </div>
+        </CtaBand>
       </section>
     </div>
   );

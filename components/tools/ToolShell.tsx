@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createElement } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import CtaBand from "@/components/CtaBand";
+import PageHero from "@/components/PageHero";
 import { navIcon } from "@/components/nav-icons";
 import { findTool, liveTools } from "@/lib/free-tools";
 import { SITE_URL } from "@/lib/site";
@@ -57,22 +59,13 @@ export default function ToolShell({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="bg-stone-900">
-        <div className="mx-auto max-w-[1280px] px-6 pb-14 pt-10 text-center sm:pb-16 sm:pt-12">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">
-            Free tool
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-            {title}{" "}
-            <span className="font-serif-accent font-medium italic text-[#F26419]">
-              {titleAccent}
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-stone-400 sm:text-base">
-            {intro}
-          </p>
-        </div>
-      </div>
+      <PageHero
+        eyebrow="Free tool"
+        title={title}
+        titleAccent={titleAccent}
+        intro={intro}
+        image="/free-tools-hero.jpg"
+      />
 
       <section className="mx-auto max-w-[1280px] px-6">
         <div className="-mt-6">{children}</div>
@@ -98,20 +91,11 @@ export default function ToolShell({
           </div>
         </div>
 
-        <div className="mt-12 rounded-[2rem] bg-stone-900 px-6 py-10 text-center sm:px-12">
-          <h2 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Want us to do the heavy lifting?
-          </h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-400">
-            A free 30-minute expert call, plus the 15-page audit — whether or not you hire us.
-          </p>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#F26419] px-7 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600"
-          >
-            Claim your free expert call <ArrowRight size={14} aria-hidden />
-          </Link>
-        </div>
+        <CtaBand
+          className="mt-12"
+          title="Want us to do the heavy lifting?"
+          body="A free 30-minute expert call, plus the 15-page audit — whether or not you hire us."
+        />
       </section>
     </div>
   );

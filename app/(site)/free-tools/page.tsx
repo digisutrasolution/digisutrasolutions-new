@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createElement } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import CtaBand from "@/components/CtaBand";
+import PageHero from "@/components/PageHero";
 import { navIcon } from "@/components/nav-icons";
 import { TOOLS, TOOL_GROUPS, liveTools } from "@/lib/free-tools";
 import { SITE_URL } from "@/lib/site";
@@ -44,21 +46,13 @@ export default function ResourcesPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="bg-stone-900">
-        <div className="mx-auto max-w-[1280px] px-6 pb-14 pt-10 text-center sm:pb-16 sm:pt-12">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">
-            Free tools
-          </p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Tools you can use{" "}
-            <span className="font-serif-accent font-medium italic text-[#F26419]">right now</span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-stone-400 sm:text-base">
-            No signup, no credit card. {live.length} live today and more landing every few weeks —
-            built for Indian businesses and the teams that run them.
-          </p>
-        </div>
-      </div>
+      <PageHero
+        eyebrow="Free tools"
+        title="Tools you can use"
+        titleAccent="right now"
+        image="/free-tools-hero.jpg"
+        intro={`No signup, no credit card. All ${live.length} are live today — built for Indian businesses and the teams that run them.`}
+      />
 
       <section className="mx-auto max-w-[1280px] px-6">
         {TOOL_GROUPS.map((group, gi) => {
@@ -124,24 +118,11 @@ export default function ResourcesPage() {
           );
         })}
 
-        <div className="mt-16 rounded-[2rem] bg-stone-900 px-6 py-10 text-center sm:px-12">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-[#FDBA74]">
-            <Sparkles size={18} aria-hidden />
-          </span>
-          <h2 className="font-display mt-3 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Want the tool to do the work for you?
-          </h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-400">
-            A strategist will run the numbers on your business in a free 30-minute call — and
-            you&rsquo;ll get the 15-page audit either way.
-          </p>
-          <Link
-            href="/contact"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#F26419] px-7 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600"
-          >
-            Claim your free expert call <ArrowRight size={14} aria-hidden />
-          </Link>
-        </div>
+        <CtaBand
+          className="mt-16"
+          title="Want the tool to do the work for you?"
+          body="A strategist will run the numbers on your business in a free 30-minute call — and you'll get the 15-page audit either way."
+        />
       </section>
     </div>
   );

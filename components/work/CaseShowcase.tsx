@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
+import CtaBand from "@/components/CtaBand";
 import Reveal from "@/components/Reveal";
 import { withBase } from "@/lib/base-path";
 import type { WorkCategory } from "@/lib/data";
@@ -179,25 +179,17 @@ export default function CaseShowcase({ cases }: { cases: WorkCase[] }) {
         </p>
       )}
 
-      <div className="mt-14 rounded-[2rem] bg-stone-900 px-6 py-10 text-center sm:px-12">
-        <h2 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-          Want numbers like these on{" "}
-          <span className="font-serif-accent font-medium italic text-[#FDBA74]">
-            your dashboard?
-          </span>
-        </h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-stone-400">
-          Every engagement here started with an honest conversation — a free
-          expert call, plus a 15-page audit showing exactly where the growth
-          is hiding.
-        </p>
-        <Link
-          href="/contact"
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#F26419] px-7 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600"
-        >
-          Claim your free expert call <ArrowRight size={14} aria-hidden />
-        </Link>
-      </div>
+      <CtaBand
+        title={
+          <>
+            Want numbers like these on{" "}
+            <span className="font-serif-accent font-medium italic text-[#FDBA74]">
+              your dashboard?
+            </span>
+          </>
+        }
+        body="Every engagement here started with an honest conversation — a free expert call, plus a 15-page audit showing exactly where the growth is hiding."
+      />
     </div>
   );
 }
