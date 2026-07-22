@@ -79,25 +79,30 @@ export async function POST(req: Request) {
     );
   }
 
-  // Mirror the enquiry into the leads queue (best-effort — email still
-  // goes out even if the DB write fails). Audit-band submissions have a
-  // WhatsApp number; classic contact-form ones may be email-only.
-  if (whatsapp) {
-    db.lead
-      .create({
-        data: {
-          name,
-          whatsapp: whatsapp.replace(/[\s-]/g, ""),
-          email: email || null,
-          website: siteUrl || null,
-          services: body.service ? [body.service.trim().slice(0, 80)] : [],
-          budget: (body.budget ?? "").trim().slice(0, 60) || null,
-          message,
-          source: "AUDIT",
-          ipHash: createHash("sha256").update(ip).digest("hex").slice(0, 24),
-        },
-      })
-      .catch(() => {});
+  // The saved lead is the source of truth — the enquiry is captured here,
+  // and email below is only a notification. Success is decided by whether
+  // this write lands, NOT by whether the email sends: a captured lead that
+  // could not be emailed is still a captured lead. Audit-band submissions
+  // always carry a WhatsApp number; an email-only contact still gets a row
+  // via a synthesised placeholder so nothing is ever silently dropped.
+  let leadSaved = false;
+  try {
+    await db.lead.create({
+      data: {
+        name,
+        whatsapp: whatsapp ? whatsapp.replace(/[\s-]/g, "") : "—",
+        email: email || null,
+        website: siteUrl || null,
+        services: body.service ? [body.service.trim().slice(0, 80)] : [],
+        budget: (body.budget ?? "").trim().slice(0, 60) || null,
+        message,
+        source: "AUDIT",
+        ipHash: createHash("sha256").update(ip).digest("hex").slice(0, 24),
+      },
+    });
+    leadSaved = true;
+  } catch {
+    /* DB write failed — email below becomes the only capture path. */
   }
 
   const record = {
@@ -112,56 +117,67 @@ export async function POST(req: Request) {
     receivedAt: new Date().toISOString(),
   };
 
+  // Email notification — best-effort. A failure here never fails the
+  // request, because the lead is already stored and visible in admin.
   const apiKey = process.env.RESEND_API_KEY;
+  let emailed = false;
 
   if (apiKey) {
-    const to = process.env.CONTACT_TO_EMAIL ?? "hello@digisutra.com";
+    const to = process.env.CONTACT_TO_EMAIL ?? "Info@digisutrasolutions.com";
     const from =
       process.env.CONTACT_FROM_EMAIL ?? "DigiSutra <onboarding@resend.dev>";
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        ...(email ? { reply_to: email } : {}),
-        subject: `New enquiry: ${name}${record.company ? ` (${record.company})` : ""}`,
-        text: [
-          `Name: ${record.name}`,
-          `Company: ${record.company || "—"}`,
-          `Email: ${record.email || "—"}`,
-          `Phone/WhatsApp: ${record.phone || "—"}`,
-          `Website: ${record.siteUrl || "—"}`,
-          `Service: ${record.service || "—"}`,
-          `Budget: ${record.budget || "—"}`,
-          "",
-          record.message,
-        ].join("\n"),
-      }),
-    });
-    if (!res.ok) {
-      console.error("Resend error:", res.status, await res.text());
-      return NextResponse.json(
-        { ok: false, error: "Could not send your message. Try again or email us directly." },
-        { status: 502 },
-      );
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from,
+          to: [to],
+          ...(email ? { reply_to: email } : {}),
+          subject: `New enquiry: ${name}${record.company ? ` (${record.company})` : ""}`,
+          text: [
+            `Name: ${record.name}`,
+            `Company: ${record.company || "—"}`,
+            `Email: ${record.email || "—"}`,
+            `Phone/WhatsApp: ${record.phone || "—"}`,
+            `Website: ${record.siteUrl || "—"}`,
+            `Service: ${record.service || "—"}`,
+            `Budget: ${record.budget || "—"}`,
+            "",
+            record.message,
+          ].join("\n"),
+        }),
+      });
+      emailed = res.ok;
+      if (!res.ok) console.error("Resend error:", res.status, await res.text());
+    } catch (err) {
+      console.error("Resend request failed:", err);
     }
-    return NextResponse.json({ ok: true });
+  } else {
+    console.warn("Contact form: RESEND_API_KEY not set — lead saved, no email sent.");
+    if (process.env.NODE_ENV !== "production") {
+      // Dev convenience: also append to a log file.
+      await appendFile(
+        path.join(process.cwd(), "contact-submissions.log"),
+        JSON.stringify(record) + "\n",
+        "utf8",
+      ).catch(() => {});
+    }
   }
 
-  if (process.env.NODE_ENV !== "production") {
-    // Local development fallback: append to a log file so nothing is lost.
-    const file = path.join(process.cwd(), "contact-submissions.log");
-    await appendFile(file, JSON.stringify(record) + "\n", "utf8");
-    return NextResponse.json({ ok: true, delivered: false });
+  // Captured if either path worked. Only a total failure — DB write AND no
+  // email — is a real error the visitor should see.
+  if (leadSaved || emailed) {
+    return NextResponse.json({ ok: true, emailed });
   }
-
-  console.error("Contact form: RESEND_API_KEY is not configured.");
   return NextResponse.json(
-    { ok: false, error: "Contact form is not configured yet. Email us at hello@digisutra.com." },
-    { status: 503 },
+    {
+      ok: false,
+      error: "We couldn't save your request. Please WhatsApp us on +91-9953-900123.",
+    },
+    { status: 500 },
   );
 }

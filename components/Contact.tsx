@@ -225,7 +225,7 @@ export default function Contact() {
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail size={16} className="shrink-0 text-orange-400" aria-hidden />
-                  hello@digisutra.com
+                  Info@digisutrasolutions.com
                 </li>
                 <li className="flex items-center gap-3">
                   <Clock size={16} className="shrink-0 text-orange-400" aria-hidden />
