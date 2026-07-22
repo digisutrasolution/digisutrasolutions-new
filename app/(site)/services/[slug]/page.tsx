@@ -293,7 +293,7 @@ export default async function ServiceCategoryPage({
                 call required.
               </p>
               <Link
-                href="/contact"
+                href="/free-audit"
                 className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#F26419] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-orange-600"
               >
                 Get my free audit <ArrowRight size={12} aria-hidden />

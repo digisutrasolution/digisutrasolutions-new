@@ -232,7 +232,7 @@ export default async function BlogPostPage({
                 Free 15-page audit — SEO, speed, UX and conversion. In 48 hours.
               </p>
               <Link
-                href="/#audit"
+                href="/free-audit"
                 className="mt-3 block rounded-full bg-[#F26419] py-2 text-center text-sm font-bold text-white transition-colors hover:bg-orange-700"
               >
                 Get my free audit

@@ -564,7 +564,7 @@ function MegaPanel({
       <div className="relative border-t border-[#FFE3CC] bg-[#FFF6EF]" style={{ zIndex: 1 }}>
         <div className="mx-auto flex max-w-[1280px] items-center gap-4 px-4 py-2">
           <Link
-            href="/#audit"
+            href="/free-audit"
             onClick={onNavigate}
             className="whitespace-nowrap text-[0.85rem] font-semibold text-orange-950 no-underline transition-colors hover:text-[#F26419]"
           >

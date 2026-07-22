@@ -16,6 +16,7 @@ const STATIC_ROUTES = [
   { label: "Work", href: "/work" },
   { label: "Blog", href: "/blog" },
   { label: "Search", href: "/search" },
+  { label: "Free audit report", href: "/free-audit" },
   { label: "Free audit (home anchor)", href: "/#audit" },
 ];
 
