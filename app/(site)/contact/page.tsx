@@ -93,17 +93,12 @@ export default async function ContactPage() {
         </p>
       </div>
 
-      {/* On mobile the form comes first — the departments card is long, and
-          burying the form under it costs a screen of scrolling. */}
-      <div className="mt-10 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="order-2 lg:order-1">
-          <ContactChannels />
-        </div>
-        <div className="order-1 lg:order-2">
-          <LeadForm
-            serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}
-          />
-        </div>
+      {/* Single card: photo band with the desks on top, form underneath. */}
+      <div className="mt-10 overflow-hidden rounded-[2rem] border border-stone-200 bg-white">
+        <ContactChannels />
+        <LeadForm
+          serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}
+        />
       </div>
     </section>
   );
