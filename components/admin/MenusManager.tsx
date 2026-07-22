@@ -18,6 +18,7 @@ import {
   Trash2,
   Upload,
   X,
+  Link2 as LinkIcon,
 } from "lucide-react";
 import { NAV_ICONS, navIcon } from "@/components/nav-icons";
 import { MENU_LOCATIONS, type MenuLocation } from "@/lib/menu-locations";
@@ -255,6 +256,9 @@ export default function MenusManager() {
   const [items, setItems] = useState<Item[]>([]);
   const [trash, setTrash] = useState<Item[]>([]);
   const [dirty, setDirty] = useState(false);
+  /* Link health, keyed by item id — empty until a check is run. */
+  const [linkHealth, setLinkHealth] = useState<Map<string, { status: string; note?: string }>>(new Map());
+  const [checking, setChecking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -398,6 +402,38 @@ export default function MenusManager() {
       parentId: target.parentId,
       moveTo: idx < 0 ? siblings.length : idx,
     });
+  };
+
+  const checkLinks = async () => {
+    setChecking(true);
+    setNotice("");
+    try {
+      const res = await fetch(withBase("/api/menus/check"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setNotice(data.error ?? "Link check failed.");
+        return;
+      }
+      const map = new Map<string, { status: string; note?: string }>();
+      for (const r of data.results) map.set(r.id, { status: r.status, note: r.note });
+      setLinkHealth(map);
+      const { broken, redirect, checked } = data.summary;
+      setNotice(
+        broken
+          ? `${broken} broken link${broken === 1 ? "" : "s"} of ${checked} — see the red markers.`
+          : redirect
+            ? `No broken links. ${redirect} redirect${redirect === 1 ? "" : "s"} — worth pointing straight at the target.`
+            : `All ${checked} links resolve.`,
+      );
+    } catch {
+      setNotice("Link check failed.");
+    } finally {
+      setChecking(false);
+    }
   };
 
   const duplicate = async (item: Item) => {
@@ -599,6 +635,22 @@ export default function MenusManager() {
             {kids.length ? ` · ${kids.length} ${kids.length === 1 ? "item" : "items"}` : ""}
             {item.featured ? " · journal card" : ""}
           </span>
+          {(() => {
+            const h = linkHealth.get(item.id);
+            if (!h || h.status === "ok" || h.status === "external") return null;
+            const tone =
+              h.status === "broken"
+                ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+                : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
+            return (
+              <span
+                title={h.note ?? ""}
+                className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${tone}`}
+              >
+                {h.status}
+              </span>
+            );
+          })()}
           {!item.visible && <span className="text-[10px] font-bold text-stone-400">HIDDEN</span>}
           <div className="ml-auto flex items-center gap-2">
             <button onClick={() => setEditing(editing === item.id ? null : item.id)} className="cursor-pointer text-stone-400 hover:text-orange-600" aria-label="Edit">
@@ -750,6 +802,14 @@ export default function MenusManager() {
           </button>
           <button onClick={loadVersions} className={toolBtn}>
             <History size={13} /> Versions
+          </button>
+          <button
+            onClick={() => void checkLinks()}
+            disabled={checking}
+            className={toolBtn}
+            title="Request every link and report the ones that do not resolve"
+          >
+            <LinkIcon size={13} /> {checking ? "Checking…" : "Check links"}
           </button>
           <button
             onClick={publish}
