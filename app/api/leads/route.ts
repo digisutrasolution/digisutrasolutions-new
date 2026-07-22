@@ -48,9 +48,19 @@ export async function POST(req: Request) {
   }
   const d = parsed.data;
 
-  // Bots: honeypot filled or form submitted <3s after render. Pretend success.
-  if (d.hp || (d.startedAt && Date.now() - d.startedAt < 3000)) {
-    return NextResponse.json({ ok: true, id: "ok" });
+  /* Spam signals are recorded, not obeyed.
+     Both heuristics have real false positives: a password manager can fill
+     a hidden honeypot, and a visitor whose draft was restored from
+     localStorage can submit within three seconds of the page loading.
+     Discarding those silently loses genuine enquiries while still showing
+     the sender a success screen, so the lead is stored with a note and
+     the admin decides. The response is identical either way, so a real
+     bot still learns nothing. */
+  const elapsed = d.startedAt ? Date.now() - d.startedAt : null;
+  const flags: string[] = [];
+  if (d.hp) flags.push("honeypot field was filled");
+  if (elapsed !== null && elapsed < 3000) {
+    flags.push(`submitted ${(elapsed / 1000).toFixed(1)}s after the page loaded`);
   }
 
   const whatsapp = d.whatsapp.replace(/[\s-]/g, "");
@@ -74,7 +84,13 @@ export async function POST(req: Request) {
       department: d.department ?? null,
       heardFrom: d.heardFrom ?? null,
       source: d.source ?? "CONTACT",
-      notes: duplicate ? "Possible duplicate: same WhatsApp within 24h." : null,
+      notes:
+        [
+          duplicate ? "Possible duplicate: same WhatsApp within 24h." : null,
+          flags.length ? `Possible spam: ${flags.join("; ")}.` : null,
+        ]
+          .filter(Boolean)
+          .join(" ") || null,
       ipHash: createHash("sha256").update(ip).digest("hex").slice(0, 24),
     },
   });
@@ -115,12 +131,15 @@ export async function POST(req: Request) {
     }).catch(() => {});
   }
 
-  notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
+  // Suspected spam lands in the list but does not ping anyone.
+  if (flags.length === 0) {
+    notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
     type: "LEAD_NEW",
     title: `New lead: ${lead.name}`,
     body: `${lead.services.join(", ") || "No service selected"}${lead.budget ? ` · ${lead.budget}` : ""}`,
-    link: "/admin/leads",
-  }).catch(() => {});
+      link: "/admin/leads",
+    }).catch(() => {});
+  }
 
   return NextResponse.json({ ok: true, id: lead.id }, { status: 201 });
 }
