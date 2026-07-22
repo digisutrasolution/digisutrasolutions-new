@@ -52,7 +52,9 @@ export default async function ContactPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <LeadForm serviceNames={services.map((s) => s.name)} />
+      <LeadForm
+        serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}
+      />
     </section>
   );
 }

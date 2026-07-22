@@ -2,8 +2,16 @@
 
 import { withBase } from "@/lib/base-path";
 
-import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, FileSearch, MapPin, ShieldCheck, Timer } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  getCountries,
+  getCountryCallingCode,
+  parsePhoneNumberFromString,
+  type CountryCode,
+} from "libphonenumber-js/min";
+import { ArrowRight, Check, Clock, FileSearch, MapPin, ShieldCheck, Timer } from "lucide-react";
+import ServicePicker, { type ServiceOption } from "@/components/contact/ServicePicker";
+import { DEPARTMENTS, HEARD_FROM } from "@/lib/contact-channels";
 
 const DRAFT_KEY = "ds-lead-draft";
 
@@ -23,20 +31,47 @@ const EMAIL_TYPOS: Record<string, string> = {
 const BUDGETS = ["Under ₹25,000", "₹25,000 – ₹50,000", "₹50,000 – ₹1,00,000", "₹1,00,000+", "One-time project"];
 const TIMELINES = ["Immediately", "This month", "This quarter", "Just exploring"];
 
+/* Countries the agency serves most come first; the rest follow
+   alphabetically so nobody is excluded. */
+const PRIORITY: CountryCode[] = ["IN", "US", "GB", "AE", "AU", "CA", "SG"];
+
+const countryName = (() => {
+  try {
+    const dn = new Intl.DisplayNames(["en"], { type: "region" });
+    return (c: string) => dn.of(c) ?? c;
+  } catch {
+    return (c: string) => c;
+  }
+})();
+
+const COUNTRIES: { code: CountryCode; name: string; dial: string }[] = (() => {
+  const rest = getCountries()
+    .filter((c) => !PRIORITY.includes(c))
+    .map((c) => ({ code: c, name: countryName(c), dial: getCountryCallingCode(c) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return [
+    ...PRIORITY.map((c) => ({ code: c, name: countryName(c), dial: getCountryCallingCode(c) })),
+    ...rest,
+  ];
+})();
+
 type Fields = {
   name: string;
+  company: string;
   email: string;
-  whatsapp: string;
+  country: CountryCode;
+  phone: string;
   website: string;
   services: string[];
   budget: string;
   timeline: string;
+  heardFrom: string;
   message: string;
 };
 
 const EMPTY: Fields = {
-  name: "", email: "", whatsapp: "", website: "",
-  services: [], budget: "", timeline: "", message: "",
+  name: "", company: "", email: "", country: "IN", phone: "", website: "",
+  services: [], budget: "", timeline: "", heardFrom: "", message: "",
 };
 
 const inputCls = (invalid: boolean, valid?: boolean) =>
@@ -48,7 +83,7 @@ const inputCls = (invalid: boolean, valid?: boolean) =>
         : "border-stone-200 focus:border-[#F26419]"
   }`;
 
-export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
+export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOption[] }) {
   const [f, setF] = useState<Fields>(EMPTY);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
@@ -69,7 +104,7 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
     return () => clearTimeout(t);
   }, []);
 
-  const set = (k: keyof Fields, v: string | string[]) => {
+  const set = <K extends keyof Fields>(k: K, v: Fields[K]) => {
     setF((prev) => {
       const next = { ...prev, [k]: v };
       try {
@@ -83,18 +118,24 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
   const touch = (k: string) => setTouched((p) => ({ ...p, [k]: true }));
 
   const nameOk = f.name.trim().length >= 2;
-  const waOk = /^\+?[0-9][0-9\s-]{7,17}$/.test(f.whatsapp.trim());
+  /* Real per-country validation, not a length guess: an Indian number must
+     be a valid Indian number, a US one a valid US number, and so on. */
+  const parsedPhone = useMemo(
+    () => parsePhoneNumberFromString(f.phone, f.country),
+    [f.phone, f.country],
+  );
+  const phoneOk = Boolean(parsedPhone?.isValid());
   const emailOk = f.email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim());
   const emailDomain = f.email.split("@")[1]?.toLowerCase();
   const emailSuggestion = emailDomain && EMAIL_TYPOS[emailDomain]
     ? f.email.replace(emailDomain, EMAIL_TYPOS[emailDomain])
     : null;
   const servicesOk = f.services.length > 0;
-  const canSubmit = nameOk && waOk && emailOk && servicesOk && status !== "sending";
+  const canSubmit = nameOk && phoneOk && emailOk && servicesOk && status !== "sending";
 
   // Lead-quality meter: 4 segments.
   const quality =
-    (nameOk && waOk ? 1 : 0) +
+    (nameOk && phoneOk ? 1 : 0) +
     (servicesOk ? 1 : 0) +
     (f.budget ? 1 : 0) +
     (f.website.trim() ? 1 : 0);
@@ -102,13 +143,7 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
     quality >= 4 ? "Priority response unlocked ✦"
     : quality === 3 ? "Add your website — we bring the audit to the first call"
     : quality === 2 ? "Pick a budget for a plan that actually fits"
-    : "Start with your name and WhatsApp";
-
-  const toggleService = (name: string) => {
-    set("services", f.services.includes(name)
-      ? f.services.filter((s) => s !== name)
-      : [...f.services, name]);
-  };
+    : "Start with your name and phone number";
 
   const submit = async () => {
     setStatus("sending");
@@ -119,12 +154,14 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: f.name.trim(),
-          whatsapp: f.whatsapp.trim(),
+          whatsapp: parsedPhone?.number ?? f.phone.trim(),
           email: f.email.trim(),
           website: f.website.trim(),
+          company: f.company.trim() || undefined,
           services: f.services,
           budget: f.budget || undefined,
           timeline: f.timeline || undefined,
+          heardFrom: f.heardFrom || undefined,
           message: f.message.trim() || undefined,
           source: "CONTACT",
           hp: "",
@@ -142,7 +179,7 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
   };
 
   return (
-    <div className="grid overflow-hidden rounded-[2rem] bg-stone-900 lg:grid-cols-[0.85fr_1.15fr]">
+    <div className="grid overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-[0_16px_48px_rgba(28,25,23,0.08)] lg:grid-cols-[0.85fr_1.15fr]">
       {/* Dark rail */}
       <div className="border-b border-stone-800 p-8 sm:p-10 lg:border-b-0 lg:border-r">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">Contact</p>
@@ -156,7 +193,7 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
           <li className="flex items-start gap-3">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-emerald-400"><Timer size={13} aria-hidden /></span>
             <span className="text-sm leading-relaxed text-stone-300">
-              Reply in <b className="font-bold text-white">under 2 hours</b> — Mon–Sat, 9am–7pm IST
+              Reply in <b className="font-bold text-white">under 2 hours</b> — Mon–Fri, 24-hour desk
             </span>
           </li>
           <li className="flex items-start gap-3">
@@ -192,17 +229,58 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
             ))}
           </div>
         </div>
-        <div className="mt-6 flex flex-col gap-2 text-sm">
-          <a href="https://wa.me/919953900123" target="_blank" rel="noopener noreferrer" className="font-semibold text-emerald-400 hover:underline">
+
+        {/* Desks: every address and number reachable without the form. */}
+        <div className="mt-8 space-y-5 border-t border-stone-800 pt-7">
+          {DEPARTMENTS.map((d) => (
+            <div key={d.key}>
+              <p className="font-display flex items-center gap-2 text-sm font-bold text-white">
+                <d.icon size={14} aria-hidden className="text-[#F26419]" />
+                {d.label}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-stone-400">{d.blurb}</p>
+              <div className="mt-1.5 flex flex-col gap-1 text-sm">
+                <a
+                  href={`mailto:${d.email}`}
+                  className="break-all font-medium text-stone-300 transition-colors hover:text-[#FDBA74]"
+                >
+                  {d.email}
+                </a>
+                <a
+                  href={d.phoneHref}
+                  className="font-medium text-stone-300 transition-colors hover:text-[#FDBA74]"
+                >
+                  {d.phone}
+                </a>
+                {d.key === "GENERAL" && (
+                  <a
+                    href="tel:+18886445402"
+                    className="font-medium text-stone-300 transition-colors hover:text-[#FDBA74]"
+                  >
+                    +1-888-644-5402 <span className="text-stone-500">(USA toll-free)</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+          <p className="flex items-center gap-2 text-sm text-stone-400">
+            <Clock size={13} aria-hidden className="shrink-0 text-[#F26419]" />
+            Business hours:&nbsp;
+            <b className="font-semibold text-stone-200">Monday – Friday, 24 hours</b>
+          </p>
+          <a
+            href="https://wa.me/919953900123"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block font-semibold text-emerald-400 hover:underline"
+          >
             WhatsApp +91-9953-900123 →
           </a>
-          <a href="tel:+911204751400" className="text-stone-400 hover:text-white">+91-120-475-1400</a>
-          <a href="mailto:Info@digisutrasolutions.com" className="text-stone-400 hover:text-white">Info@digisutrasolutions.com</a>
         </div>
       </div>
 
       {/* Form */}
-      <div className="bg-[#FFFBF7] p-6 sm:p-10">
+      <div className="bg-white p-6 sm:p-10">
         {status === "done" ? (
           <div className="flex h-full flex-col items-center justify-center py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -210,8 +288,8 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
             </span>
             <h2 className="font-display mt-4 text-2xl font-extrabold text-stone-900">Got it, {f.name.split(" ")[0] || "done"}!</h2>
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-stone-600">
-              We&rsquo;ll reply on WhatsApp within 2 business hours — your
-              15-page audit lands within 48.
+              We&rsquo;ll reply within 2 business hours — your 15-page audit
+              lands within 48.
             </p>
             <a
               href="https://wa.me/919953900123"
@@ -241,19 +319,43 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
                 )}
               </div>
               <div>
-                <label htmlFor="lf-wa" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">WhatsApp *</label>
-                <input
-                  id="lf-wa"
-                  value={f.whatsapp}
-                  onChange={(e) => set("whatsapp", e.target.value)}
-                  onBlur={() => touch("whatsapp")}
-                  className={inputCls(Boolean(touched.whatsapp && !waOk), waOk)}
-                  placeholder="+91 98765 43210"
-                  inputMode="tel"
-                  autoComplete="tel"
-                />
-                {touched.whatsapp && !waOk && (
-                  <p className="mt-1 text-xs text-red-600">That number doesn&rsquo;t look right — include the country code, e.g. +91.</p>
+                <label htmlFor="lf-phone" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">Phone number *</label>
+                <div className="flex gap-2">
+                  {/* Not inputCls: it carries w-full, and an appended width
+                      class never beats it (Tailwind orders same-family
+                      utilities itself). */}
+                  <select
+                    aria-label="Country code"
+                    value={f.country}
+                    onChange={(e) => set("country", e.target.value as CountryCode)}
+                    className="w-[6.8rem] shrink-0 rounded-xl border border-stone-200 bg-white px-2 py-2.5 text-sm text-stone-900 outline-none transition-colors focus:border-[#F26419]"
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} +{c.dial}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    id="lf-phone"
+                    value={f.phone}
+                    onChange={(e) => set("phone", e.target.value)}
+                    onBlur={() => touch("phone")}
+                    className={inputCls(Boolean(touched.phone && !phoneOk), phoneOk)}
+                    placeholder="98765 43210"
+                    inputMode="tel"
+                    autoComplete="tel-national"
+                  />
+                </div>
+                {touched.phone && !phoneOk && (
+                  <p className="mt-1 text-xs text-red-600">
+                    That doesn&rsquo;t look like a valid {countryName(f.country)} number.
+                  </p>
+                )}
+                {phoneOk && parsedPhone && (
+                  <p className="mt-1 text-xs text-emerald-700">
+                    Will reach you at {parsedPhone.formatInternational()}
+                  </p>
                 )}
               </div>
               <div>
@@ -281,6 +383,19 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
                 )}
               </div>
               <div>
+                <label htmlFor="lf-company" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">
+                  Company <span className="font-medium normal-case text-stone-400">(optional)</span>
+                </label>
+                <input
+                  id="lf-company"
+                  value={f.company}
+                  onChange={(e) => set("company", e.target.value)}
+                  className={inputCls(false, Boolean(f.company.trim()))}
+                  placeholder="Acme Pvt Ltd"
+                  autoComplete="organization"
+                />
+              </div>
+              <div className="sm:col-span-2">
                 <label htmlFor="lf-web" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">
                   Website <span className="normal-case text-[#F26419]">→ audit input</span>
                 </label>
@@ -296,28 +411,12 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
             </div>
 
             <div className="mt-5">
-              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-                I&rsquo;m interested in * <span className="font-medium normal-case text-stone-400">— pick any</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {serviceNames.map((name) => {
-                  const on = f.services.includes(name);
-                  return (
-                    <button
-                      key={name}
-                      onClick={() => toggleService(name)}
-                      aria-pressed={on}
-                      className={`cursor-pointer rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
-                        on
-                          ? "bg-stone-900 text-white"
-                          : "border border-stone-200 bg-white text-stone-600 hover:border-orange-400"
-                      }`}
-                    >
-                      {on ? "✓ " : ""}{name}
-                    </button>
-                  );
-                })}
-              </div>
+              <ServicePicker
+                options={serviceOptions}
+                value={f.services}
+                onChange={(next) => set("services", next)}
+                invalid={Boolean(touched.submit && !servicesOk)}
+              />
               {touched.submit && !servicesOk && (
                 <p className="mt-1 text-xs text-red-600">Pick at least one — it routes you to the right specialist.</p>
               )}
@@ -338,6 +437,15 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
                   {TIMELINES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="lf-heard" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-stone-500">
+                  How did you find us? <span className="font-medium normal-case text-stone-400">(optional)</span>
+                </label>
+                <select id="lf-heard" value={f.heardFrom} onChange={(e) => set("heardFrom", e.target.value)} className={inputCls(false, Boolean(f.heardFrom))}>
+                  <option value="">Select…</option>
+                  {HEARD_FROM.map((h) => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
             </div>
 
             <div className="mt-5">
@@ -353,11 +461,11 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
 
             <div className="mt-6 flex items-center gap-3">
               <button
-                onClick={() => { touch("submit"); if (canSubmit) void submit(); }}
+                onClick={() => { touch("submit"); touch("phone"); if (canSubmit) void submit(); }}
                 disabled={status === "sending"}
                 className="flex-1 cursor-pointer rounded-full bg-[#F26419] py-3.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 disabled:opacity-60"
               >
-                {status === "sending" ? "Sending…" : "Send — get my audit in 48h"}
+                {status === "sending" ? "Sending…" : "Send my enquiry"}
               </button>
               <a
                 href="https://wa.me/919953900123?text=Hi%20DigiSutra!%20I%27d%20rather%20chat%20than%20fill%20a%20form."
