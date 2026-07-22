@@ -69,6 +69,21 @@ export default function ClientsBar({ clients = [] }: { clients?: ClientLogo[] })
           aria-hidden
         />
       </div>
+
+      {/* Owner-confirmed headline figures. Keep these in sync with the STATS
+          on /work and lib/data.ts — they are the same claim in three
+          places. */}
+      <div className="hidden shrink-0 items-center gap-4 self-stretch border-l border-stone-200/70 bg-[#FAFAF9] px-5 lg:flex">
+        <span className="whitespace-nowrap text-xs text-stone-600">
+          <b className="font-display font-extrabold text-[#F26419]">120+</b> happy clients
+        </span>
+        <span className="whitespace-nowrap text-xs text-stone-600">
+          <b className="font-display font-extrabold text-[#F26419]">12</b> countries
+        </span>
+        <span className="whitespace-nowrap text-xs text-stone-600">
+          <b className="font-display font-extrabold text-[#F26419]">5.8×</b> avg ROAS
+        </span>
+      </div>
     </div>
   );
 }
