@@ -93,12 +93,15 @@ export default async function ContactPage() {
         </p>
       </div>
 
-      {/* Single card: photo band with the desks on top, form underneath. */}
-      <div className="mt-10 overflow-hidden rounded-[2rem] border border-stone-200 bg-white">
+      {/* Double card: channels card (photo left, desks right) on top, the
+          form in its own card below. */}
+      <div className="mt-10 space-y-6">
         <ContactChannels />
-        <LeadForm
-          serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}
-        />
+        <div className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white">
+          <LeadForm
+            serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}
+          />
+        </div>
       </div>
     </section>
   );
