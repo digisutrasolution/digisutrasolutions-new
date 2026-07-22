@@ -21,6 +21,7 @@ import PageHero from "@/components/PageHero";
 import { withBase } from "@/lib/base-path";
 import { getPublicPayments } from "@/lib/payments";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
 
@@ -133,7 +134,7 @@ export default async function PaymentPage() {
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <PageHero
         eyebrow="Payment options"

@@ -6,6 +6,7 @@ import SutraBot from "@/components/SutraBot";
 import { getBotNudge } from "@/lib/bot-nudge";
 import { getFeaturedPost, getLiveNav } from "@/lib/menu";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export default async function SiteLayout({
   children,
@@ -41,7 +42,7 @@ export default async function SiteLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(navJsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(navJsonLd)}
       />
       <TrackPageview />
       <Navbar nav={nav} featuredPost={featuredPost} />

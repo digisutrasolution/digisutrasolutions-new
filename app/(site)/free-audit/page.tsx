@@ -16,6 +16,7 @@ import AuditForm from "@/components/AuditForm";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Free 15-Page Website Audit Report — Delivered in 48 Hours",
@@ -117,7 +118,7 @@ export default function FreeAuditPage() {
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <PageHero
         eyebrow="Free audit report"

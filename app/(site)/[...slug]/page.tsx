@@ -10,6 +10,7 @@ import SectionRenderer from "@/components/sections/SectionRenderer";
 export const dynamic = "force-dynamic";
 
 import { absUrl, SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export async function generateMetadata({
   params,
@@ -148,7 +149,7 @@ export default async function CmsPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       {!isLive(page) && (
         <div className="fixed inset-x-0 top-0 z-[60] bg-amber-400 py-1.5 text-center text-xs font-semibold text-amber-950">

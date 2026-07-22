@@ -11,6 +11,7 @@ import { withBase } from "@/lib/base-path";
 import { slugifyHeading } from "@/lib/blog";
 import { getLiveService, getLiveServices } from "@/lib/services";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
 
@@ -118,7 +119,7 @@ export default async function ServiceCategoryPage({
     <section className="mx-auto max-w-[1280px] px-6 pb-16 pt-12 sm:pb-24 sm:pt-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <Link
         href="/services"

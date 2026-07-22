@@ -12,6 +12,7 @@ import { BLOG_CATEGORIES } from "@/lib/blog";
 export const dynamic = "force-dynamic";
 
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 const PAGE_SIZE = 10;
 
 export const metadata: Metadata = {
@@ -119,7 +120,7 @@ export default async function BlogIndexPage({
     <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <div className="text-center">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">

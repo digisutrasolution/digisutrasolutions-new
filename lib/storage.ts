@@ -44,6 +44,48 @@ async function persist(
   return `/uploads/${filename}`;
 }
 
+/**
+ * SVG is the one upload type that is stored verbatim rather than being
+ * re-encoded by sharp, so it is also the one that can carry script. An
+ * uploaded SVG is served from our own origin, which makes an unsanitised
+ * one a stored-XSS primitive for any account that can reach the media
+ * library.
+ *
+ * This strips the known execution vectors; the response CSP on /uploads
+ * (next.config.ts) is the second layer that blocks execution even if a
+ * novel vector slips past the regexes here.
+ */
+function sanitizeSvg(buffer: Buffer): Buffer {
+  let svg = buffer.toString("utf8");
+
+  // Anything that executes, embeds, or pulls in remote documents.
+  svg = svg.replace(
+    /<\s*(script|foreignObject|iframe|embed|object|link|meta|base)\b[\s\S]*?<\s*\/\s*\1\s*>/gi,
+    "",
+  );
+  svg = svg.replace(
+    /<\s*(script|foreignObject|iframe|embed|object|link|meta|base|set|animate)\b[^>]*\/?\s*>/gi,
+    "",
+  );
+  // Inline event handlers: onload=, onclick=, onbegin=…
+  svg = svg.replace(/\son[a-z-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+  // javascript:/vbscript: and data: URLs in href/xlink:href/src/style.
+  svg = svg.replace(/(?:java|vb)script\s*:/gi, "");
+  svg = svg.replace(/data\s*:\s*text\/html/gi, "");
+  // External entity declarations (XXE) and processing of remote DTDs.
+  svg = svg.replace(/<!DOCTYPE[\s\S]*?>/gi, "");
+  svg = svg.replace(/<!ENTITY[\s\S]*?>/gi, "");
+
+  return Buffer.from(svg, "utf8");
+}
+
+/** The declared MIME comes from the client and is trivially spoofed, so an
+    SVG must actually look like one before it is written. */
+function looksLikeSvg(buffer: Buffer): boolean {
+  const head = buffer.subarray(0, 1024).toString("utf8").trimStart().toLowerCase();
+  return head.startsWith("<svg") || head.startsWith("<?xml");
+}
+
 export async function saveImage(
   buffer: Buffer,
   originalName: string,
@@ -52,13 +94,17 @@ export async function saveImage(
   const id = randomBytes(10).toString("hex");
 
   if (mimeType === "image/svg+xml") {
+    if (!looksLikeSvg(buffer)) {
+      throw new Error("File is not an SVG despite its declared type.");
+    }
     const filename = `${id}.svg`;
-    const url = await persist(filename, buffer, mimeType);
+    const clean = sanitizeSvg(buffer);
+    const url = await persist(filename, clean, mimeType);
     return {
       filename,
       url,
       mimeType,
-      size: buffer.length,
+      size: clean.length,
       width: null,
       height: null,
     };

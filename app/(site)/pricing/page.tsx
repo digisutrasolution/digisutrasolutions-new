@@ -10,6 +10,7 @@ import { withBase } from "@/lib/base-path";
 import { getLiveFaqs } from "@/lib/faq";
 import { getLivePricing } from "@/lib/pricing";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,7 @@ export default async function PricingPage() {
     <div className="pb-16 sm:pb-24">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       {/* Dark hero — duotone planning photo under a heavy scrim */}
       <div className="relative overflow-hidden bg-stone-900">

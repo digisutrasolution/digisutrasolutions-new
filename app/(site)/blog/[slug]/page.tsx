@@ -21,6 +21,7 @@ import {
 export const dynamic = "force-dynamic";
 
 import { absUrl, SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 const getPost = cache(async (slug: string) => {
   return db.blogPost.findUnique({ where: { slug } });
@@ -193,7 +194,7 @@ export default async function BlogPostPage({
     <div className="mx-auto max-w-[1280px] px-6 pb-16 pt-12 sm:pb-24 sm:pt-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <nav aria-label="Breadcrumb" className="text-xs text-stone-400">
         <Link href="/" className="hover:text-orange-700">

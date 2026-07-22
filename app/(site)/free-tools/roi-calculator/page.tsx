@@ -5,6 +5,7 @@ import PageHero from "@/components/PageHero";
 import RoiCalculator from "@/components/RoiCalculator";
 import { RAMP_MONTHS, ROAS_HIGH, ROAS_LOW } from "@/lib/roi";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Marketing ROI Calculator: Estimate Leads & Revenue",
@@ -45,7 +46,7 @@ export default function RoiCalculatorPage() {
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <PageHero
         eyebrow="Free tool"

@@ -6,6 +6,7 @@ import PageHero from "@/components/PageHero";
 import { navIcon } from "@/components/nav-icons";
 import { findTool, liveTools } from "@/lib/free-tools";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 /* Shared chrome for every live free tool: hero, the tool itself, sibling
    tools and one CTA — so each tool page is consistent and each ships
@@ -57,7 +58,7 @@ export default function ToolShell({
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <PageHero
         eyebrow="Free tool"

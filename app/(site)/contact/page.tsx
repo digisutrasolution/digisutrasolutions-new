@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import LeadForm from "@/components/contact/LeadForm";
 import { getLiveServices } from "@/lib/services";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export default async function ContactPage() {
     <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <LeadForm
         serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}

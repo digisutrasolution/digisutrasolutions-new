@@ -7,6 +7,7 @@ import { navIcon } from "@/components/nav-icons";
 import { slugifyHeading } from "@/lib/blog";
 import { getLiveFaqs, groupFaqs } from "@/lib/faq";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function FaqPage() {
     <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <div className="max-w-3xl">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">

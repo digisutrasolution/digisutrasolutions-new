@@ -7,6 +7,7 @@ import PageHero from "@/components/PageHero";
 import { navIcon } from "@/components/nav-icons";
 import { TOOLS, TOOL_GROUPS, liveTools } from "@/lib/free-tools";
 import { SITE_URL } from "@/lib/site";
+import { jsonLdScript } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
   title: "Free Marketing & Business Tools",
@@ -44,7 +45,7 @@ export default function ResourcesPage() {
     <div>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
       <PageHero
         eyebrow="Free tools"
