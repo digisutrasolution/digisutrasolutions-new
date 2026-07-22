@@ -8,7 +8,7 @@ import { DEPARTMENTS } from "@/lib/contact-channels";
  */
 export default function ContactChannels() {
   return (
-    <div className="rounded-[2rem] border border-stone-200 bg-white p-7 sm:p-8">
+    <div className="flex h-full flex-col rounded-[2rem] border border-stone-200 bg-white p-7 sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
         Contact us
       </p>
@@ -20,7 +20,7 @@ export default function ContactChannels() {
         support — reach the right desk directly.
       </p>
 
-      <div className="mt-7 space-y-6">
+      <div className="mt-7 space-y-6 pb-7">
         {DEPARTMENTS.map((d) => (
           <div key={d.key} className="border-t border-stone-100 pt-5 first:border-t-0 first:pt-0">
             <p className="font-display flex items-center gap-2.5 text-sm font-bold text-stone-900">
@@ -50,16 +50,18 @@ export default function ContactChannels() {
         ))}
       </div>
 
-      <div className="mt-7 space-y-3 border-t border-stone-100 pt-6">
+      {/* mt-auto pins this block to the bottom so the card matches the form's
+          height without leaving a gap that reads as a mistake. */}
+      <div className="mt-auto space-y-3 border-t border-stone-100 pt-6">
         <p className="flex items-start gap-2.5 text-sm text-stone-600">
           <Phone size={15} className="mt-0.5 shrink-0 text-[#F26419]" aria-hidden />
           <span>
             USA toll-free{" "}
             <a
-              href="tel:+18006445402"
+              href="tel:+18886445402"
               className="font-semibold text-stone-800 hover:text-orange-700"
             >
-              +1 (800) 644-5402
+              +1-888-644-5402
             </a>
           </span>
         </p>

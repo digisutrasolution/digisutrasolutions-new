@@ -146,8 +146,8 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white">
-      <div className="p-6 sm:p-8">
+    <div className="h-full overflow-hidden rounded-[2rem] border border-stone-200 bg-white">
+      <div className="flex h-full flex-col p-6 sm:p-8">
         {status === "done" ? (
           <div className="flex h-full flex-col items-center justify-center py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -169,7 +169,7 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
             </a>
           </div>
         ) : (
-          <div>
+          <div className="flex h-full flex-col">
             <h2 className="font-display text-2xl font-extrabold tracking-tight text-stone-900">
               Send us a message
             </h2>
@@ -416,7 +416,7 @@ export default function LeadForm({ serviceNames }: { serviceNames: string[] }) {
               </a>
             </div>
             {status === "error" && <p className="mt-2 text-center text-xs text-red-600">{errMsg}</p>}
-            <p className="mt-3 text-center text-[11px] text-stone-400">
+            <p className="mt-auto pt-3 text-center text-[11px] text-stone-400">
               Autosaves as you type · spam-guarded without a captcha · WCAG AA
             </p>
           </div>

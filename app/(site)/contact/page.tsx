@@ -60,7 +60,7 @@ export default async function ContactPage() {
             {
               "@type": "ContactPoint",
               contactType: "customer service",
-              telephone: "+1-800-644-5402",
+              telephone: "+1-888-644-5402",
               areaServed: "US",
               availableLanguage: ["en"],
             },
@@ -76,7 +76,7 @@ export default async function ContactPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="max-w-3xl">
+      <div className="mx-auto max-w-3xl text-center">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
           Contact
         </p>
@@ -95,7 +95,7 @@ export default async function ContactPage() {
 
       {/* On mobile the form comes first — the departments card is long, and
           burying the form under it costs a screen of scrolling. */}
-      <div className="mt-10 grid items-start gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+      <div className="mt-10 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
         <div className="order-2 lg:order-1">
           <ContactChannels />
         </div>
