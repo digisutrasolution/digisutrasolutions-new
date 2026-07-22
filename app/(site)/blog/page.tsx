@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Bot, ChevronDown, Megaphone, Newspaper, Search } from "lucide-react";
+import { ArrowRight, Bot, Megaphone, Newspaper, Search } from "lucide-react";
 import AdSlot from "@/components/blog/AdSlot";
 import NewsletterCard from "@/components/blog/NewsletterCard";
+import Pagination from "@/components/blog/Pagination";
+import PostListCard from "@/components/blog/PostListCard";
 import SocialFollow from "@/components/blog/SocialFollow";
-import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
-import { BLOG_CATEGORIES, categoryByDb } from "@/lib/blog";
+import { BLOG_CATEGORIES } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -34,12 +34,16 @@ export default async function BlogIndexPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
 
+  const total = await db.blogPost.count({ where: { status: "PUBLISHED" } });
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const current = Math.min(page, totalPages);
+
   const [posts, counts, views] = await Promise.all([
     db.blogPost.findMany({
       where: { status: "PUBLISHED" },
       orderBy: { publishedAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE + 1,
+      skip: (current - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       select: {
         slug: true,
         title: true,
@@ -66,8 +70,7 @@ export default async function BlogIndexPage({
       .catch(() => []),
   ]);
 
-  const hasMore = posts.length > PAGE_SIZE;
-  const pagePosts = posts.slice(0, PAGE_SIZE);
+  const pagePosts = posts;
   const countFor = (dbName: string) =>
     counts.find((c) => c.category === dbName)?._count._all ?? 0;
 
@@ -192,79 +195,23 @@ export default async function BlogIndexPage({
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-800">
             Latest
           </p>
-          <div className="mt-4 divide-y divide-stone-100 rounded-2xl border border-stone-200 bg-white">
+          <div className="mt-4 space-y-4">
             {pagePosts.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="group flex items-center gap-4 p-4 transition-colors first:rounded-t-2xl last:rounded-b-2xl hover:bg-[#FFF7F0]"
-              >
-                <span className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg bg-stone-900">
-                  {post.coverUrl ? (
-                    <Image
-                      src={withBase(post.coverUrl)}
-                      alt=""
-                      fill
-                      sizes="96px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
-                      <Newspaper size={16} className="text-white/80" aria-hidden />
-                    </span>
-                  )}
-                  <span
-                    className="absolute inset-0 bg-[#F26419]/25 mix-blend-color"
-                    aria-hidden
-                  />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-xs text-stone-400">
-                    {categoryByDb(post.category)?.label ?? post.category} ·{" "}
-                    {post.publishedAt?.toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}{" "}
-                    · {post.readingMinutes} min read
-                  </span>
-                  <span className="font-display mt-1 block font-bold leading-snug text-stone-900 transition-colors group-hover:text-orange-700">
-                    {post.title}
-                  </span>
-                  {post.excerpt && (
-                    <span className="mt-1 hidden text-sm leading-relaxed text-stone-500 sm:line-clamp-1">
-                      {post.excerpt}
-                    </span>
-                  )}
-                </span>
-              </Link>
+              <PostListCard key={post.slug} post={post} />
             ))}
             {pagePosts.length === 0 && (
-              <p className="p-10 text-center text-sm text-stone-500">
+              <p className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
                 No articles published yet — check back soon.
               </p>
             )}
           </div>
-          {(hasMore || page > 1) && (
-            <div className="mt-5 flex items-center justify-center gap-6 text-sm font-semibold">
-              {page > 1 && (
-                <Link
-                  href={`/blog?page=${page - 1}`}
-                  className="text-stone-600 hover:text-orange-700"
-                >
-                  ← Newer posts
-                </Link>
-              )}
-              {hasMore && (
-                <Link
-                  href={`/blog?page=${page + 1}`}
-                  className="flex items-center gap-1 text-orange-700 hover:text-orange-800"
-                >
-                  Older posts <ChevronDown size={14} aria-hidden />
-                </Link>
-              )}
-            </div>
-          )}
+          <Pagination
+            page={current}
+            totalPages={totalPages}
+            totalItems={total}
+            pageSize={PAGE_SIZE}
+            basePath="/blog"
+          />
         </div>
 
         {/* Most read + audit CTA */}
