@@ -57,7 +57,7 @@ const sections = [
       },
       {
         title: "Our values",
-        copy: "Transparency, measurable impact and integrity guide everything we do. We report honestly, commit to real outcomes over vanity metrics, and stick to ethical, white-hat practices. We stay curious — testing, learning and adopting new technology fast — and treat every engagement as a long-term partnership built on trust.",
+        copy: "To act with transparency, measurable impact and integrity — honest reporting, real outcomes over vanity metrics, and ethical, white-hat practices, with a bias for curiosity and long-term partnerships built on trust.",
       },
     ],
   },
@@ -130,6 +130,7 @@ const sections = [
       { title: "Execute", copy: "Launch campaigns, develop solutions and deploy AI-powered automation." },
       { title: "Optimize", copy: "Continuously analyse performance, improve conversions and maximise ROI." },
       { title: "Scale", copy: "Expand what works to accelerate sustainable, compounding growth." },
+      { title: "Report & grow", copy: "Share clear, transparent reports on what's working, then reinvest those insights to compound results month after month." },
     ],
   },
   {
