@@ -108,9 +108,12 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
     <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
       <Reveal>
         {s.heading ? (
-          /* Heading on top, copy beneath in one full-width card — the text
-             flows in two columns so it fills the card without the lines
-             running too long to read. */
+          /* Heading on top, then one card per paragraph in an even grid.
+             Splitting on the paragraph (rather than letting CSS columns
+             break mid-thought) keeps every card a whole idea, so the row
+             stays balanced whatever the paragraph count. No icons: the CMS
+             can't know what a paragraph is about, and a mismatched icon
+             reads worse than none — a short accent rule carries the rhythm. */
           <div>
             {s.eyebrow && (
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
@@ -120,11 +123,30 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
             <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
               {s.heading}
             </h2>
-            <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6 sm:p-8">
-              {copy(
-                "hyphens-auto text-justify [&>p]:mb-4 [&>p]:break-inside-avoid [&>p:last-child]:mb-0 lg:columns-2 lg:gap-12",
-              )}
-            </div>
+            {paragraphs.length >= 3 ? (
+              <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {paragraphs.map((p, i) => (
+                  <div
+                    key={i}
+                    className="h-full rounded-3xl border border-stone-200 bg-white p-6 transition-transform duration-300 hover:-translate-y-1.5"
+                  >
+                    <span
+                      className="block h-1 w-8 rounded-full bg-[#F26419]"
+                      aria-hidden
+                    />
+                    <p className="mt-4 text-sm leading-relaxed text-stone-600">{p}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* One or two paragraphs can't fill a row without leaving a
+                 hole, and splitting sequential prose (the legal pages) into
+                 side-by-side cards breaks the reading order — so those stay
+                 as flowing copy in a single card. */
+              <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6 sm:p-8">
+                {copy("[&>p]:mb-4 [&>p:last-child]:mb-0")}
+              </div>
+            )}
           </div>
         ) : paragraphs.length > 1 ? (
           copy(
