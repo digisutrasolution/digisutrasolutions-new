@@ -39,7 +39,9 @@ const sections = [
   {
     type: "richText",
     heading: "Who we are",
-    body: "DigiSutra Solutions is a results-driven digital marketing and technology company. We combine data-driven marketing, modern engineering and AI-powered automation to help businesses increase online visibility, generate qualified leads, improve customer engagement and maximise return on investment.\n\nOur work spans Search Engine Optimization (SEO), AI Search Optimization (AEO and GEO), Pay-Per-Click advertising, social media and content marketing, email and SMS marketing, organic lead generation, website and e-commerce development, and AI automation — scalable solutions built around your business goals, not a fixed template.",
+    body: "DigiSutra Solutions is a results-driven digital marketing and technology company. We combine data-driven marketing, modern engineering and AI-powered automation to help businesses increase online visibility, generate qualified leads, improve customer engagement and maximise return on investment.\n\nOur work spans Search Engine Optimization (SEO), AI Search Optimization (AEO and GEO), Pay-Per-Click advertising, social media and content marketing, email and SMS marketing, organic lead generation, CRM and lead management, website, mobile app and e-commerce development, and AI automation — scalable solutions built around your business goals, not a fixed template.",
+    image: "/section-images/why-we-exist.jpg",
+    imageAlt: "DigiSutra strategists and engineers working together around one table",
   },
   {
     type: "cards",
@@ -72,12 +74,12 @@ const sections = [
         copy: "Social media marketing and content marketing that builds an audience, earns trust and feeds every other channel with assets that rank and convert.",
       },
       {
-        title: "Email, SMS & lead generation",
-        copy: "Email and SMS marketing plus organic lead generation systems that turn attention into a steady, qualified pipeline.",
+        title: "Lead generation & CRM",
+        copy: "Organic lead generation plus email and SMS marketing, backed by CRM and lead-management setup so every enquiry is captured, tracked and followed up.",
       },
       {
-        title: "Web & e-commerce development",
-        copy: "Website design and development, custom web applications and e-commerce builds that are secure, fast and made to convert.",
+        title: "Web, app & e-commerce development",
+        copy: "Website design and development, custom web and mobile app development, and e-commerce builds that are secure, fast and made to convert.",
       },
       {
         title: "AI automation & performance",
@@ -130,6 +132,8 @@ const sections = [
     type: "richText",
     heading: "Industries we serve",
     body: "We work with businesses across many sectors — including healthcare, education, real estate, manufacturing, e-commerce and retail, information technology, professional services, hospitality, finance, logistics, and early-stage startups.\n\nThe channels stay the same; the strategy, messaging and targeting are tailored to the way each industry actually buys.",
+    image: "/section-images/remote-delivery.jpg",
+    imageAlt: "A connected world at night representing the many industries and regions DigiSutra serves",
   },
   {
     type: "stats",
@@ -211,8 +215,10 @@ const schemaJson = {
       "Content marketing",
       "Email and SMS marketing",
       "Organic lead generation",
+      "CRM and lead management",
       "Website design and development",
       "Custom web application development",
+      "Mobile app development",
       "E-commerce development",
       "AI automation and AI agents",
       "Website maintenance and performance optimization",
@@ -222,7 +228,9 @@ const schemaJson = {
       "Search engine optimization",
       "AI search optimization",
       "Pay-per-click advertising",
+      "CRM and lead management",
       "Web development",
+      "Mobile app development",
       "E-commerce development",
       "AI automation",
     ],
@@ -230,6 +238,23 @@ const schemaJson = {
 };
 
 const existing = await prisma.page.findUnique({ where: { slug: "about" } });
+
+/* Side images are admin-managed: if this page already carries an image the
+   owner picked in the CMS, keep it and only refresh the copy. The values
+   above are just first-run defaults. */
+const savedImages = new Map();
+if (Array.isArray(existing?.sections)) {
+  for (const s of existing.sections) {
+    if (s?.type === "richText" && s.heading && s.image) {
+      savedImages.set(s.heading, { image: s.image, imageAlt: s.imageAlt ?? "" });
+    }
+  }
+}
+for (const s of sections) {
+  if (s.type === "richText" && savedImages.has(s.heading)) {
+    Object.assign(s, savedImages.get(s.heading));
+  }
+}
 
 const data = {
   title: "About Us",

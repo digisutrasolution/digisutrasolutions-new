@@ -46,7 +46,7 @@ Key subsystems (each spans several files — read these before touching the area
 - **Icons**: this lucide-react version has NO brand icons (`Linkedin`, `Twitter` don't exist — verify before importing); use text glyphs like Footer does.
 - **FAQ data**: `FAQS` in `lib/data.ts` is `{q, lead, rest}` — `lead` is the bolded answer-first fact and JSON-LD joins `lead + rest`; card icons in `components/Faq.tsx` are positional, keep in sync.
 - **Contact API**: two honeypot fields — legacy `website` and `hp`. Don't repurpose `website` as a real field.
-- **Content scope**: the agency does NOT offer mobile apps, ERP, CRM, HRMS or POS — that copy was deliberately removed site-wide; never reintroduce it. Services are: SEO, PPC, social, email & SMS marketing, lead generation, web/e-commerce development, AI automation agents.
+- **Content scope**: the agency does NOT offer ERP, HRMS or POS — never reintroduce those. It DOES offer (and advertises in the nav/footer): SEO + AI Search Optimization (AEO/GEO), PPC/performance marketing, social, content, email & SMS marketing, organic lead generation, CRM & lead management, website + custom web app development, mobile app development, e-commerce development, AI automation & agents, branding/UI-UX, and maintenance. (Owner confirmed 2026-07: CRM-as-lead-management and mobile apps are in scope; only ERP *software* development stays out.)
 - **Verifying SSR with curl**: strip `<script>` tags before counting text occurrences — the RSC flight payload duplicates all server-component text.
 - Layout title template appends "| DigiSutra Solutions" — don't include the brand in per-page `seoTitle`.
 

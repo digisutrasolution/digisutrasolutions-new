@@ -177,24 +177,47 @@ function StatsBlock({ s }: { s: Extract<Section, { type: "stats" }> }) {
 }
 
 function FaqBlock({ s }: { s: Extract<Section, { type: "faq" }> }) {
+  const list = (
+    <div className="divide-y divide-stone-200 rounded-3xl border border-stone-200 bg-white px-6">
+      {s.items.map((item, i) => (
+        <details key={i} className="group py-4">
+          <summary className="font-display cursor-pointer list-none text-sm font-bold text-stone-900 sm:text-base [&::-webkit-details-marker]:hidden">
+            <span className="mr-2 text-orange-600 transition-transform group-open:rotate-90 inline-block">
+              ›
+            </span>
+            {item.q}
+          </summary>
+          <p className="mt-2 pl-5 text-sm leading-relaxed text-stone-600">
+            {item.a}
+          </p>
+        </details>
+      ))}
+    </div>
+  );
+
+  // With a heading, use the two-column layout the rest of the page uses —
+  // heading on the left, accordion on the right — so the block fills the
+  // width instead of sitting in a narrow centred column with side gaps.
+  if (s.heading) {
+    return (
+      <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)] lg:gap-14">
+          <Reveal>
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+                {s.heading}
+              </h2>
+            </div>
+          </Reveal>
+          <div className="mt-2 lg:mt-0">{list}</div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto max-w-3xl px-6 pt-16 sm:pt-20">
-      <Reveal>{s.heading && <Heading text={s.heading} />}</Reveal>
-      <div className="mt-6 divide-y divide-stone-200 rounded-3xl border border-stone-200 bg-white px-6">
-        {s.items.map((item, i) => (
-          <details key={i} className="group py-4">
-            <summary className="font-display cursor-pointer list-none text-sm font-bold text-stone-900 sm:text-base [&::-webkit-details-marker]:hidden">
-              <span className="mr-2 text-orange-600 transition-transform group-open:rotate-90 inline-block">
-                ›
-              </span>
-              {item.q}
-            </summary>
-            <p className="mt-2 pl-5 text-sm leading-relaxed text-stone-600">
-              {item.a}
-            </p>
-          </details>
-        ))}
-      </div>
+      <div className="mt-6">{list}</div>
     </section>
   );
 }
