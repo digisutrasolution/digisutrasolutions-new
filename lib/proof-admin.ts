@@ -127,6 +127,26 @@ function remove(kind: ProofKind, id: string) {
   return db.caseStudy.delete({ where: { id } });
 }
 
+function getRow(kind: ProofKind, id: string) {
+  if (kind === "testimonial") return db.testimonial.findUnique({ where: { id } });
+  if (kind === "client") return db.clientLogo.findUnique({ where: { id } });
+  return db.caseStudy.findUnique({ where: { id } });
+}
+
+/* A [bracket] left in the copy means the draft still holds a fill-in
+   placeholder. Publishing it would show that literal text to visitors, so
+   making a row visible is blocked until the placeholders are replaced.
+   Client logos have no free-text placeholders, so they are exempt. */
+const PLACEHOLDER = /\[[^\]]+\]/;
+function unfilledPlaceholder(kind: ProofKind, row: Record<string, unknown>): boolean {
+  if (kind === "client") return false;
+  const fields =
+    kind === "testimonial"
+      ? ["quote", "name", "role"]
+      : ["title", "client", "industry", "challenge", "solution", "result", "timeframe"];
+  return fields.some((f) => typeof row[f] === "string" && PLACEHOLDER.test(row[f] as string));
+}
+
 const bad = (msg: string, status = 400) =>
   NextResponse.json({ ok: false, error: msg }, { status });
 
@@ -179,6 +199,20 @@ export function itemHandlers(kind: ProofKind) {
       if (!parsed.success) {
         return bad(parsed.error.issues[0]?.message ?? "Invalid input.");
       }
+
+      // Guard: never let a draft go visible with [bracket] placeholders
+      // still in it. Merge the patch onto the stored row and check.
+      if (parsed.data.visible === true) {
+        const existing = await getRow(kind, id);
+        if (!existing) return bad("Not found.", 404);
+        const merged = { ...existing, ...parsed.data } as Record<string, unknown>;
+        if (unfilledPlaceholder(kind, merged)) {
+          return bad(
+            "Fill in the [bracketed] placeholders before making this visible.",
+          );
+        }
+      }
+
       const row = await update(kind, id, parsed.data).catch(() => null);
       if (!row) return bad("Not found.", 404);
 
