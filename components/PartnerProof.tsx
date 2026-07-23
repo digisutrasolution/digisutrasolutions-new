@@ -24,7 +24,6 @@ const REASONS: { icon: LucideIcon; label: string }[] = [
 ];
 
 const TICK_MS = 1600;
-const RING_C = 2 * Math.PI * 24;
 
 function initials(name: string) {
   return name
@@ -116,34 +115,22 @@ export default function PartnerProof({
               className="pointer-events-none absolute -bottom-8 -left-8 h-36 w-36 rounded-full bg-[#F26419] opacity-25 blur-[32px]"
               aria-hidden
             />
-            <div className="flex items-start justify-between">
+            {/* Retention reads as a pill beside the label: the old ring sat
+                on the rounded corner and clipped its own caption. */}
+            <div className="relative flex items-start justify-between gap-3">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-300">
                 What clients say
               </p>
-              <svg viewBox="0 0 60 60" className="h-16 w-16 shrink-0" aria-hidden>
-                <circle cx="30" cy="30" r="24" fill="none" stroke="#44403C" strokeWidth="7" />
-                <circle
-                  cx="30"
-                  cy="30"
-                  r="24"
-                  fill="none"
-                  stroke="#F26419"
-                  strokeWidth="7"
-                  strokeLinecap="round"
-                  strokeDasharray={`${RING_C * 0.92} ${RING_C}`}
-                  transform="rotate(-90 30 30)"
-                />
-                <text x="30" y="33" textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">
-                  92%
-                </text>
-                <text x="30" y="44" textAnchor="middle" fontSize="6.5" fill="#A8A29E">
-                  stay with us
-                </text>
-              </svg>
+              <span className="shrink-0 rounded-full bg-[#F26419]/15 px-3 py-1 text-xs font-semibold text-[#FDBA74]">
+                92% stay with us
+              </span>
             </div>
-            <div key={t} className="chat-pop relative flex flex-1 flex-col">
+            {/* The card stretches to the panel beside it, so the quote is
+                centred in whatever height is left rather than leaving one
+                large hole above the author. */}
+            <div key={t} className="chat-pop relative flex flex-1 flex-col justify-center py-6">
               <p
-                className="mt-2 tracking-[0.2em] text-[#F26419]"
+                className="tracking-[0.2em] text-[#F26419]"
                 aria-label={`${quote.rating} out of 5 stars`}
               >
                 {"★".repeat(quote.rating)}
@@ -151,21 +138,21 @@ export default function PartnerProof({
               <blockquote className="font-serif-accent mt-3 text-lg font-medium italic leading-relaxed text-stone-100 sm:text-xl">
                 &ldquo;{quote.quote}&rdquo;
               </blockquote>
-              <div className="mt-auto flex items-center gap-3 pt-6">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F26419] text-sm font-bold text-white">
-                  {initials(quote.name)}
-                </span>
-                <span>
-                  <span className="block text-sm font-bold text-white">
-                    {quote.name}
-                  </span>
-                  <span className="block text-xs text-stone-400">
-                    {quote.role}
-                  </span>
-                </span>
-              </div>
             </div>
-            <div className="mt-6 flex gap-1.5" role="tablist" aria-label="Testimonials">
+            <div className="relative flex items-center gap-3 border-t border-stone-800 pt-5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F26419] text-sm font-bold text-white">
+                {initials(quote.name)}
+              </span>
+              <span>
+                <span className="block text-sm font-bold text-white">
+                  {quote.name}
+                </span>
+                <span className="block text-xs text-stone-400">
+                  {quote.role}
+                </span>
+              </span>
+            </div>
+            <div className="relative mt-5 flex gap-1.5" role="tablist" aria-label="Testimonials">
               {testimonials.map((tm, j) => (
                 <button
                   key={tm.name}
