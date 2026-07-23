@@ -93,36 +93,6 @@ const sections = [
   },
   {
     type: "cards",
-    heading: "Why businesses choose DigiSutra",
-    items: [
-      {
-        title: "Measurable outcomes",
-        copy: "We commit to numbers — traffic, leads, revenue — backed by research, analytics and continuous optimization, not vanity metrics.",
-      },
-      {
-        title: "Strategies built for you",
-        copy: "Every growth plan is customized to your business, audience and goals; nothing is copied from a template.",
-      },
-      {
-        title: "Transparent reporting",
-        copy: "Clear communication and honest performance reporting, so you always know what we did and what it returned.",
-      },
-      {
-        title: "SEO, AI search & CRO",
-        copy: "Implementation focused on search, AI answer engines and conversion — the things that actually move revenue.",
-      },
-      {
-        title: "Secure, scalable builds",
-        copy: "High-performance development that's secure and built to scale as you grow.",
-      },
-      {
-        title: "Ethical, long-term partner",
-        copy: "White-hat, ethical practices and experienced marketing and technology professionals focused on long-term growth.",
-      },
-    ],
-  },
-  {
-    type: "cards",
     heading: "How we work",
     items: [
       { title: "Discover", copy: "Understand your business, audience, competitors and objectives." },
@@ -139,35 +109,6 @@ const sections = [
     body: "We work with businesses across many sectors — including healthcare, education, real estate, manufacturing, e-commerce and retail, information technology, professional services, hospitality, finance, logistics, and early-stage startups.\n\nThe channels stay the same; the strategy, messaging and targeting are tailored to the way each industry actually buys.",
     image: "/section-images/remote-delivery.jpg",
     imageAlt: "A connected world at night representing the many industries and regions DigiSutra serves",
-  },
-  {
-    type: "stats",
-    items: [
-      { value: "2018", label: "founded" },
-      { value: "250+", label: "projects shipped" },
-      { value: "120+", label: "happy clients" },
-      { value: "12", label: "countries served" },
-    ],
-  },
-  {
-    type: "countries",
-    heading: "countries served, one team",
-    copy: "From India to the Gulf, Europe, North America and beyond — we run marketing, development and AI for businesses across the world. (Edit this list any time in the CMS.)",
-    count: "12",
-    countries: [
-      { name: "India", code: "in" },
-      { name: "United States", code: "us" },
-      { name: "United Kingdom", code: "gb" },
-      { name: "United Arab Emirates", code: "ae" },
-      { name: "Saudi Arabia", code: "sa" },
-      { name: "Qatar", code: "qa" },
-      { name: "Singapore", code: "sg" },
-      { name: "Australia", code: "au" },
-      { name: "Canada", code: "ca" },
-      { name: "Germany", code: "de" },
-      { name: "Netherlands", code: "nl" },
-      { name: "South Africa", code: "za" },
-    ],
   },
   {
     type: "faq",
