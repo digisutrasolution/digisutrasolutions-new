@@ -150,6 +150,52 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
         </div>
       </div>
 
+      <label className="mt-4 flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-200">
+        <input
+          type="checkbox"
+          checked={nudge.secondPageviewEnabled}
+          onChange={(e) => setNudge((p) => ({ ...p, secondPageviewEnabled: e.target.checked }))}
+          className="mt-0.5 h-4 w-4 accent-orange-600"
+        />
+        <span>
+          Greet sooner on the second page
+          <span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">
+            A visitor who opens a second page has shown intent, so they get
+            the greeting on the short first-visit timer instead of the long
+            one.
+          </span>
+        </span>
+      </label>
+
+      <div className="mt-3 flex flex-wrap items-start gap-4">
+        <label className="flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-200">
+          <input
+            type="checkbox"
+            checked={nudge.idleEnabled}
+            onChange={(e) => setNudge((p) => ({ ...p, idleEnabled: e.target.checked }))}
+            className="mt-0.5 h-4 w-4 accent-orange-600"
+          />
+          <span>
+            Offer help when they go quiet
+            <span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">
+              The clock restarts on any scroll, tap or key press, so it only
+              fires when someone has genuinely stalled — not while reading.
+            </span>
+          </span>
+        </label>
+        <div className="w-32">
+          <label className={labelCls}>Idle (seconds)</label>
+          <input
+            type="number"
+            min={5}
+            max={180}
+            value={nudge.idleSeconds}
+            onChange={(e) => setNudge((p) => ({ ...p, idleSeconds: Number(e.target.value) }))}
+            className={inputCls}
+          />
+        </div>
+      </div>
+
       <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-3.5 dark:border-stone-700 dark:bg-stone-900/40">
         <label className="flex items-start gap-2.5 text-sm font-semibold text-stone-700 dark:text-stone-200">
           <input

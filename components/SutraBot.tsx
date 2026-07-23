@@ -12,6 +12,7 @@ import {
   NUDGE_COOLDOWN_DAYS,
   NUDGE_EXCLUDED_PATHS,
   nudgeTextFor,
+  PAGEVIEWS_KEY,
   SOURCE_KEY,
   sourceTextFor,
   type BotNudge,
@@ -59,6 +60,24 @@ function visitSource(): string {
     }
   }
   return trafficSource;
+}
+
+/* Pages viewed this session. Counted once per distinct path — the bot stays
+   mounted across client navigation, so the effect re-runs for other reasons
+   too and the guard stops it double-counting the same page. */
+let countedPath: string | null = null;
+function pageviewCount(path: string): number {
+  try {
+    if (countedPath !== path) {
+      countedPath = path;
+      const n = Number(sessionStorage.getItem(PAGEVIEWS_KEY) ?? 0) + 1;
+      sessionStorage.setItem(PAGEVIEWS_KEY, String(n));
+      return n;
+    }
+    return Number(sessionStorage.getItem(PAGEVIEWS_KEY) ?? 1);
+  } catch {
+    return 1;
+  }
 }
 
 /* The page this visit started on. Takes the current path from usePathname
@@ -153,7 +172,10 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
     const forPage = nudge.entryPageEnabled ? entryPath(pathname) : pathname;
     const text = sourceText ?? (welcome ? nudge.welcomeText : nudgeTextFor(nudge, forPage));
     if (!text) return;
-    const fast = Boolean(sourceText) || welcome;
+    /* Someone on their second page of the session has already shown intent,
+       so they join the fast lane rather than waiting out the long timer. */
+    const engaged = nudge.secondPageviewEnabled && pageviewCount(pathname) >= 2;
+    const fast = Boolean(sourceText) || welcome || engaged;
 
     try {
       const seen = Number(localStorage.getItem(NUDGE_KEY) ?? 0);
@@ -181,8 +203,26 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       if (max > 0 && (window.scrollY / max) * 100 >= nudge.scrollPercent) fire();
+      resetIdle();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    /* Hesitation: the idle clock restarts on any activity, so it only runs
+       out when the visitor has genuinely stopped — stuck rather than
+       reading on. */
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    const IDLE_EVENTS = ["pointermove", "pointerdown", "keydown", "touchstart"] as const;
+    function resetIdle() {
+      if (!nudge?.idleEnabled || fired) return;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(fire, nudge.idleSeconds * 1000);
+    }
+    if (nudge.idleEnabled) {
+      for (const e of IDLE_EVENTS) {
+        window.addEventListener(e, resetIdle, { passive: true });
+      }
+      resetIdle();
+    }
 
     /* Exit intent: pointer crosses the top edge of the viewport. Guarded on
        a fine pointer so a touch device, where the event is meaningless and
@@ -197,7 +237,9 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(idleTimer);
       window.removeEventListener("scroll", onScroll);
+      for (const e of IDLE_EVENTS) window.removeEventListener(e, resetIdle);
       document.removeEventListener("mouseout", onExit);
     };
   }, [nudge, pathname, open, teaser]);

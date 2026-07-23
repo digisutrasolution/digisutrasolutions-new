@@ -70,6 +70,13 @@ export const BotNudgeSchema = z.object({
       than the one they happen to be reading. The entry page is the intent
       they came with; later pages are just browsing. */
   entryPageEnabled: z.boolean().default(true),
+  /** Hesitation: no scroll, pointer or key activity for this long suggests
+      the visitor is stuck rather than reading, so offer help. */
+  idleEnabled: z.boolean().default(true),
+  idleSeconds: z.number().int().min(5).max(180).default(25),
+  /** A visitor on their second page of the session has shown intent, so
+      they get the greeting on the short timer rather than the long one. */
+  secondPageviewEnabled: z.boolean().default(true),
   rules: z.array(NudgeRuleSchema).max(12),
 });
 
@@ -97,6 +104,9 @@ export const DEFAULT_BOT_NUDGE: BotNudge = {
   sourceEnabled: true,
   sourceRules: DEFAULT_SOURCE_RULES,
   entryPageEnabled: true,
+  idleEnabled: true,
+  idleSeconds: 25,
+  secondPageviewEnabled: true,
   rules: [
     { path: "/pricing", text: "Not sure which plan fits? Tell me your budget and I'll pick one." },
     { path: "/services", text: "Want to know what this would cost for your business?" },
@@ -126,6 +136,9 @@ export const SOURCE_KEY = "ds-traffic-source";
 /** Session key holding the path the visitor arrived on. Stored basePath-free
     (it comes from usePathname) so it matches the rule paths directly. */
 export const ENTRY_PATH_KEY = "ds-entry-path";
+
+/** Session key counting pages viewed this visit (drives the 2nd-page rule). */
+export const PAGEVIEWS_KEY = "ds-session-pageviews";
 
 const SEARCH_HOSTS = /(^|\.)(google|bing|duckduckgo|yahoo|ecosia|brave|baidu|yandex)\./;
 const SOCIAL_HOSTS =
