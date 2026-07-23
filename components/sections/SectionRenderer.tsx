@@ -177,25 +177,47 @@ function StatsBlock({ s }: { s: Extract<Section, { type: "stats" }> }) {
   );
 }
 
-function FaqBlock({ s }: { s: Extract<Section, { type: "faq" }> }) {
-  // Heading full-width on top, then the accordion spanning the full content
-  // width beneath it — no narrow centred column, no empty side gaps.
+function FaqBlock({ s, idx }: { s: Extract<Section, { type: "faq" }>; idx: number }) {
+  // Split into two columns so the questions fill the width instead of
+  // leaving a wide empty gap on the right. A shared `name` makes the
+  // <details> an exclusive accordion — opening one closes the others.
+  const group = `faq-${idx}`;
+  const mid = Math.ceil(s.items.length / 2);
+  const columns = [s.items.slice(0, mid), s.items.slice(mid)].filter(
+    (c) => c.length > 0,
+  );
+
+  const item = (q: string, a: string, key: number) => (
+    <details key={key} name={group} className="group py-4">
+      <summary className="font-display cursor-pointer list-none text-sm font-bold text-stone-900 sm:text-base [&::-webkit-details-marker]:hidden">
+        <span className="mr-2 inline-block text-orange-600 transition-transform group-open:rotate-90">
+          ›
+        </span>
+        {q}
+      </summary>
+      <p className="mt-2 pl-5 text-sm leading-relaxed text-stone-600">{a}</p>
+    </details>
+  );
+
   return (
     <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
-      <Reveal>{s.heading && <Heading text={s.heading} />}</Reveal>
-      <div className="mt-6 divide-y divide-stone-200 rounded-3xl border border-stone-200 bg-white px-6 sm:px-8">
-        {s.items.map((item, i) => (
-          <details key={i} className="group py-4">
-            <summary className="font-display cursor-pointer list-none text-sm font-bold text-stone-900 sm:text-base [&::-webkit-details-marker]:hidden">
-              <span className="mr-2 text-orange-600 transition-transform group-open:rotate-90 inline-block">
-                ›
-              </span>
-              {item.q}
-            </summary>
-            <p className="mt-2 max-w-4xl pl-5 text-sm leading-relaxed text-stone-600">
-              {item.a}
-            </p>
-          </details>
+      <Reveal>
+        {s.heading && (
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+            {s.heading}
+          </h2>
+        )}
+      </Reveal>
+      <div
+        className={`mt-8 grid gap-4 md:gap-6 ${columns.length > 1 ? "md:grid-cols-2" : ""}`}
+      >
+        {columns.map((col, ci) => (
+          <div
+            key={ci}
+            className="divide-y divide-stone-200 rounded-3xl border border-stone-200 bg-white px-6 sm:px-8"
+          >
+            {col.map((it, i) => item(it.q, it.a, ci * mid + i))}
+          </div>
         ))}
       </div>
     </section>
@@ -206,19 +228,35 @@ function CtaBlock({ s }: { s: Extract<Section, { type: "cta" }> }) {
   return (
     <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
       <Reveal>
-        <div className="flex flex-col items-start justify-between gap-5 rounded-3xl bg-stone-900 p-8 sm:flex-row sm:items-center sm:p-10">
-          <div>
-            <h2 className="font-display text-xl font-extrabold tracking-tight text-stone-50 sm:text-2xl">
-              {s.heading}
-            </h2>
-            {s.copy && <p className="mt-1 text-sm text-stone-400">{s.copy}</p>}
+        {/* Stock photo under an orange-tinted scrim — same recipe as the
+            shared CtaBand, so the CMS CTA matches the rest of the site. */}
+        <div className="relative overflow-hidden rounded-3xl bg-stone-900">
+          <Image
+            src={withBase("/cta-band.jpg")}
+            alt=""
+            fill
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="object-cover"
+          />
+          <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
+          <span
+            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,10,5,0.92),rgba(18,10,5,0.86)_55%,rgba(18,10,5,0.94))]"
+            aria-hidden
+          />
+          <div className="relative flex flex-col items-start justify-between gap-5 p-8 sm:flex-row sm:items-center sm:p-10">
+            <div>
+              <h2 className="font-display text-xl font-extrabold tracking-tight text-stone-50 sm:text-2xl">
+                {s.heading}
+              </h2>
+              {s.copy && <p className="mt-1 text-sm text-stone-300">{s.copy}</p>}
+            </div>
+            <Link
+              href={s.ctaHref || "/contact"}
+              className="shrink-0 rounded-full bg-[#F26419] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600"
+            >
+              {s.ctaLabel}
+            </Link>
           </div>
-          <Link
-            href={s.ctaHref || "/contact"}
-            className="animate-shimmer shrink-0 rounded-full bg-[linear-gradient(120deg,#EA580C,#FB923C,#EA580C)] px-6 py-3 text-sm font-semibold text-white"
-          >
-            {s.ctaLabel}
-          </Link>
         </div>
       </Reveal>
     </section>
@@ -254,7 +292,7 @@ export default function SectionRenderer({ sections }: { sections: Section[] }) {
           case "countries":
             return <CountriesBlock key={i} s={section} />;
           case "faq":
-            return <FaqBlock key={i} s={section} />;
+            return <FaqBlock key={i} s={section} idx={i} />;
           case "cta":
             return <CtaBlock key={i} s={section} />;
           case "form":
