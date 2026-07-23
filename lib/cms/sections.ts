@@ -30,6 +30,11 @@ export const RichTextSectionSchema = z.object({
 export const CardsSectionSchema = z.object({
   type: z.literal("cards"),
   heading: z.string().max(160).default(""),
+  /* How the items are laid out. "cards" is the numbered spotlight grid;
+     "checklist" drops the boxes for a compact two-column tick list (long
+     reason-to-trust lists); "bento" mixes card sizes so a four-item set
+     fills the row instead of leaving a 3+1 hole. */
+  layout: z.enum(["cards", "checklist", "bento"]).default("cards"),
   items: z
     .array(
       z.object({

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import CountriesBlock from "@/components/sections/CountriesBlock";
 import FormEmbed from "@/components/sections/FormEmbed";
@@ -163,13 +164,56 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
 }
 
 function CardsBlock({ s }: { s: Extract<Section, { type: "cards" }> }) {
+  /* Checklist: no boxes at all. A long list of reasons-to-trust reads far
+     faster as ticked claims than as a wall of identical cards, and the
+     ticks themselves carry the "here is why" meaning. */
+  if (s.layout === "checklist") {
+    return (
+      <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
+        <Reveal>{s.heading && <Heading text={s.heading} />}</Reveal>
+        <div className="mt-8 grid grid-cols-1 gap-x-12 gap-y-5 sm:grid-cols-2">
+          {s.items.map((item, i) => (
+            <Reveal key={i} delay={(i % 2) * 0.06}>
+              <div className="flex gap-3 border-b border-stone-200 pb-5">
+                <Check size={17} className="mt-0.5 shrink-0 text-[#F26419]" aria-hidden />
+                <div>
+                  <h3 className="font-display text-base font-bold text-stone-900">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 text-sm leading-relaxed text-stone-500">
+                    {item.copy}
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  /* Bento: the first item spans two rows and the fourth spans two columns,
+     so a four-item set fills the grid instead of leaving a 3+1 hole. Only
+     kicks in from four items; below that the plain grid is already even. */
+  const bento = s.layout === "bento" && s.items.length >= 4;
+
   return (
     <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
       <Reveal>{s.heading && <Heading text={s.heading} />}</Reveal>
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {s.items.map((item, i) => (
-          <Reveal key={i} delay={(i % 3) * 0.06}>
-            <SpotlightCard className="h-full rounded-3xl border border-stone-200 bg-white p-6">
+          <Reveal
+            key={i}
+            delay={(i % 3) * 0.06}
+            className={
+              bento && i === 0
+                ? "lg:row-span-2"
+                : bento && i === 3
+                  ? "lg:col-span-2"
+                  : undefined
+            }
+          >
+            <SpotlightCard className="flex h-full flex-col justify-center rounded-3xl border border-stone-200 bg-white p-6">
               <p className="font-display text-3xl font-extrabold text-orange-200">
                 {String(i + 1).padStart(2, "0")}
               </p>

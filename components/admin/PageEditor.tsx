@@ -587,7 +587,17 @@ function SectionFields({
     case "cards":
       return (
         <div className="space-y-3">
-          <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+          <div className={grid}>
+            <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+            <div>
+              <label className={labelCls}>Layout</label>
+              <select value={section.layout} disabled={disabled} onChange={(e) => onChange({ layout: e.target.value as typeof section.layout })} className={inputCls}>
+                <option value="cards">Cards — numbered spotlight grid</option>
+                <option value="checklist">Checklist — compact ticked list</option>
+                <option value="bento">Bento — mixed sizes (4+ items)</option>
+              </select>
+            </div>
+          </div>
           <ItemList
             items={section.items}
             blank={{ title: "", copy: "" }}

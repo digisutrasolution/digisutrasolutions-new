@@ -17,16 +17,26 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+/* One merged list instead of two. The page previously carried "The honest
+   list" and a second "Why businesses choose" grid that answered the same
+   question — twelve near-identical boxes with real overlap (measurable
+   outcomes ≈ measured like money, ethical partner ≈ no lock-in). This keeps
+   the sharper, falsifiable claims from the honest list and adds only the
+   two points it genuinely didn't cover (customisation, engineering), then
+   renders them as a checklist rather than a wall of cards. */
 const WHY_CHOOSE = {
   type: "cards",
-  heading: "Why businesses choose DigiSutra",
+  layout: "checklist",
+  heading: "Why choose DigiSutra?",
   items: [
-    { title: "Measurable outcomes", copy: "We commit to numbers — traffic, leads, revenue — backed by research, analytics and continuous optimization, not vanity metrics." },
+    { title: "Built for AI-era search", copy: "AEO and GEO are in every SEO retainer — we optimize for AI answers, not just blue links." },
+    { title: "Measured like money", copy: "Ads and content report in leads and ROAS, not impressions." },
     { title: "Strategies built for you", copy: "Every growth plan is customized to your business, audience and goals; nothing is copied from a template." },
-    { title: "Transparent reporting", copy: "Clear communication and honest performance reporting, so you always know what we did and what it returned." },
-    { title: "SEO, AI search & CRO", copy: "Implementation focused on search, AI answer engines and conversion — the things that actually move revenue." },
+    { title: "We use what we sell", copy: "The AI automation we pitch runs our own site, leads and follow-ups." },
     { title: "Secure, scalable builds", copy: "High-performance development that's secure and built to scale as you grow." },
-    { title: "Ethical, long-term partner", copy: "White-hat, ethical practices and experienced marketing and technology professionals focused on long-term growth." },
+    { title: "No lock-in", copy: "Retainers pause with 30 days' notice; the audit comes before any commitment." },
+    { title: "Senior eyes on your account", copy: "Strategy stays with experienced hands, not handed to interns." },
+    { title: "WhatsApp-speed support", copy: "Decisions move at chat speed — no ticket queues." },
   ],
 };
 
@@ -91,19 +101,32 @@ async function save(slug, sections, note) {
   console.log(`ok    ${slug} — ${sections.length} sections (v${version})`);
 }
 
-/* why-choose-us: add the cards below the existing "honest list". */
+/* why-choose-us: collapse every cards block into the single merged
+   checklist, so the duplicate "honest list" grid goes away. */
 {
   const page = await prisma.page.findUnique({ where: { slug: "about/why-choose-us" } });
   if (page) {
-    let sections = Array.isArray(page.sections) ? [...page.sections] : [];
-    const at = sections.findIndex(
-      (s) => s.type === "cards" && s.heading === WHY_CHOOSE.heading,
-    );
-    if (at >= 0) sections[at] = WHY_CHOOSE;
-    else sections = insertBeforeCta(sections, WHY_CHOOSE);
-    await save("about/why-choose-us", sections, "Move: why-choose cards from /about");
+    const sections = Array.isArray(page.sections) ? [...page.sections] : [];
+    const firstCards = sections.findIndex((s) => s.type === "cards");
+    const without = sections.filter((s) => s.type !== "cards");
+    const at = firstCards === -1 ? without.length : firstCards;
+    const next = [...without.slice(0, at), WHY_CHOOSE, ...without.slice(at)];
+    await save("about/why-choose-us", next, "Merge the two why-choose lists into one checklist");
   } else {
     console.log("skip  about/why-choose-us — page not found");
+  }
+}
+
+/* technology: four cards leave a 3+1 hole, so switch that block to bento. */
+{
+  const page = await prisma.page.findUnique({ where: { slug: "about/technology" } });
+  if (page) {
+    const sections = (Array.isArray(page.sections) ? page.sections : []).map((s) =>
+      s.type === "cards" ? { ...s, layout: "bento" } : s,
+    );
+    await save("about/technology", sections, "Bento layout for the four-card grid");
+  } else {
+    console.log("skip  about/technology — page not found");
   }
 }
 
