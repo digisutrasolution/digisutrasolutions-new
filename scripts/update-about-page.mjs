@@ -150,6 +150,26 @@ const sections = [
     ],
   },
   {
+    type: "countries",
+    heading: "countries served, one team",
+    copy: "From India to the Gulf, Europe, North America and beyond — we run marketing, development and AI for businesses across the world. (Edit this list any time in the CMS.)",
+    count: "12",
+    countries: [
+      { name: "India", code: "in" },
+      { name: "United States", code: "us" },
+      { name: "United Kingdom", code: "gb" },
+      { name: "United Arab Emirates", code: "ae" },
+      { name: "Saudi Arabia", code: "sa" },
+      { name: "Qatar", code: "qa" },
+      { name: "Singapore", code: "sg" },
+      { name: "Australia", code: "au" },
+      { name: "Canada", code: "ca" },
+      { name: "Germany", code: "de" },
+      { name: "Netherlands", code: "nl" },
+      { name: "South Africa", code: "za" },
+    ],
+  },
+  {
     type: "faq",
     heading: "About DigiSutra Solutions — questions people ask",
     items: [

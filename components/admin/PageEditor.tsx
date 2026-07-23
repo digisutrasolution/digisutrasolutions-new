@@ -616,6 +616,28 @@ function SectionFields({
           )}
         />
       );
+    case "countries":
+      return (
+        <div className="space-y-3">
+          <div className={grid}>
+            <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>Big number (e.g. 12 or 12+)</label><input value={section.count} disabled={disabled} placeholder="12" onChange={(e) => onChange({ count: e.target.value })} className={inputCls} /></div>
+          </div>
+          <div><label className={labelCls}>Copy (optional)</label><input value={section.copy} disabled={disabled} onChange={(e) => onChange({ copy: e.target.value })} className={inputCls} /></div>
+          <ItemList
+            items={section.countries}
+            blank={{ name: "", code: "" }}
+            disabled={disabled}
+            set={(countries) => onChange({ countries })}
+            render={(item, update) => (
+              <div className={grid}>
+                <input value={item.name} disabled={disabled} placeholder="United Arab Emirates" onChange={(e) => update({ name: e.target.value })} className={inputCls} />
+                <input value={item.code} disabled={disabled} maxLength={2} placeholder="ae (2-letter code)" onChange={(e) => update({ code: e.target.value.toLowerCase() })} className={inputCls} />
+              </div>
+            )}
+          />
+        </div>
+      );
     case "faq":
       return (
         <div className="space-y-3">

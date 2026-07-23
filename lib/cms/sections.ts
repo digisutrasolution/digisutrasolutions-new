@@ -76,6 +76,26 @@ export const CtaSectionSchema = z.object({
   ctaHref: z.string().max(300).default("/#contact"),
 });
 
+export const CountriesSectionSchema = z.object({
+  type: z.literal("countries"),
+  heading: z.string().max(160).default(""),
+  copy: z.string().max(400).default(""),
+  /* The big number counts up to this on scroll. Left editable rather than
+     derived from the list, so it can read "12" while showing a curated
+     subset of flags. */
+  count: z.string().max(12).default(""),
+  countries: z
+    .array(
+      z.object({
+        name: z.string().max(60).default(""),
+        /* ISO 3166-1 alpha-2, lowercased for flagcdn (e.g. "in", "ae"). */
+        code: z.string().max(2).default(""),
+      }),
+    )
+    .max(60)
+    .default([]),
+});
+
 export const FormSectionSchema = z.object({
   type: z.literal("form"),
   heading: z.string().max(160).default(""),
@@ -93,6 +113,7 @@ export const SectionSchema = z.discriminatedUnion("type", [
   RichTextSectionSchema,
   CardsSectionSchema,
   StatsSectionSchema,
+  CountriesSectionSchema,
   FaqSectionSchema,
   CtaSectionSchema,
   FormSectionSchema,
@@ -112,6 +133,7 @@ export const SECTION_DEFS: Record<
   richText: { label: "Text", description: "Heading plus paragraphs" },
   cards: { label: "Cards", description: "Grid of title + copy cards" },
   stats: { label: "Statistics", description: "Row of number counters" },
+  countries: { label: "Countries", description: "Count-up with an animated flag grid" },
   faq: { label: "FAQ", description: "Accordion with FAQ schema" },
   cta: { label: "CTA band", description: "Dark call-to-action strip" },
   form: { label: "Form", description: "Embed a form from the form builder" },
@@ -133,6 +155,11 @@ export function defaultSection(type: SectionType): Section {
       return StatsSectionSchema.parse({
         type,
         items: [{ value: "", label: "" }],
+      });
+    case "countries":
+      return CountriesSectionSchema.parse({
+        type,
+        countries: [{ name: "", code: "" }],
       });
     case "faq":
       return FaqSectionSchema.parse({ type, items: [{ q: "", a: "" }] });
