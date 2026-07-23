@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { ArrowUp, Check, MessageCircle, Sparkles, X } from "lucide-react";
 import {
   classifySource,
+  ENTRY_PATH_KEY,
   FIRST_TOUCH_KEY,
   NUDGE_COOLDOWN_DAYS,
   NUDGE_EXCLUDED_PATHS,
@@ -58,6 +59,24 @@ function visitSource(): string {
     }
   }
   return trafficSource;
+}
+
+/* The page this visit started on. Takes the current path from usePathname
+   — already stripped of the deploy's basePath — so it compares directly
+   against the rule paths. Held in sessionStorage so a mid-session reload
+   still reports the page they originally arrived on. */
+let entry: string | null = null;
+function entryPath(current: string): string {
+  if (entry === null) {
+    try {
+      const saved = sessionStorage.getItem(ENTRY_PATH_KEY);
+      entry = saved ?? current;
+      if (!saved) sessionStorage.setItem(ENTRY_PATH_KEY, current);
+    } catch {
+      entry = current;
+    }
+  }
+  return entry;
 }
 const PEEK_TEXT = "👋 Need help? Chat with us";
 
@@ -131,7 +150,8 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
        are "fast" — they fire on the shorter welcome timer. */
     const sourceText = sourceTextFor(nudge, visitSource());
     const welcome = isNewVisitor() && nudge.welcomeEnabled;
-    const text = sourceText ?? (welcome ? nudge.welcomeText : nudgeTextFor(nudge, pathname));
+    const forPage = nudge.entryPageEnabled ? entryPath(pathname) : pathname;
+    const text = sourceText ?? (welcome ? nudge.welcomeText : nudgeTextFor(nudge, forPage));
     if (!text) return;
     const fast = Boolean(sourceText) || welcome;
 

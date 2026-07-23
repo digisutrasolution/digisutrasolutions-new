@@ -219,6 +219,22 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
       <p className="mt-5 text-xs font-semibold text-stone-500 dark:text-stone-400">
         Message per page — the longest matching path wins; &ldquo;/&rdquo; is the fallback.
       </p>
+      <label className="mt-2 flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-200">
+        <input
+          type="checkbox"
+          checked={nudge.entryPageEnabled}
+          onChange={(e) => setNudge((p) => ({ ...p, entryPageEnabled: e.target.checked }))}
+          className="mt-0.5 h-4 w-4 accent-orange-600"
+        />
+        <span>
+          Match the page they arrived on
+          <span className="mt-0.5 block text-xs text-stone-500 dark:text-stone-400">
+            Uses the first page of the visit rather than the one they have
+            browsed to — someone who landed on Pricing still gets the pricing
+            message. Untick to match whatever page they are reading now.
+          </span>
+        </span>
+      </label>
       <div className="mt-2 space-y-1.5">
         {nudge.rules.map((r, i) => (
           <div

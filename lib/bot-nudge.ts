@@ -66,6 +66,10 @@ export const BotNudgeSchema = z.object({
       welcome and the page message. */
   sourceEnabled: z.boolean().default(true),
   sourceRules: z.array(SourceRuleSchema).max(10).default(DEFAULT_SOURCE_RULES),
+  /** Match the page message against the page the visitor arrived on rather
+      than the one they happen to be reading. The entry page is the intent
+      they came with; later pages are just browsing. */
+  entryPageEnabled: z.boolean().default(true),
   rules: z.array(NudgeRuleSchema).max(12),
 });
 
@@ -92,6 +96,7 @@ export const DEFAULT_BOT_NUDGE: BotNudge = {
   welcomeText: "👋 First time here? Grab your free 15-page audit — takes 30 seconds.",
   sourceEnabled: true,
   sourceRules: DEFAULT_SOURCE_RULES,
+  entryPageEnabled: true,
   rules: [
     { path: "/pricing", text: "Not sure which plan fits? Tell me your budget and I'll pick one." },
     { path: "/services", text: "Want to know what this would cost for your business?" },
@@ -117,6 +122,10 @@ export async function getBotNudge(): Promise<BotNudge> {
 /** Session key holding the classified source — a utm only exists on the
     landing URL, so it has to be captured before the visitor navigates. */
 export const SOURCE_KEY = "ds-traffic-source";
+
+/** Session key holding the path the visitor arrived on. Stored basePath-free
+    (it comes from usePathname) so it matches the rule paths directly. */
+export const ENTRY_PATH_KEY = "ds-entry-path";
 
 const SEARCH_HOSTS = /(^|\.)(google|bing|duckduckgo|yahoo|ecosia|brave|baidu|yandex)\./;
 const SOCIAL_HOSTS =
