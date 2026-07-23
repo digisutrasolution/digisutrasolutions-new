@@ -4,6 +4,7 @@ import Reveal from "@/components/Reveal";
 import CountriesBlock from "@/components/sections/CountriesBlock";
 import FormEmbed from "@/components/sections/FormEmbed";
 import IndustriesBlock from "@/components/sections/IndustriesBlock";
+import SpotlightCard from "@/components/sections/SpotlightCard";
 import VideoBlock from "@/components/sections/VideoBlock";
 import { withBase } from "@/lib/base-path";
 import type { Section } from "@/lib/cms/sections";
@@ -168,7 +169,7 @@ function CardsBlock({ s }: { s: Extract<Section, { type: "cards" }> }) {
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {s.items.map((item, i) => (
           <Reveal key={i} delay={(i % 3) * 0.06}>
-            <div className="h-full rounded-3xl border border-stone-200 bg-white p-6 transition-transform duration-300 hover:-translate-y-1.5">
+            <SpotlightCard className="h-full rounded-3xl border border-stone-200 bg-white p-6">
               <p className="font-display text-3xl font-extrabold text-orange-200">
                 {String(i + 1).padStart(2, "0")}
               </p>
@@ -178,7 +179,7 @@ function CardsBlock({ s }: { s: Extract<Section, { type: "cards" }> }) {
               <p className="mt-2 text-sm leading-relaxed text-stone-500">
                 {item.copy}
               </p>
-            </div>
+            </SpotlightCard>
           </Reveal>
         ))}
       </div>

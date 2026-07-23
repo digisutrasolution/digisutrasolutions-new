@@ -563,6 +563,38 @@ body {
   animation: pulse-ring 1.8s ease-out infinite;
 }
 
+/* Spotlight card: an orange glow tracks the cursor and the border warms
+   on hover. Nothing moves at rest, so a page full of these stays calm. */
+.spotlight-card {
+  position: relative;
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.spotlight-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    260px circle at var(--sx, 50%) var(--sy, 50%),
+    rgba(242, 100, 25, 0.1),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.spotlight-card:hover {
+  transform: translateY(-6px);
+  border-color: #f5b183;
+  box-shadow: 0 14px 30px rgba(124, 45, 18, 0.12);
+}
+.spotlight-card:hover::after {
+  opacity: 1;
+}
+
 .animate-bot-breathe {
   animation: botBreathe 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
@@ -702,6 +734,12 @@ body {
   }
   .shine-sweep:hover::after {
     animation: none;
+  }
+  /* Keep the spotlight glow (it is opacity, not motion) but drop the lift. */
+  .spotlight-card,
+  .spotlight-card:hover {
+    transform: none;
+    transition: none;
   }
   .hl-line > span,
   .grad-shimmer,

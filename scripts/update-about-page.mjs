@@ -91,18 +91,9 @@ const sections = [
       },
     ],
   },
-  {
-    type: "cards",
-    heading: "How we work",
-    items: [
-      { title: "Discover", copy: "Understand your business, audience, competitors and objectives." },
-      { title: "Strategize", copy: "Build a customized marketing and technology roadmap." },
-      { title: "Execute", copy: "Launch campaigns, develop solutions and deploy AI-powered automation." },
-      { title: "Optimize", copy: "Continuously analyse performance, improve conversions and maximise ROI." },
-      { title: "Scale", copy: "Expand what works to accelerate sustainable, compounding growth." },
-      { title: "Report & grow", copy: "Share clear, transparent reports on what's working, then reinvest those insights to compound results month after month." },
-    ],
-  },
+  /* No "How we work" block here on purpose: the process is already shown
+     on the home page, so repeating it on About was duplication. Leaving it
+     out keeps this script from restoring it on the next run. */
   {
     type: "industries",
     heading: "We serve businesses",
