@@ -4,7 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useState } from "react";
 import { Plus, Save, Trash2 } from "lucide-react";
-import type { BotNudge } from "@/lib/bot-nudge";
+import { KNOWN_SOURCES, type BotNudge } from "@/lib/bot-nudge";
 
 /* Width is applied per field — inputCls must NOT carry w-full, or the rule
    rows stack instead of sitting on one line (Tailwind orders same-family
@@ -23,6 +23,12 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
     setNudge((p) => ({
       ...p,
       rules: p.rules.map((r, idx) => (idx === i ? { ...r, ...patch } : r)),
+    }));
+
+  const setSourceRule = (i: number, patch: Partial<BotNudge["sourceRules"][number]>) =>
+    setNudge((p) => ({
+      ...p,
+      sourceRules: p.sourceRules.map((r, idx) => (idx === i ? { ...r, ...patch } : r)),
     }));
 
   async function save() {
@@ -141,6 +147,72 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
               className={inputCls}
             />
           </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-3.5 dark:border-stone-700 dark:bg-stone-900/40">
+        <label className="flex items-start gap-2.5 text-sm font-semibold text-stone-700 dark:text-stone-200">
+          <input
+            type="checkbox"
+            checked={nudge.sourceEnabled}
+            onChange={(e) => setNudge((p) => ({ ...p, sourceEnabled: e.target.checked }))}
+            className="mt-0.5 h-4 w-4 accent-orange-600"
+          />
+          <span>
+            Message per traffic source
+            <span className="mt-0.5 block text-xs font-normal text-stone-500 dark:text-stone-400">
+              Matched from the landing link, so it outranks both messages
+              above. Use a key below, or type a campaign&rsquo;s own{" "}
+              <code className="font-mono">utm_source</code> to target it by name.
+            </span>
+          </span>
+        </label>
+        <div className="mt-3 space-y-1.5">
+          {nudge.sourceRules.map((r, i) => (
+            <div
+              key={i}
+              className="grid grid-cols-[minmax(96px,140px)_minmax(0,1fr)_auto] items-center gap-2"
+            >
+              <input
+                value={r.source}
+                onChange={(e) => setSourceRule(i, { source: e.target.value })}
+                placeholder="google-ads"
+                list="admin-nudge-sources"
+                className={`${fieldCls} w-full font-mono text-xs`}
+              />
+              <input
+                value={r.text}
+                onChange={(e) => setSourceRule(i, { text: e.target.value })}
+                placeholder="Message shown in the bubble"
+                maxLength={160}
+                className={`${fieldCls} w-full`}
+              />
+              <button
+                onClick={() =>
+                  setNudge((p) => ({ ...p, sourceRules: p.sourceRules.filter((_, idx) => idx !== i) }))
+                }
+                aria-label={`Remove rule for ${r.source || "this source"}`}
+                className="cursor-pointer rounded-lg p-1.5 text-stone-400 hover:text-red-600"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+          <datalist id="admin-nudge-sources">
+            {KNOWN_SOURCES.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
+          {nudge.sourceRules.length < 10 && (
+            <button
+              onClick={() =>
+                setNudge((p) => ({ ...p, sourceRules: [...p.sourceRules, { source: "", text: "" }] }))
+              }
+              className="flex cursor-pointer items-center gap-1.5 rounded-lg px-1 py-1.5 text-xs font-semibold text-orange-700 hover:underline"
+            >
+              <Plus size={13} /> Add a source message
+            </button>
+          )}
         </div>
       </div>
 

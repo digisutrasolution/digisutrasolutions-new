@@ -12,6 +12,33 @@ export const NudgeRuleSchema = z.object({
   text: z.string().trim().min(4).max(160),
 });
 
+/** Where the visitor came from. Either one of the keys classifySource()
+    produces, or a raw utm_source so campaigns can be targeted by name. */
+export const SourceRuleSchema = z.object({
+  source: z.string().trim().min(1).max(60),
+  text: z.string().trim().min(4).max(160),
+});
+
+/** The source keys classifySource() can return without a utm_source. */
+export const KNOWN_SOURCES = [
+  "google-ads",
+  "meta-ads",
+  "email",
+  "organic-search",
+  "social",
+  "referral",
+  "direct",
+] as const;
+
+/** Ships enabled with copy for the channels worth paying for. */
+export const DEFAULT_SOURCE_RULES = [
+  { source: "google-ads", text: "Saw our ad? Get your free 15-page audit — no obligation, 48 hours." },
+  { source: "meta-ads", text: "Came from our ad? Tell me your goal and I'll tell you what it costs." },
+  { source: "email", text: "Thanks for opening our email — want the full 15-page audit?" },
+  { source: "organic-search", text: "Looking for SEO help? I can set up your free audit in 30 seconds." },
+  { source: "social", text: "Found us on social? Here's the free 15-page audit, no strings." },
+];
+
 export const BotNudgeSchema = z.object({
   enabled: z.boolean(),
   delaySeconds: z.number().int().min(5).max(180),
@@ -34,6 +61,11 @@ export const BotNudgeSchema = z.object({
     .min(4)
     .max(160)
     .default("👋 First time here? Grab your free 15-page audit — takes 30 seconds."),
+  /** Traffic-source greeting. Paid clicks cost money and carry the
+      strongest intent signal, so a matching source outranks both the
+      welcome and the page message. */
+  sourceEnabled: z.boolean().default(true),
+  sourceRules: z.array(SourceRuleSchema).max(10).default(DEFAULT_SOURCE_RULES),
   rules: z.array(NudgeRuleSchema).max(12),
 });
 
@@ -58,6 +90,8 @@ export const DEFAULT_BOT_NUDGE: BotNudge = {
   welcomeEnabled: true,
   welcomeDelaySeconds: 8,
   welcomeText: "👋 First time here? Grab your free 15-page audit — takes 30 seconds.",
+  sourceEnabled: true,
+  sourceRules: DEFAULT_SOURCE_RULES,
   rules: [
     { path: "/pricing", text: "Not sure which plan fits? Tell me your budget and I'll pick one." },
     { path: "/services", text: "Want to know what this would cost for your business?" },
@@ -78,6 +112,60 @@ export async function getBotNudge(): Promise<BotNudge> {
     /* DB down → defaults keep the bot behaving predictably */
   }
   return DEFAULT_BOT_NUDGE;
+}
+
+/** Session key holding the classified source — a utm only exists on the
+    landing URL, so it has to be captured before the visitor navigates. */
+export const SOURCE_KEY = "ds-traffic-source";
+
+const SEARCH_HOSTS = /(^|\.)(google|bing|duckduckgo|yahoo|ecosia|brave|baidu|yandex)\./;
+const SOCIAL_HOSTS =
+  /(^|\.)(facebook|instagram|linkedin|twitter|x|t|youtube|pinterest|reddit|whatsapp|threads)\.(com|co|me|be)/;
+
+/**
+ * Works out where a visit came from, from the landing query string and the
+ * referrer. Paid-click ids (gclid/fbclid) are the most reliable signal and
+ * are checked first; an unrecognised utm_source is returned verbatim so a
+ * campaign can be targeted by its own name.
+ *
+ * Pure so it can be unit-checked — the caller passes its own hostname
+ * rather than this reaching for `window`.
+ */
+export function classifySource(search: string, referrer: string, selfHost: string): string {
+  const q = new URLSearchParams(search);
+  const utmSource = (q.get("utm_source") ?? "").toLowerCase().trim();
+  const utmMedium = (q.get("utm_medium") ?? "").toLowerCase().trim();
+  const paid = /^(cpc|ppc|paid|paidsearch|paid_social|paid-social)$/.test(utmMedium);
+
+  if (q.has("gclid") || (utmSource.includes("google") && paid)) return "google-ads";
+  if (
+    q.has("fbclid") ||
+    ((utmSource.includes("facebook") || utmSource.includes("instagram") || utmSource.includes("meta")) &&
+      paid)
+  ) {
+    return "meta-ads";
+  }
+  if (utmMedium === "email" || utmSource === "email" || utmSource === "newsletter") return "email";
+  if (utmSource) return utmSource;
+
+  let host = "";
+  try {
+    host = referrer ? new URL(referrer).hostname.toLowerCase() : "";
+  } catch {
+    host = "";
+  }
+  // No referrer, or arriving from our own pages, is a direct visit.
+  if (!host || host === selfHost.toLowerCase()) return "direct";
+  if (SEARCH_HOSTS.test(host)) return "organic-search";
+  if (SOCIAL_HOSTS.test(host)) return "social";
+  return "referral";
+}
+
+/** Exact, case-insensitive source match; null when nothing is configured. */
+export function sourceTextFor(nudge: BotNudge, source: string): string | null {
+  if (!nudge.sourceEnabled || !source) return null;
+  const s = source.toLowerCase();
+  return nudge.sourceRules.find((r) => r.source.trim().toLowerCase() === s)?.text ?? null;
 }
 
 /** Longest matching path prefix wins; returns null when nothing matches. */

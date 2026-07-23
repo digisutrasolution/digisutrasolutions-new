@@ -6,10 +6,13 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowUp, Check, MessageCircle, Sparkles, X } from "lucide-react";
 import {
+  classifySource,
   FIRST_TOUCH_KEY,
   NUDGE_COOLDOWN_DAYS,
   NUDGE_EXCLUDED_PATHS,
   nudgeTextFor,
+  SOURCE_KEY,
+  sourceTextFor,
   type BotNudge,
 } from "@/lib/bot-nudge";
 
@@ -36,6 +39,25 @@ function isNewVisitor(): boolean {
     }
   }
   return newVisitor;
+}
+
+/* Where this visit came from. Classified once and kept in sessionStorage:
+   the utm parameters only exist on the landing URL, so the answer has to
+   be captured before the visitor clicks through to a second page. */
+let trafficSource: string | null = null;
+function visitSource(): string {
+  if (trafficSource === null) {
+    try {
+      const saved = sessionStorage.getItem(SOURCE_KEY);
+      trafficSource =
+        saved ??
+        classifySource(window.location.search, document.referrer, window.location.hostname);
+      if (!saved) sessionStorage.setItem(SOURCE_KEY, trafficSource);
+    } catch {
+      trafficSource = "direct";
+    }
+  }
+  return trafficSource;
 }
 const PEEK_TEXT = "👋 Need help? Chat with us";
 
@@ -102,11 +124,16 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
     if (!nudge?.enabled || open || teaser) return;
     if (NUDGE_EXCLUDED_PATHS.some((p) => pathname.startsWith(p))) return;
 
-    /* A first-time visitor gets the welcome copy on the shorter timer;
-       everyone else keeps the page-matched nudge. */
+    /* Precedence: where they came from beats who they are, which beats
+       what page they're on. A paid click carries the strongest intent (and
+       cost us money), so its copy wins; a first-time visitor gets the
+       welcome; everyone else keeps the page-matched nudge. The first two
+       are "fast" — they fire on the shorter welcome timer. */
+    const sourceText = sourceTextFor(nudge, visitSource());
     const welcome = isNewVisitor() && nudge.welcomeEnabled;
-    const text = welcome ? nudge.welcomeText : nudgeTextFor(nudge, pathname);
+    const text = sourceText ?? (welcome ? nudge.welcomeText : nudgeTextFor(nudge, pathname));
     if (!text) return;
+    const fast = Boolean(sourceText) || welcome;
 
     try {
       const seen = Number(localStorage.getItem(NUDGE_KEY) ?? 0);
@@ -129,7 +156,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
 
     const timer = setTimeout(
       fire,
-      (welcome ? nudge.welcomeDelaySeconds : nudge.delaySeconds) * 1000,
+      (fast ? nudge.welcomeDelaySeconds : nudge.delaySeconds) * 1000,
     );
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -162,8 +189,9 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
      the panel is open, and while the nudge teaser is active. */
   useEffect(() => {
     if (open || teaser) return;
-    // A first-time visitor already gets the welcome card — one greeting is
-    // plenty, so the peek is left to returning visitors.
+    // Anyone already getting a card — source-matched or first-visit — has
+    // had their greeting; one is plenty, so the peek is left to the rest.
+    if (nudge && sourceTextFor(nudge, visitSource())) return;
     if (isNewVisitor() && nudge?.welcomeEnabled) return;
     if (NUDGE_EXCLUDED_PATHS.some((p) => pathname.startsWith(p))) return;
     try {
