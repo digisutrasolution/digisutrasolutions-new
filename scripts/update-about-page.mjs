@@ -45,7 +45,7 @@ const sections = [
   },
   {
     type: "cards",
-    heading: "Our mission and vision",
+    heading: "Our mission, vision and values",
     items: [
       {
         title: "Our mission",
@@ -54,6 +54,10 @@ const sections = [
       {
         title: "Our vision",
         copy: "To become one of the most trusted digital transformation partners worldwide, helping businesses stay ahead in an AI-driven world through intelligent marketing, automation and high-performance builds.",
+      },
+      {
+        title: "Our values",
+        copy: "Transparency, measurable impact and integrity guide everything we do. We report honestly, commit to real outcomes over vanity metrics, and stick to ethical, white-hat practices. We stay curious — testing, learning and adopting new technology fast — and treat every engagement as a long-term partnership built on trust.",
       },
     ],
   },
