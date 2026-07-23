@@ -5,6 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { createElement, useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Home, Pencil, Plus, Trash2, X } from "lucide-react";
 import { NAV_ICONS, navIcon } from "@/components/nav-icons";
+import { useAdminList, AdminSearch, AdminPager } from "@/components/admin/useAdminList";
 
 type Faq = {
   id: string;
@@ -140,6 +141,9 @@ export default function FaqManager() {
   );
   const featuredCount = sorted.filter((f) => f.featured && f.visible).length;
 
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize } =
+    useAdminList(sorted, (f) => `${f.question} ${f.lead} ${f.rest} ${f.category}`);
+
   const patch = async (id: string, body: object) => {
     await fetch(withBase(`/api/faqs/${id}`), {
       method: "PATCH",
@@ -157,7 +161,21 @@ export default function FaqManager() {
         {sorted.length} questions · {featuredCount} on the home page (marked{" "}
         <Home size={11} className="inline text-orange-600" aria-label="home" />)
       </p>
-      {sorted.map((f, i) => (
+      <div className="px-2">
+        <AdminSearch
+          value={query}
+          onChange={setQuery}
+          placeholder="Search questions by text or category…"
+          count={total}
+          grandTotal={grandTotal}
+        />
+      </div>
+      {grandTotal > 0 && total === 0 && (
+        <p className="px-2 py-6 text-center text-xs text-stone-400">No questions match your search.</p>
+      )}
+      {pageItems.map((f) => {
+        const i = sorted.findIndex((s) => s.id === f.id);
+        return (
         <div key={f.id}>
           <div className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${!f.visible ? "opacity-50" : ""}`}>
             <div className="flex flex-col">
@@ -192,7 +210,18 @@ export default function FaqManager() {
             <FaqForm faq={f} categories={categories} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
           )}
         </div>
-      ))}
+        );
+      })}
+      <div className="px-2">
+        <AdminPager
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          pageSize={pageSize}
+          onPage={setPage}
+          label="questions"
+        />
+      </div>
       {editing === "new" ? (
         <FaqForm faq={{}} categories={categories} onSaved={() => { setEditing(null); void reload(); }} onCancel={() => setEditing(null)} />
       ) : (

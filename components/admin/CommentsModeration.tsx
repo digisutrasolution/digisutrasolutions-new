@@ -5,6 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ExternalLink, MessageSquareReply, Star, Trash2, X } from "lucide-react";
+import { useAdminList, AdminSearch, AdminPager } from "@/components/admin/useAdminList";
 
 type CommentRow = {
   id: string;
@@ -41,6 +42,15 @@ export default function CommentsModeration({
   const [busy, setBusy] = useState(false);
 
   const visible = comments.filter((c) => c.status === tab);
+
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize } =
+    useAdminList(visible, (c) => `${c.name} ${c.email} ${c.body} ${c.postTitle} ${c.postSlug ?? ""}`);
+
+  const switchTab = (key: string) => {
+    setTab(key);
+    setQuery("");
+    setPage(1);
+  };
 
   async function api(path: string, init: RequestInit): Promise<boolean> {
     setError(null);
@@ -85,7 +95,7 @@ export default function CommentsModeration({
         {TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => switchTab(t.key)}
             className={`cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               tab === t.key
                 ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900"
@@ -100,13 +110,30 @@ export default function CommentsModeration({
         <p role="alert" className="mt-3 text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
       )}
 
+      {grandTotal > 0 && (
+        <div className="mt-4">
+          <AdminSearch
+            value={query}
+            onChange={setQuery}
+            placeholder="Search reviews by name, text, post…"
+            count={total}
+            grandTotal={grandTotal}
+          />
+        </div>
+      )}
+
       <div className="mt-4 space-y-3">
-        {visible.length === 0 && (
+        {grandTotal === 0 && (
           <p className="rounded-2xl border border-stone-200 bg-white px-5 py-10 text-center text-sm text-stone-500 dark:border-stone-800 dark:bg-stone-900">
             Nothing in {TABS.find((t) => t.key === tab)?.label.toLowerCase()}.
           </p>
         )}
-        {visible.map((c) => (
+        {grandTotal > 0 && total === 0 && (
+          <p className="rounded-2xl border border-stone-200 bg-white px-5 py-10 text-center text-sm text-stone-500 dark:border-stone-800 dark:bg-stone-900">
+            No reviews match your search.
+          </p>
+        )}
+        {pageItems.map((c) => (
           <div
             key={c.id}
             className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900"
@@ -244,6 +271,15 @@ export default function CommentsModeration({
           </div>
         ))}
       </div>
+
+      <AdminPager
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        onPage={setPage}
+        label="reviews"
+      />
     </div>
   );
 }
