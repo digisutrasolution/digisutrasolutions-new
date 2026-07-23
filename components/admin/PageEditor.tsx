@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { PageStatus, WorkflowStage } from "@prisma/client";
 import {
+  INDUSTRY_ICON_KEYS,
   SECTION_DEFS,
   defaultSection,
   type Section,
@@ -633,6 +634,53 @@ function SectionFields({
               <div className={grid}>
                 <input value={item.name} disabled={disabled} placeholder="United Arab Emirates" onChange={(e) => update({ name: e.target.value })} className={inputCls} />
                 <input value={item.code} disabled={disabled} maxLength={2} placeholder="ae (2-letter code)" onChange={(e) => update({ code: e.target.value.toLowerCase() })} className={inputCls} />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "industries":
+      return (
+        <div className="space-y-3">
+          <div className={grid}>
+            <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>Highlighted word(s)</label><input value={section.highlight} disabled={disabled} onChange={(e) => onChange({ highlight: e.target.value })} className={inputCls} /></div>
+          </div>
+          <div><label className={labelCls}>Intro copy</label><textarea rows={2} value={section.copy} disabled={disabled} onChange={(e) => onChange({ copy: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>Callout strip</label><textarea rows={2} value={section.callout} disabled={disabled} onChange={(e) => onChange({ callout: e.target.value })} className={inputCls} /></div>
+          <p className={labelCls}>Industries — icon keys: {INDUSTRY_ICON_KEYS.slice(0, 11).join(", ")}</p>
+          <ItemList
+            items={section.items}
+            blank={{ name: "", blurb: "", icon: "" }}
+            disabled={disabled}
+            set={(items) => onChange({ items })}
+            render={(item, update) => (
+              <div className="space-y-2">
+                <div className={grid}>
+                  <input value={item.name} disabled={disabled} placeholder="Healthcare" onChange={(e) => update({ name: e.target.value })} className={inputCls} />
+                  <input value={item.icon} disabled={disabled} placeholder="health" list="admin-industry-icons" onChange={(e) => update({ icon: e.target.value })} className={inputCls} />
+                </div>
+                <input value={item.blurb} disabled={disabled} placeholder="Attract more patients and build trust online." onChange={(e) => update({ blurb: e.target.value })} className={inputCls} />
+              </div>
+            )}
+          />
+          <datalist id="admin-industry-icons">
+            {INDUSTRY_ICON_KEYS.map((k) => (<option key={k} value={k} />))}
+          </datalist>
+          <div className={grid}>
+            <div><label className={labelCls}>Channel strip heading</label><input value={section.channelsHeading} disabled={disabled} onChange={(e) => onChange({ channelsHeading: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>Closing goal line</label><input value={section.goal} disabled={disabled} onChange={(e) => onChange({ goal: e.target.value })} className={inputCls} /></div>
+          </div>
+          <p className={labelCls}>Channels</p>
+          <ItemList
+            items={section.channels}
+            blank={{ name: "", icon: "" }}
+            disabled={disabled}
+            set={(channels) => onChange({ channels })}
+            render={(item, update) => (
+              <div className={grid}>
+                <input value={item.name} disabled={disabled} placeholder="SEO" onChange={(e) => update({ name: e.target.value })} className={inputCls} />
+                <input value={item.icon} disabled={disabled} placeholder="search" list="admin-industry-icons" onChange={(e) => update({ icon: e.target.value })} className={inputCls} />
               </div>
             )}
           />

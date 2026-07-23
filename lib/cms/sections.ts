@@ -96,6 +96,60 @@ export const CountriesSectionSchema = z.object({
     .default([]),
 });
 
+/** Icon keys the industries block understands (see INDUSTRY_ICONS). */
+export const INDUSTRY_ICON_KEYS = [
+  "health",
+  "education",
+  "realEstate",
+  "manufacturing",
+  "ecommerce",
+  "it",
+  "professional",
+  "hospitality",
+  "finance",
+  "logistics",
+  "startup",
+  "search",
+  "ppc",
+  "social",
+  "content",
+  "email",
+  "ai",
+  "conversion",
+] as const;
+
+export const IndustriesSectionSchema = z.object({
+  type: z.literal("industries"),
+  heading: z.string().max(160).default(""),
+  /* Trailing words of the heading, rendered in the brand orange. */
+  highlight: z.string().max(80).default(""),
+  copy: z.string().max(400).default(""),
+  /* Emphasised strip under the intro. */
+  callout: z.string().max(300).default(""),
+  items: z
+    .array(
+      z.object({
+        name: z.string().max(60).default(""),
+        blurb: z.string().max(160).default(""),
+        icon: z.string().max(24).default(""),
+      }),
+    )
+    .max(24)
+    .default([]),
+  /* Dark channel strip along the bottom; hidden when there are no items. */
+  channelsHeading: z.string().max(120).default(""),
+  channels: z
+    .array(
+      z.object({
+        name: z.string().max(40).default(""),
+        icon: z.string().max(24).default(""),
+      }),
+    )
+    .max(12)
+    .default([]),
+  goal: z.string().max(160).default(""),
+});
+
 export const FormSectionSchema = z.object({
   type: z.literal("form"),
   heading: z.string().max(160).default(""),
@@ -114,6 +168,7 @@ export const SectionSchema = z.discriminatedUnion("type", [
   CardsSectionSchema,
   StatsSectionSchema,
   CountriesSectionSchema,
+  IndustriesSectionSchema,
   FaqSectionSchema,
   CtaSectionSchema,
   FormSectionSchema,
@@ -134,6 +189,7 @@ export const SECTION_DEFS: Record<
   cards: { label: "Cards", description: "Grid of title + copy cards" },
   stats: { label: "Statistics", description: "Row of number counters" },
   countries: { label: "Countries", description: "Count-up with an animated flag grid" },
+  industries: { label: "Industries", description: "Icon grid of sectors + channel strip" },
   faq: { label: "FAQ", description: "Accordion with FAQ schema" },
   cta: { label: "CTA band", description: "Dark call-to-action strip" },
   form: { label: "Form", description: "Embed a form from the form builder" },
@@ -160,6 +216,11 @@ export function defaultSection(type: SectionType): Section {
       return CountriesSectionSchema.parse({
         type,
         countries: [{ name: "", code: "" }],
+      });
+    case "industries":
+      return IndustriesSectionSchema.parse({
+        type,
+        items: [{ name: "", blurb: "", icon: "" }],
       });
     case "faq":
       return FaqSectionSchema.parse({ type, items: [{ q: "", a: "" }] });

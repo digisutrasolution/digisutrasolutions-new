@@ -3,6 +3,7 @@ import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import CountriesBlock from "@/components/sections/CountriesBlock";
 import FormEmbed from "@/components/sections/FormEmbed";
+import IndustriesBlock from "@/components/sections/IndustriesBlock";
 import VideoBlock from "@/components/sections/VideoBlock";
 import { withBase } from "@/lib/base-path";
 import type { Section } from "@/lib/cms/sections";
@@ -318,6 +319,8 @@ export default function SectionRenderer({ sections }: { sections: Section[] }) {
             return <StatsBlock key={i} s={section} />;
           case "countries":
             return <CountriesBlock key={i} s={section} />;
+          case "industries":
+            return <IndustriesBlock key={i} s={section} />;
           case "faq":
             return <FaqBlock key={i} s={section} idx={i} />;
           case "cta":
