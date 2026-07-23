@@ -16,7 +16,7 @@ type Turn = { role: "user" | "assistant"; content: string };
 
 const NUDGE_KEY = "ds-bot-nudge-seen";
 const PEEK_KEY = "ds-bot-peek-seen";
-const PEEK_TEXT = "👋 Need help? Ask DigiSutra Bot";
+const PEEK_TEXT = "👋 Need help? Chat with us";
 
 const OPENING =
   "Hi! I'm DigiSutra Bot. Tell me what you're trying to grow and I'll point you to the right service — or share prices, timelines and our free 15-page audit.";
@@ -300,8 +300,11 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           open ? "hidden" : "flex"
         }`}
       >
-        <span className="hidden whitespace-nowrap rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-stone-900 shadow-[0_8px_24px_rgba(0,0,0,0.18)] lg:block">
-          Need help? Ask DigiSutra Bot
+        {/* Desktop affordance — collapsed at rest so it never overlaps
+            page content (the persistent pill used to cover the newsletter
+            field); the label slides out only on hover. */}
+        <span className="pointer-events-none hidden max-w-0 overflow-hidden whitespace-nowrap rounded-full bg-white px-0 py-2 text-xs font-semibold text-stone-900 opacity-0 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-all duration-300 group-hover:max-w-[14rem] group-hover:px-3.5 group-hover:opacity-100 lg:inline-block">
+          Need help? Chat with us
         </span>
         <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#F26419] text-white shadow-[0_10px_26px_rgba(0,0,0,0.28)] transition-transform duration-200 group-hover:scale-105">
           {/* Breathing halo (Sample B) — a soft disc that expands and fades
