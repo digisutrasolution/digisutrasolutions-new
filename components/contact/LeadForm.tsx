@@ -3,6 +3,7 @@
 import { withBase } from "@/lib/base-path";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   getCountries,
@@ -187,8 +188,23 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
 
   return (
     <div className="grid overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-[0_16px_48px_rgba(28,25,23,0.08)] lg:grid-cols-[0.85fr_1.15fr]">
-      {/* Dark rail */}
-      <div className="border-b border-stone-800 p-8 sm:p-10 lg:border-b-0 lg:border-r">
+      {/* Dark rail — a photo of the team under a heavy scrim, same recipe as
+          the CTA band, so the panel reads as a place with people in it
+          rather than a flat black box. */}
+      <div className="relative overflow-hidden border-b border-stone-800 p-8 sm:p-10 lg:border-b-0 lg:border-r">
+        <Image
+          src={withBase("/section-images/why-we-exist.jpg")}
+          alt=""
+          fill
+          sizes="(max-width: 1024px) 100vw, 520px"
+          className="object-cover"
+        />
+        <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
+        <span
+          className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,10,5,0.93),rgba(18,10,5,0.88)_55%,rgba(18,10,5,0.95))]"
+          aria-hidden
+        />
+        <div className="relative">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">Contact us</p>
         <h1 className="font-display mt-3 text-3xl font-extrabold leading-tight text-white sm:text-4xl">
           We&rsquo;re here to{" "}
@@ -198,7 +214,11 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
           Digital marketing, web development, AI automation and technical
           support — reach the right desk directly.
         </p>
-        <ul className="mt-8 space-y-4">
+        {/* Reassurance bullets are desktop-only: on a phone this panel sits
+            on top of the form, and pushing the form below four paragraphs
+            costs more enquiries than the bullets win. The audit promise is
+            repeated in the form header anyway. */}
+        <ul className="mt-8 hidden space-y-4 lg:block">
           <li className="flex items-start gap-3">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-emerald-400"><Timer size={13} aria-hidden /></span>
             <span className="text-sm leading-relaxed text-stone-300">
@@ -232,7 +252,9 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
                 <d.icon size={14} aria-hidden className="text-[#F26419]" />
                 {d.label}
               </p>
-              <p className="mt-1 text-xs leading-relaxed text-stone-400">{d.blurb}</p>
+              <p className="mt-1 hidden text-xs leading-relaxed text-stone-400 lg:block">
+                {d.blurb}
+              </p>
               <div className="mt-1.5 flex flex-col gap-1 text-sm">
                 <a
                   href={`mailto:${d.email}`}
@@ -270,6 +292,7 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
           >
             WhatsApp +91-9953-900123 →
           </a>
+        </div>
         </div>
       </div>
 
