@@ -15,6 +15,8 @@ import {
 type Turn = { role: "user" | "assistant"; content: string };
 
 const NUDGE_KEY = "ds-bot-nudge-seen";
+const PEEK_KEY = "ds-bot-peek-seen";
+const PEEK_TEXT = "Need help? Ask me 👋";
 
 const OPENING =
   "Hi! I'm DigiSutra Bot. Tell me what you're trying to grow and I'll point you to the right service — or share prices, timelines and our free 15-page audit.";
@@ -36,6 +38,7 @@ const WA_HREF =
 export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
   const pathname = usePathname();
   const [teaser, setTeaser] = useState<string | null>(null);
+  const [peek, setPeek] = useState(false);
   const [open, setOpen] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([{ role: "assistant", content: OPENING }]);
   const [draft, setDraft] = useState("");
@@ -123,6 +126,35 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
       document.removeEventListener("mouseout", onExit);
     };
   }, [nudge, pathname, open, teaser]);
+
+  /* Peek greeting (Sample C): a light bubble slides out shortly after load
+     on the first visit, holds a few seconds, then tucks away. It's the
+     affordance cue — "this button talks to you" — while the richer nudge
+     teaser above handles conversion. Suppressed on conversion pages, when
+     the panel is open, and while the nudge teaser is active. */
+  useEffect(() => {
+    if (open || teaser) return;
+    if (NUDGE_EXCLUDED_PATHS.some((p) => pathname.startsWith(p))) return;
+    try {
+      const seen = Number(localStorage.getItem(PEEK_KEY) ?? 0);
+      if (seen && Date.now() - seen < NUDGE_COOLDOWN_DAYS * 86400000) return;
+    } catch {
+      /* private mode — just show it once this session */
+    }
+    const show = setTimeout(() => {
+      setPeek(true);
+      try {
+        localStorage.setItem(PEEK_KEY, String(Date.now()));
+      } catch {
+        /* ignore */
+      }
+    }, 2800);
+    const hide = setTimeout(() => setPeek(false), 2800 + 6500);
+    return () => {
+      clearTimeout(show);
+      clearTimeout(hide);
+    };
+  }, [open, teaser, pathname]);
 
   async function send(text: string) {
     const message = text.trim();
@@ -224,9 +256,42 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
         </div>
       )}
 
+      {/* Peek greeting (Sample C) — a light bubble that floats just above
+          the launcher, clearing the desktop "Ask DigiSutra Bot" label.
+          Suppressed while the panel is open or the richer teaser card is
+          showing, so the two greetings never stack. */}
+      {peek && !teaser && !open && (
+        <div className="animate-bot-peek fixed bottom-[5.75rem] right-5 z-[129] w-max max-w-[13rem] origin-bottom-right">
+          <div className="relative rounded-2xl rounded-br-sm border border-stone-200 bg-white py-2 pl-3 pr-7 shadow-[0_12px_30px_rgba(124,45,18,0.16)]">
+            <button
+              onClick={() => {
+                setPeek(false);
+                setOpen(true);
+              }}
+              className="cursor-pointer text-left text-[13px] font-semibold leading-snug text-stone-800"
+            >
+              {PEEK_TEXT}
+            </button>
+            <button
+              onClick={() => setPeek(false)}
+              aria-label="Dismiss greeting"
+              className="absolute right-1.5 top-1.5 cursor-pointer rounded-full p-0.5 text-stone-400 transition-colors hover:text-stone-700"
+            >
+              <X size={12} aria-hidden />
+            </button>
+            {/* tail pointing down at the launcher */}
+            <span
+              aria-hidden
+              className="absolute -bottom-1 right-6 h-2.5 w-2.5 rotate-45 border-b border-r border-stone-200 bg-white"
+            />
+          </div>
+        </div>
+      )}
+
       <button
         onClick={() => {
           setTeaser(null);
+          setPeek(false);
           setOpen((v) => !v);
         }}
         aria-label="Chat with DigiSutra Bot"
@@ -239,9 +304,15 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           Ask DigiSutra Bot
         </span>
         <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#F26419] text-white shadow-[0_10px_26px_rgba(0,0,0,0.28)] transition-transform duration-200 group-hover:scale-105">
-          <Sparkles size={24} aria-hidden />
+          {/* Breathing halo (Sample B) — a soft disc that expands and fades
+              at rest. Sits behind the icon; paused for reduced-motion. */}
+          <span
+            aria-hidden
+            className="animate-bot-breathe pointer-events-none absolute inset-0 rounded-full bg-[#F26419]"
+          />
+          <Sparkles size={24} className="relative" aria-hidden />
           {teaser && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white">
+            <span className="absolute -right-0.5 -top-0.5 z-[1] flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white">
               1
             </span>
           )}

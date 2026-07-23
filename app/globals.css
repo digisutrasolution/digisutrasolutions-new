@@ -462,6 +462,33 @@ body {
   }
 }
 
+/* Bot launcher "breathing" halo: a soft orange disc that expands out of
+   the button and fades — the resting attention cue. */
+@keyframes botBreathe {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  70%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Peek greeting bubble sliding out from behind the launcher. Base state is
+   fully visible, so reduced-motion (animation:none) leaves it on screen. */
+@keyframes botPeekIn {
+  0% {
+    opacity: 0;
+    transform: translateX(10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
 @keyframes gradient-pan {
   0% {
     background-position: 0% 50%;
@@ -534,6 +561,14 @@ body {
 
 .animate-pulse-ring {
   animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.animate-bot-breathe {
+  animation: botBreathe 2.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-bot-peek {
+  animation: botPeekIn 0.38s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .animate-gradient-pan {
@@ -656,6 +691,8 @@ body {
   .animate-shimmer,
   .animate-float-y,
   .animate-pulse-ring,
+  .animate-bot-breathe,
+  .animate-bot-peek,
   .animate-gradient-pan,
   .animate-blink,
   .animate-spin-slow,
