@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Analytics from "@/components/Analytics";
 import TrackPageview from "@/components/TrackPageview";
 import BackToTop from "@/components/BackToTop";
+import FloatingCall from "@/components/FloatingCall";
 import SutraBot from "@/components/SutraBot";
 import { getAnalytics } from "@/lib/analytics";
 import { getBotNudge } from "@/lib/bot-nudge";
@@ -61,6 +62,7 @@ export default async function SiteLayout({
           the bot panel, the footer contact tiles and the contact page. */}
       <SutraBot nudge={botNudge} />
       <BackToTop />
+      <FloatingCall />
     </>
   );
 }
