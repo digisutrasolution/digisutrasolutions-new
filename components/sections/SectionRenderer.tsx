@@ -214,7 +214,11 @@ function CardsBlock({ s }: { s: Extract<Section, { type: "cards" }> }) {
             }
           >
             <SpotlightCard className="flex h-full flex-col justify-center rounded-3xl border border-stone-200 bg-white p-6">
-              <p className="font-display text-3xl font-extrabold text-orange-200">
+              {/* Brand orange, not orange-200: at ~1.4:1 on white the pale
+                  tint read as washed-out rather than deliberate. Set here
+                  rather than by overriding .text-orange-200, which is a
+                  shared token the admin uses on dark surfaces. */}
+              <p className="font-display text-3xl font-extrabold text-[#F26419]">
                 {String(i + 1).padStart(2, "0")}
               </p>
               <h3 className="font-display mt-2 text-base font-bold text-stone-900">
