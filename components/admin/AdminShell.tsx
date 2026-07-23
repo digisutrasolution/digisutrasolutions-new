@@ -115,15 +115,22 @@ export default function AdminShell({
   // is open (deferred past commit per repo convention).
   useEffect(() => {
     const t = setTimeout(() => {
+      // Only one group open at a time: the group holding the current page
+      // wins; otherwise fall back to the single persisted group.
       let open = new Set<string>();
-      try {
-        const stored = localStorage.getItem("ds-admin-nav");
-        if (stored) open = new Set(JSON.parse(stored) as string[]);
-      } catch {
-        /* corrupted state — start fresh */
-      }
-      for (const group of NAV_GROUPS) {
-        if (group.items.some((i) => pathname.startsWith(i.href))) open.add(group.label);
+      const active = NAV_GROUPS.find((g) =>
+        g.items.some((i) => pathname.startsWith(i.href)),
+      );
+      if (active) {
+        open = new Set([active.label]);
+      } else {
+        try {
+          const stored = localStorage.getItem("ds-admin-nav");
+          const arr = stored ? (JSON.parse(stored) as string[]) : [];
+          if (arr.length) open = new Set([arr[0]]);
+        } catch {
+          /* corrupted state — start fresh */
+        }
       }
       setOpenGroups(open);
     }, 0);
@@ -132,9 +139,9 @@ export default function AdminShell({
 
   const toggleGroup = (label: string) => {
     setOpenGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
+      // Exclusive: clicking an open group closes it; clicking another opens
+      // only that one, so at most one group is ever expanded.
+      const next = prev.has(label) ? new Set<string>() : new Set([label]);
       localStorage.setItem("ds-admin-nav", JSON.stringify([...next]));
       return next;
     });
