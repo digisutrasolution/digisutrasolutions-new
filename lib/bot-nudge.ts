@@ -22,6 +22,18 @@ export const BotNudgeSchema = z.object({
       and the usual mobile substitutes (scroll-up, back-button traps) are
       hostile. */
   exitIntent: z.boolean().default(true),
+  /** First-visit welcome. A visitor with no history has the highest bounce
+      risk and no context, so they get their own copy on a shorter timer
+      instead of the page-matched nudge. Defaults keep settings saved
+      before this existed valid. */
+  welcomeEnabled: z.boolean().default(true),
+  welcomeDelaySeconds: z.number().int().min(3).max(120).default(8),
+  welcomeText: z
+    .string()
+    .trim()
+    .min(4)
+    .max(160)
+    .default("👋 First time here? Grab your free 15-page audit — takes 30 seconds."),
   rules: z.array(NudgeRuleSchema).max(12),
 });
 
@@ -34,11 +46,18 @@ export const NUDGE_EXCLUDED_PATHS = ["/contact"];
 /** Dismissals are remembered for a week. */
 export const NUDGE_COOLDOWN_DAYS = 7;
 
+/** Stamped the first time a browser loads the site; its absence is what
+    identifies a brand-new visitor. */
+export const FIRST_TOUCH_KEY = "ds-first-touch";
+
 export const DEFAULT_BOT_NUDGE: BotNudge = {
   enabled: true,
   delaySeconds: 15,
   scrollPercent: 40,
   exitIntent: true,
+  welcomeEnabled: true,
+  welcomeDelaySeconds: 8,
+  welcomeText: "👋 First time here? Grab your free 15-page audit — takes 30 seconds.",
   rules: [
     { path: "/pricing", text: "Not sure which plan fits? Tell me your budget and I'll pick one." },
     { path: "/services", text: "Want to know what this would cost for your business?" },

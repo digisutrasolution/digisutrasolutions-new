@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ArrowUp, Check, MessageCircle, Sparkles, X } from "lucide-react";
 import {
+  FIRST_TOUCH_KEY,
   NUDGE_COOLDOWN_DAYS,
   NUDGE_EXCLUDED_PATHS,
   nudgeTextFor,
@@ -16,6 +17,26 @@ type Turn = { role: "user" | "assistant"; content: string };
 
 const NUDGE_KEY = "ds-bot-nudge-seen";
 const PEEK_KEY = "ds-bot-peek-seen";
+
+/* Is this browser here for the first time? Reads the first-touch stamp
+   before writing it, so a browser is only ever "new" once. The verdict is
+   cached at module scope: both greeting effects share it, it survives
+   client-side navigation, and it never has to trigger a re-render. */
+let newVisitor: boolean | null = null;
+function isNewVisitor(): boolean {
+  if (newVisitor === null) {
+    try {
+      const seen = localStorage.getItem(FIRST_TOUCH_KEY);
+      newVisitor = !seen;
+      if (!seen) localStorage.setItem(FIRST_TOUCH_KEY, String(Date.now()));
+    } catch {
+      // Private mode — count as returning; better to under-nudge than to
+      // greet the same person on every page.
+      newVisitor = false;
+    }
+  }
+  return newVisitor;
+}
 const PEEK_TEXT = "👋 Need help? Chat with us";
 
 const OPENING =
@@ -56,6 +77,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
     startedAt.current = Date.now();
   }, []);
 
+
   const userTurns = turns.filter((t) => t.role === "user").length;
   const offerForm = showForm || (userTurns >= 2 && leadState !== "done");
 
@@ -80,7 +102,10 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
     if (!nudge?.enabled || open || teaser) return;
     if (NUDGE_EXCLUDED_PATHS.some((p) => pathname.startsWith(p))) return;
 
-    const text = nudgeTextFor(nudge, pathname);
+    /* A first-time visitor gets the welcome copy on the shorter timer;
+       everyone else keeps the page-matched nudge. */
+    const welcome = isNewVisitor() && nudge.welcomeEnabled;
+    const text = welcome ? nudge.welcomeText : nudgeTextFor(nudge, pathname);
     if (!text) return;
 
     try {
@@ -102,7 +127,10 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
       }
     };
 
-    const timer = setTimeout(fire, nudge.delaySeconds * 1000);
+    const timer = setTimeout(
+      fire,
+      (welcome ? nudge.welcomeDelaySeconds : nudge.delaySeconds) * 1000,
+    );
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       if (max > 0 && (window.scrollY / max) * 100 >= nudge.scrollPercent) fire();
@@ -134,6 +162,9 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
      the panel is open, and while the nudge teaser is active. */
   useEffect(() => {
     if (open || teaser) return;
+    // A first-time visitor already gets the welcome card — one greeting is
+    // plenty, so the peek is left to returning visitors.
+    if (isNewVisitor() && nudge?.welcomeEnabled) return;
     if (NUDGE_EXCLUDED_PATHS.some((p) => pathname.startsWith(p))) return;
     try {
       const seen = Number(localStorage.getItem(PEEK_KEY) ?? 0);
@@ -154,7 +185,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
       clearTimeout(show);
       clearTimeout(hide);
     };
-  }, [open, teaser, pathname]);
+  }, [open, teaser, pathname, nudge]);
 
   async function send(text: string) {
     const message = text.trim();

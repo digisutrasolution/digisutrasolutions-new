@@ -100,6 +100,50 @@ export default function BotNudgeManager({ initial }: { initial: BotNudge }) {
         </span>
       </label>
 
+      <div className="mt-5 rounded-xl border border-stone-200 bg-stone-50 p-3.5 dark:border-stone-700 dark:bg-stone-900/40">
+        <label className="flex items-start gap-2.5 text-sm font-semibold text-stone-700 dark:text-stone-200">
+          <input
+            type="checkbox"
+            checked={nudge.welcomeEnabled}
+            onChange={(e) => setNudge((p) => ({ ...p, welcomeEnabled: e.target.checked }))}
+            className="mt-0.5 h-4 w-4 accent-orange-600"
+          />
+          <span>
+            First-visit welcome
+            <span className="mt-0.5 block text-xs font-normal text-stone-500 dark:text-stone-400">
+              Visitors who have never been here get this message instead of the
+              page message below, on its own shorter timer. Returning visitors
+              are unaffected.
+            </span>
+          </span>
+        </label>
+        <div className="mt-3 flex flex-wrap items-end gap-4">
+          <div className="w-32">
+            <label className={labelCls}>Delay (seconds)</label>
+            <input
+              type="number"
+              min={3}
+              max={120}
+              value={nudge.welcomeDelaySeconds}
+              onChange={(e) =>
+                setNudge((p) => ({ ...p, welcomeDelaySeconds: Number(e.target.value) }))
+              }
+              className={inputCls}
+            />
+          </div>
+          <div className="min-w-56 flex-1">
+            <label className={labelCls}>Welcome message</label>
+            <input
+              value={nudge.welcomeText}
+              onChange={(e) => setNudge((p) => ({ ...p, welcomeText: e.target.value }))}
+              maxLength={160}
+              placeholder="First time here? …"
+              className={inputCls}
+            />
+          </div>
+        </div>
+      </div>
+
       <p className="mt-5 text-xs font-semibold text-stone-500 dark:text-stone-400">
         Message per page — the longest matching path wins; &ldquo;/&rdquo; is the fallback.
       </p>
