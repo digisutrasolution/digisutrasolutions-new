@@ -108,18 +108,23 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
     <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
       <Reveal>
         {s.heading ? (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-14">
-            <div>
-              {s.eyebrow && (
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
-                  {s.eyebrow}
-                </p>
+          /* Heading on top, copy beneath in one full-width card — the text
+             flows in two columns so it fills the card without the lines
+             running too long to read. */
+          <div>
+            {s.eyebrow && (
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
+                {s.eyebrow}
+              </p>
+            )}
+            <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+              {s.heading}
+            </h2>
+            <div className="mt-6 rounded-3xl border border-stone-200 bg-white p-6 sm:p-8">
+              {copy(
+                "hyphens-auto text-justify [&>p]:mb-4 [&>p]:break-inside-avoid [&>p:last-child]:mb-0 lg:columns-2 lg:gap-12",
               )}
-              <h2 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
-                {s.heading}
-              </h2>
             </div>
-            {copy("space-y-4 hyphens-auto text-justify")}
           </div>
         ) : paragraphs.length > 1 ? (
           copy(
