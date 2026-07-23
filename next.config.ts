@@ -69,6 +69,10 @@ const nextConfig: NextConfig = {
   ...(basePath ? { basePath } : {}),
   env: { NEXT_PUBLIC_BASE_PATH: basePath ?? "" },
   poweredByHeader: false,
+  // The dev-tools badge defaults to bottom-left, exactly where the
+  // floating call button lives — move it out of the way during dev.
+  // (It never renders in production.)
+  devIndicators: { position: "bottom-right" },
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },

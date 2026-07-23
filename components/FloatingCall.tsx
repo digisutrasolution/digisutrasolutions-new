@@ -25,13 +25,16 @@ export default function FloatingCall() {
     <a
       href={`tel:${PHONE}`}
       aria-label={`Call us on ${PHONE_LABEL}`}
-      className={`group fixed bottom-5 left-5 z-[120] flex items-center transition-all duration-300 ${
+      // bottom-5 left-5 mirrors the bot launcher (bottom-5 right-5) on the
+      // opposite corner. h-14 fixes the box to the circle so the baseline
+      // lines up with the launcher instead of drifting low.
+      className={`group fixed bottom-5 left-5 z-[120] flex h-14 items-center transition-all duration-300 ${
         shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
       }`}
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F26419] text-white shadow-[0_10px_28px_rgba(124,45,18,0.4)] transition-transform group-hover:scale-105">
-        <span className="absolute h-12 w-12 animate-ping rounded-full bg-[#F26419] opacity-20" aria-hidden />
-        <Phone size={20} aria-hidden />
+      <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#F26419] text-white shadow-[0_10px_28px_rgba(124,45,18,0.4)] transition-transform group-hover:scale-105">
+        <span className="absolute inset-0 animate-ping rounded-full bg-[#F26419] opacity-20" aria-hidden />
+        <Phone size={22} aria-hidden />
       </span>
       {/* Number reveals on hover — a desktop can't dial, but seeing it converts. */}
       <span className="pointer-events-none ml-0 max-w-0 overflow-hidden whitespace-nowrap rounded-full text-sm font-bold text-stone-800 opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-[12rem] group-hover:opacity-100 dark:text-stone-100">
