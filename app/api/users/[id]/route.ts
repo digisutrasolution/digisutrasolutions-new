@@ -2,18 +2,22 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
-import { hashPassword } from "@/lib/auth/password";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
 
 const UpdateUserSchema = z
   .object({
     name: z.string().trim().min(2).max(100).optional(),
+    email: z.string().trim().toLowerCase().email().max(200).optional(),
     role: z
       .enum(["SUPER_ADMIN", "DEVELOPER", "TESTER", "SEO_MANAGER"])
       .optional(),
     isActive: z.boolean().optional(),
     password: z.string().min(10).max(200).optional(),
+    /* Only meaningful when changing your OWN password — an admin resetting
+       someone else's cannot know it. Verified below. */
+    currentPassword: z.string().max(200).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: "Nothing to update." });
 
@@ -59,19 +63,46 @@ export async function PATCH(req: Request, { params }: Params) {
     );
   }
 
+  /* Changing your own password requires proving you know the current one —
+     otherwise anyone who reaches an unlocked session can take the account
+     over. An admin resetting someone ELSE's password is a different act:
+     they cannot know that password, and their authority comes from the
+     users.manage permission already checked above. */
+  if (parsed.data.password !== undefined && target.id === user.id) {
+    const ok =
+      parsed.data.currentPassword !== undefined &&
+      (await verifyPassword(parsed.data.currentPassword, target.passwordHash));
+    if (!ok) {
+      return NextResponse.json(
+        { ok: false, error: "Current password is incorrect." },
+        { status: 400 },
+      );
+    }
+  }
+
   const data: Record<string, unknown> = {};
   if (parsed.data.name !== undefined) data.name = parsed.data.name;
+  if (parsed.data.email !== undefined) data.email = parsed.data.email;
   if (parsed.data.role !== undefined) data.role = parsed.data.role;
   if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive;
   if (parsed.data.password !== undefined) {
     data.passwordHash = await hashPassword(parsed.data.password);
   }
 
-  const updated = await db.user.update({
-    where: { id },
-    data,
-    select: { id: true, name: true, email: true, role: true, isActive: true },
-  });
+  let updated;
+  try {
+    updated = await db.user.update({
+      where: { id },
+      data,
+      select: { id: true, name: true, email: true, role: true, isActive: true },
+    });
+  } catch {
+    // The only unique column here is email.
+    return NextResponse.json(
+      { ok: false, error: "That email is already used by another account." },
+      { status: 409 },
+    );
+  }
 
   // Deactivation or password change kills existing sessions.
   if (parsed.data.isActive === false || parsed.data.password !== undefined) {
@@ -87,7 +118,9 @@ export async function PATCH(req: Request, { params }: Params) {
     entity: "user",
     entityId: id,
     meta: {
-      changed: Object.keys(parsed.data).filter((k) => k !== "password"),
+      changed: Object.keys(parsed.data).filter(
+        (k) => k !== "password" && k !== "currentPassword",
+      ),
       passwordChanged: parsed.data.password !== undefined,
     },
     ip: clientIp(req),

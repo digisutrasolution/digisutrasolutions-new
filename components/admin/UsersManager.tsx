@@ -4,9 +4,11 @@ import { withBase } from "@/lib/base-path";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, KeyRound, Trash2 } from "lucide-react";
+import { UserPlus, KeyRound, Pencil, Trash2 } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/auth/rbac";
 import type { Role } from "@prisma/client";
+import EditUserDialog from "@/components/admin/EditUserDialog";
+import PasswordDialog from "@/components/admin/PasswordDialog";
 
 type UserRow = {
   id: string;
@@ -33,6 +35,8 @@ export default function UsersManager({
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pwUser, setPwUser] = useState<UserRow | null>(null);
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
 
   async function call(path: string, init: RequestInit): Promise<boolean> {
     setError(null);
@@ -71,15 +75,20 @@ export default function UsersManager({
     }
   }
 
-  function resetPassword(u: UserRow) {
-    const password = window.prompt(
-      `New password for ${u.email} (min 10 characters):`,
-    );
-    if (!password) return;
-    void call(`/api/users/${u.id}`, {
+  async function savePassword(v: { password: string; currentPassword?: string }) {
+    const ok = await call(`/api/users/${pwUser!.id}`, {
       method: "PATCH",
-      body: JSON.stringify({ password }),
+      body: JSON.stringify(v),
     });
+    if (ok) setPwUser(null);
+  }
+
+  async function saveEdit(v: { name: string; email: string }) {
+    const ok = await call(`/api/users/${editUser!.id}`, {
+      method: "PATCH",
+      body: JSON.stringify(v),
+    });
+    if (ok) setEditUser(null);
   }
 
   function removeUser(u: UserRow) {
@@ -196,12 +205,25 @@ export default function UsersManager({
                         body: JSON.stringify({ isActive: !u.isActive }),
                       })
                     }
-                    className={`cursor-pointer rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                    title={
                       u.isActive
-                        ? "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-950 dark:text-green-300"
-                        : "bg-stone-100 text-stone-500 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-400"
+                        ? "Click to deactivate — signs this user out everywhere"
+                        : "Click to reactivate"
+                    }
+                    /* Reads as a control, not a status chip: the old plain
+                       pill gave no hint it was clickable. */
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                      u.isActive
+                        ? "border-green-300 bg-green-100 text-green-800 hover:bg-green-200 dark:border-green-900 dark:bg-green-950 dark:text-green-300"
+                        : "border-stone-300 bg-stone-100 text-stone-500 hover:bg-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400"
                     }`}
                   >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        u.isActive ? "bg-green-600" : "bg-stone-400"
+                      }`}
+                      aria-hidden
+                    />
                     {u.isActive ? "Active" : "Disabled"}
                   </button>
                 </td>
@@ -216,10 +238,25 @@ export default function UsersManager({
                 <td className="px-5 py-3">
                   <div className="flex justify-end gap-1">
                     <button
-                      onClick={() => resetPassword(u)}
+                      onClick={() => setEditUser(u)}
                       disabled={busy}
-                      aria-label={`Reset password for ${u.email}`}
-                      title="Reset password"
+                      aria-label={`Edit ${u.email}`}
+                      title="Edit name and email"
+                      className="cursor-pointer rounded-lg p-2 text-stone-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
+                    >
+                      <Pencil size={15} aria-hidden />
+                    </button>
+                    <button
+                      onClick={() => setPwUser(u)}
+                      disabled={busy}
+                      aria-label={
+                        u.id === currentUserId
+                          ? "Change your password"
+                          : `Reset password for ${u.email}`
+                      }
+                      title={
+                        u.id === currentUserId ? "Change your password" : "Reset password"
+                      }
                       className="cursor-pointer rounded-lg p-2 text-stone-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
                     >
                       <KeyRound size={15} aria-hidden />
@@ -240,6 +277,24 @@ export default function UsersManager({
           </tbody>
         </table>
       </div>
+
+      {pwUser && (
+        <PasswordDialog
+          user={pwUser}
+          isSelf={pwUser.id === currentUserId}
+          busy={busy}
+          onClose={() => setPwUser(null)}
+          onSubmit={savePassword}
+        />
+      )}
+      {editUser && (
+        <EditUserDialog
+          user={editUser}
+          busy={busy}
+          onClose={() => setEditUser(null)}
+          onSubmit={saveEdit}
+        />
+      )}
     </div>
   );
 }
