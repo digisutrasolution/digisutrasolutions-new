@@ -51,6 +51,8 @@ export async function POST(req: Request) {
         name: data.name,
         price: data.price,
         quarterlyPrice: data.quarterlyPrice ?? null,
+        priceUsd: data.priceUsd ?? null,
+        quarterlyPriceUsd: data.quarterlyPriceUsd ?? null,
         period: data.period ?? "/mo",
         tagline: data.tagline ?? "",
         marketNote: data.marketNote ?? null,
@@ -77,6 +79,7 @@ export async function POST(req: Request) {
       data: {
         label: data.label,
         price: data.price,
+        priceUsd: data.priceUsd ?? null,
         marketNote: data.marketNote ?? null,
         visible: data.visible ?? true,
         order: (last?.order ?? -1) + 1,

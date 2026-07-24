@@ -10,6 +10,8 @@ type Plan = {
   name: string;
   price: string;
   quarterlyPrice: string | null;
+  priceUsd: string | null;
+  quarterlyPriceUsd: string | null;
   period: string;
   tagline: string;
   marketNote: string | null;
@@ -19,7 +21,7 @@ type Plan = {
   visible: boolean;
 };
 type MatrixRow = { id: string; label: string; tooltip: string | null; values: string[]; order: number; visible: boolean };
-type RateRow = { id: string; label: string; price: string; marketNote: string | null; order: number; visible: boolean };
+type RateRow = { id: string; label: string; price: string; priceUsd: string | null; marketNote: string | null; order: number; visible: boolean };
 
 type Kind = "plan" | "matrix" | "rate";
 const TABS: { kind: Kind; label: string }[] = [
@@ -80,6 +82,8 @@ export default function PricingManager() {
       payload = {
         name: draft.name, price: draft.price,
         quarterlyPrice: draft.quarterlyPrice || null,
+        priceUsd: draft.priceUsd || null,
+        quarterlyPriceUsd: draft.quarterlyPriceUsd || null,
         period: draft.period ?? "/mo", tagline: draft.tagline ?? "",
         marketNote: draft.marketNote || null, cta: draft.cta || "Choose plan",
         featured: Boolean(draft.featured),
@@ -90,7 +94,7 @@ export default function PricingManager() {
         values: visiblePlans.map((_, i) => String(draft[`v${i}`] ?? "")),
       };
     } else {
-      payload = { label: draft.label, price: draft.price, marketNote: draft.marketNote || null };
+      payload = { label: draft.label, price: draft.price, priceUsd: draft.priceUsd || null, marketNote: draft.marketNote || null };
     }
     const res = await fetch(
       withBase(id ? `/api/pricing/${id}?kind=${kind}` : "/api/pricing"),
@@ -137,6 +141,8 @@ export default function PricingManager() {
             <div className="grid grid-cols-2 gap-2">
               <div><label className={labelCls}>Monthly price</label><input value={String(draft.price ?? "")} onChange={(e) => setDraft((p) => ({ ...p, price: e.target.value }))} className={inputCls} placeholder="₹19,999" /></div>
               <div><label className={labelCls}>Quarterly price</label><input value={String(draft.quarterlyPrice ?? "")} onChange={(e) => setDraft((p) => ({ ...p, quarterlyPrice: e.target.value }))} className={inputCls} placeholder="₹17,599" /></div>
+              <div><label className={labelCls}>Monthly price (USD)</label><input value={String(draft.priceUsd ?? "")} onChange={(e) => setDraft((p) => ({ ...p, priceUsd: e.target.value }))} className={inputCls} placeholder="$249 — blank = auto-convert" /></div>
+              <div><label className={labelCls}>Quarterly price (USD)</label><input value={String(draft.quarterlyPriceUsd ?? "")} onChange={(e) => setDraft((p) => ({ ...p, quarterlyPriceUsd: e.target.value }))} className={inputCls} placeholder="$219 — blank = auto-convert" /></div>
             </div>
             <div><label className={labelCls}>Tagline</label><input value={String(draft.tagline ?? "")} onChange={(e) => setDraft((p) => ({ ...p, tagline: e.target.value }))} className={inputCls} /></div>
             <div><label className={labelCls}>Market note</label><input value={String(draft.marketNote ?? "")} onChange={(e) => setDraft((p) => ({ ...p, marketNote: e.target.value }))} className={inputCls} /></div>
@@ -160,6 +166,7 @@ export default function PricingManager() {
           <>
             <div><label className={labelCls}>Service</label><input value={String(draft.label ?? "")} onChange={(e) => setDraft((p) => ({ ...p, label: e.target.value }))} className={inputCls} /></div>
             <div><label className={labelCls}>Price</label><input value={String(draft.price ?? "")} onChange={(e) => setDraft((p) => ({ ...p, price: e.target.value }))} className={inputCls} placeholder="from ₹15,000/mo" /></div>
+            <div><label className={labelCls}>Price (USD)</label><input value={String(draft.priceUsd ?? "")} onChange={(e) => setDraft((p) => ({ ...p, priceUsd: e.target.value }))} className={inputCls} placeholder="from $170/mo — blank = auto-convert" /></div>
             <div className="sm:col-span-2"><label className={labelCls}>Market note</label><input value={String(draft.marketNote ?? "")} onChange={(e) => setDraft((p) => ({ ...p, marketNote: e.target.value }))} className={inputCls} /></div>
           </>
         )}
@@ -181,7 +188,7 @@ export default function PricingManager() {
           title: p.name,
           sub: `${p.price}${p.period}${p.quarterlyPrice ? ` · quarterly ${p.quarterlyPrice}` : ""}${p.featured ? " · ★ recommended" : ""}`,
           visible: p.visible,
-          seed: { name: p.name, price: p.price, quarterlyPrice: p.quarterlyPrice ?? "", tagline: p.tagline, marketNote: p.marketNote ?? "", cta: p.cta, featured: p.featured } as Record<string, string | boolean>,
+          seed: { name: p.name, price: p.price, quarterlyPrice: p.quarterlyPrice ?? "", priceUsd: p.priceUsd ?? "", quarterlyPriceUsd: p.quarterlyPriceUsd ?? "", tagline: p.tagline, marketNote: p.marketNote ?? "", cta: p.cta, featured: p.featured } as Record<string, string | boolean>,
         }))
       : tab === "matrix"
         ? matrix.map((m) => ({
@@ -196,7 +203,7 @@ export default function PricingManager() {
             title: r.label,
             sub: `${r.price}${r.marketNote ? ` · ${r.marketNote}` : ""}`,
             visible: r.visible,
-            seed: { label: r.label, price: r.price, marketNote: r.marketNote ?? "" } as Record<string, string | boolean>,
+            seed: { label: r.label, price: r.price, priceUsd: r.priceUsd ?? "", marketNote: r.marketNote ?? "" } as Record<string, string | boolean>,
           }));
 
   return (

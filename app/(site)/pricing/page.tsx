@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { createElement } from "react";
@@ -8,6 +9,7 @@ import RoiCalculator from "@/components/RoiCalculator";
 import { navIcon } from "@/components/nav-icons";
 import { withBase } from "@/lib/base-path";
 import { getLiveFaqs } from "@/lib/faq";
+import { currencyForCountry, visitorCountry } from "@/lib/geo";
 import { getLivePricing } from "@/lib/pricing";
 import { SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
@@ -29,10 +31,18 @@ const TRUST = [
 ];
 
 export default async function PricingPage() {
-  const [{ plans, matrix, rateCard }, allFaqs] = await Promise.all([
+  const [{ plans, matrix, rateCard }, allFaqs, h] = await Promise.all([
     getLivePricing(),
     getLiveFaqs(),
+    headers(),
   ]);
+
+  /* Cloudflare stamps the country at the edge, so this is decided per
+     request — the page is already force-dynamic, so nothing caches one
+     country's currency and serves it to another. The visitor can still
+     override the default with the toggle, which matters because IP geo is
+     wrong for VPNs, corporate proxies and roaming SIMs. */
+  const defaultCurrency = currencyForCountry(visitorCountry(h));
   const pricingFaqs = allFaqs
     .filter((f) => f.category === "Pricing & engagement")
     .slice(0, 4);
@@ -113,7 +123,12 @@ export default async function PricingPage() {
             and rate card live in the client component so the INR/USD toggle
             covers them all. */}
         <div className="relative -mt-6">
-          <PricingMatrix plans={plans} matrix={matrix} rateCard={rateCard} />
+          <PricingMatrix
+            plans={plans}
+            matrix={matrix}
+            rateCard={rateCard}
+            defaultCurrency={defaultCurrency}
+          />
         </div>
 
         {/* Pricing FAQs (admin-managed) */}

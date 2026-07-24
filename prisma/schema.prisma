@@ -25,6 +25,7 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
+  resetTokens   PasswordResetToken[]
   auditLogs     AuditLog[]
   pagesCreated  Page[]         @relation("PageCreatedBy")
   pagesUpdated  Page[]         @relation("PageUpdatedBy")
@@ -300,6 +301,23 @@ model RefreshToken {
   @@index([userId])
 }
 
+/// Single-use password-reset ticket. Only the SHA-256 of the token is kept,
+/// so a database leak cannot be replayed to take over accounts — the same
+/// reasoning as RefreshToken above.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  ip        String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -461,6 +479,10 @@ model PricingPlan {
   name           String
   price          String
   quarterlyPrice String?
+  // Owner-entered USD equivalents. Optional: until every visible plan has
+  // one the site stays on INR, so a half-translated price table never ships.
+  priceUsd       String?
+  quarterlyPriceUsd String?
   period         String   @default("/mo")
   tagline        String   @default("")
   marketNote     String?
@@ -485,6 +507,7 @@ model RateCardRow {
   id         String  @id @default(cuid())
   label      String
   price      String
+  priceUsd   String?
   marketNote String?
   order      Int     @default(0)
   visible    Boolean @default(true)

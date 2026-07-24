@@ -36,6 +36,10 @@ export const PlanSchema = z.object({
   name: z.string().trim().min(1).max(40),
   price: z.string().trim().min(1).max(30),
   quarterlyPrice: z.string().trim().max(30).nullable().optional(),
+  /* Optional USD equivalents. Blank falls back to the rate conversion in
+     lib/currency.ts, so leaving them empty never breaks the page. */
+  priceUsd: z.string().trim().max(30).nullable().optional(),
+  quarterlyPriceUsd: z.string().trim().max(30).nullable().optional(),
   period: z.string().trim().max(10).optional(),
   tagline: z.string().trim().max(120).optional(),
   marketNote: z.string().trim().max(90).nullable().optional(),
@@ -54,6 +58,7 @@ export const MatrixRowSchema = z.object({
 export const RateRowSchema = z.object({
   label: z.string().trim().min(1).max(90),
   price: z.string().trim().min(1).max(60),
+  priceUsd: z.string().trim().max(60).nullable().optional(),
   marketNote: z.string().trim().max(120).nullable().optional(),
   visible: z.boolean().optional(),
 });

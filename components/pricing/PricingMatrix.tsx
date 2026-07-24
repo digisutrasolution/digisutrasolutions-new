@@ -4,30 +4,48 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChartLine, FileSearch, Info, PauseCircle } from "lucide-react";
 import { inrToUsdDisplay, USD_RATE } from "@/lib/currency";
+import type { Currency } from "@/lib/geo";
 import type { MatrixRowDef, PlanDef, RateRowDef } from "@/lib/pricing";
 
 /* Billing + currency toggles, plan header cards, feature comparison matrix,
    risk-reversal strip and the one-off rate card. The recommended plan's
-   column is lifted with an orange frame end to end. USD prices are display
-   conversions of the INR figures (lib/currency.ts); market notes stay in
-   INR — they describe the Indian market. */
+   column is lifted with an orange frame end to end.
+
+   USD uses the owner-entered price when there is one and falls back to the
+   rate conversion in lib/currency.ts otherwise. Market notes are hidden in
+   USD rather than converted: they benchmark the Indian market, so they mean
+   little to an overseas buyer, and they are written in k/L shorthand
+   ("₹20k–₹50k", "₹4L") that the converter's digit regex would mangle into
+   nonsense like "$5k". Hiding beats printing a wrong number. */
 export default function PricingMatrix({
   plans,
   matrix,
   rateCard,
+  defaultCurrency = "INR",
 }: {
   plans: (PlanDef & { period?: string })[];
   matrix: MatrixRowDef[];
   rateCard: RateRowDef[];
+  /* Chosen from the visitor's country at the edge: India gets rupees,
+     everywhere else dollars. Only the initial value — the toggle below
+     always wins, because IP geolocation is wrong often enough (VPNs,
+     corporate proxies, roaming SIMs) to need an escape hatch. */
+  defaultCurrency?: Currency;
 }) {
   const [quarterly, setQuarterly] = useState(true);
-  const [usd, setUsd] = useState(false);
+  const [usd, setUsd] = useState(defaultCurrency === "USD");
   const hasQuarterly = plans.some((p) => p.quarterlyPrice);
   const cols = plans.length;
 
-  const money = (s: string) => (usd ? inrToUsdDisplay(s) : s);
+  /* An owner-entered USD string always beats the rate conversion — a pricing
+     page wants round marketing numbers, not $229.88. The conversion is the
+     fallback so the toggle still works on rows nobody has priced yet. */
+  const money = (inr: string, explicitUsd?: string) =>
+    usd ? explicitUsd?.trim() || inrToUsdDisplay(inr) : inr;
   const priceFor = (p: PlanDef) =>
-    money(quarterly && p.quarterlyPrice ? p.quarterlyPrice : p.price);
+    quarterly && p.quarterlyPrice
+      ? money(p.quarterlyPrice, p.quarterlyPriceUsd)
+      : money(p.price, p.priceUsd);
 
   const colCls = (i: number, extra = "") => {
     const p = plans[i];
@@ -98,11 +116,11 @@ export default function PricingMatrix({
               </p>
               {quarterly && p.quarterlyPrice && p.quarterlyPrice !== p.price && (
                 <p className="text-[11px] text-stone-400">
-                  <s>{money(p.price)}</s> billed quarterly
+                  <s>{money(p.price, p.priceUsd)}</s> billed quarterly
                 </p>
               )}
               {p.tagline && <p className="mt-1 text-[11px] leading-snug text-stone-500">{p.tagline}</p>}
-              {p.marketNote && (
+              {!usd && p.marketNote && (
                 <p className="mt-1.5 text-[11px] font-medium text-emerald-700">{p.marketNote}</p>
               )}
             </div>
@@ -203,12 +221,12 @@ export default function PricingMatrix({
             >
               <div className="min-w-0">
                 <p className="font-display text-sm font-bold text-stone-900">{r.label}</p>
-                {r.marketNote && (
+                {!usd && r.marketNote && (
                   <p className="mt-0.5 text-xs text-stone-400">{r.marketNote}</p>
                 )}
               </div>
               <span className="font-display shrink-0 text-sm font-bold text-emerald-700">
-                {money(r.price)}
+                {money(r.price, r.priceUsd)}
               </span>
             </div>
           ))}

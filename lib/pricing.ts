@@ -8,6 +8,10 @@ export type PlanDef = {
   name: string;
   price: string;
   quarterlyPrice?: string;
+  /* Owner-entered USD equivalents, not converted at render: a pricing page
+     wants round marketing numbers and must not drift with the FX rate. */
+  priceUsd?: string;
+  quarterlyPriceUsd?: string;
   period?: string;
   tagline?: string;
   marketNote?: string;
@@ -16,7 +20,16 @@ export type PlanDef = {
 };
 
 export type MatrixRowDef = { label: string; tooltip?: string; values: string[] };
-export type RateRowDef = { label: string; price: string; marketNote?: string };
+export type RateRowDef = {
+  label: string;
+  price: string;
+  priceUsd?: string;
+  marketNote?: string;
+};
+
+/* USD display prefers these owner-entered strings and falls back to the
+   rate conversion in lib/currency.ts when one is blank, so the toggle always
+   works and typed-in marketing numbers simply override the converted ones. */
 
 export const DEFAULT_PLANS: PlanDef[] = [
   {
@@ -82,6 +95,8 @@ export async function getLivePricing() {
           name: p.name,
           price: p.price,
           quarterlyPrice: p.quarterlyPrice ?? undefined,
+          priceUsd: p.priceUsd ?? undefined,
+          quarterlyPriceUsd: p.quarterlyPriceUsd ?? undefined,
           period: p.period,
           tagline: p.tagline,
           marketNote: p.marketNote ?? undefined,
@@ -96,6 +111,7 @@ export async function getLivePricing() {
         rateCard: rateCard.map((r) => ({
           label: r.label,
           price: r.price,
+          priceUsd: r.priceUsd ?? undefined,
           marketNote: r.marketNote ?? undefined,
         })),
       };

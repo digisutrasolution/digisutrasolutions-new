@@ -16,6 +16,14 @@ export async function proxy(request: NextRequest) {
 
   // Clone nextUrl (not new URL(..., request.url)) so basePath survives
   // in redirects on subpath deployments.
+  /* Password reset has to be reachable WITHOUT a session — someone who has
+     forgotten their password by definition cannot sign in first. The page is
+     not sensitive on its own: it is useless without a valid single-use token,
+     which the route re-checks server-side. */
+  if (pathname.startsWith("/admin/reset")) {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/admin/login")) {
     if (payload) {
       const url = request.nextUrl.clone();
