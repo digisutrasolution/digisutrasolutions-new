@@ -6,18 +6,28 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Check, Info } from "lucide-react";
 import {
   ROI_ASSUMPTIONS,
-  ROI_DEFAULTS,
-  ROI_LIMITS,
+  ROI_DEFAULTS_BY_CURRENCY,
+  ROI_LIMITS_BY_CURRENCY,
   calculateRoi,
-  inrShort,
+  moneyShort,
+  type Currency,
   type RoiInputs,
 } from "@/lib/roi";
 
 /* Live ROI projection. Every figure is a range with the assumptions on
    screen — see lib/roi.ts. Requesting the plan writes a Lead with source
-   ESTIMATOR, carrying the inputs and the modelled range. */
-export default function RoiCalculator({ compact = false }: { compact?: boolean }) {
-  const [inputs, setInputs] = useState<RoiInputs>(ROI_DEFAULTS);
+   ESTIMATOR, carrying the inputs and the modelled range. Currency comes from
+   the page, which reads it from the edge (India → INR, elsewhere → USD). */
+export default function RoiCalculator({
+  compact = false,
+  currency = "INR",
+}: {
+  compact?: boolean;
+  currency?: Currency;
+}) {
+  const LIMITS = ROI_LIMITS_BY_CURRENCY[currency];
+  const [inputs, setInputs] = useState<RoiInputs>(ROI_DEFAULTS_BY_CURRENCY[currency]);
+  const money = (v: number) => moneyShort(v, currency);
   const [lead, setLead] = useState({ name: "", whatsapp: "", hp: "" });
   const [state, setState] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState("");
@@ -27,7 +37,7 @@ export default function RoiCalculator({ compact = false }: { compact?: boolean }
     startedAt.current = Date.now();
   }, []);
 
-  const r = useMemo(() => calculateRoi(inputs), [inputs]);
+  const r = useMemo(() => calculateRoi(inputs, currency), [inputs, currency]);
   const set = (key: keyof RoiInputs) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setInputs((p) => ({ ...p, [key]: Number(e.target.value) }));
 
@@ -38,10 +48,10 @@ export default function RoiCalculator({ compact = false }: { compact?: boolean }
     setError("");
     try {
       const summary = [
-        `ROI calculator — budget ${inrShort(inputs.budget)}/mo`,
-        `average order value ${inrShort(inputs.orderValue)}`,
+        `ROI calculator — budget ${money(inputs.budget)}/mo`,
+        `average order value ${money(inputs.orderValue)}`,
         `close rate ${Math.round(inputs.closeRate * 100)}%`,
-        `modelled revenue ${inrShort(r.revenueLow)}–${inrShort(r.revenueHigh)}/mo`,
+        `modelled revenue ${money(r.revenueLow)}–${money(r.revenueHigh)}/mo`,
         `${r.leadsLow}–${r.leadsHigh} enquiries/mo`,
       ].join(" · ");
       const res = await fetch(withBase("/api/leads"), {
@@ -50,7 +60,7 @@ export default function RoiCalculator({ compact = false }: { compact?: boolean }
         body: JSON.stringify({
           name: lead.name,
           whatsapp: lead.whatsapp,
-          budget: `${inrShort(inputs.budget)}/mo`,
+          budget: `${money(inputs.budget)}/mo`,
           message: summary,
           source: "ESTIMATOR",
           hp: lead.hp,
@@ -94,16 +104,16 @@ export default function RoiCalculator({ compact = false }: { compact?: boolean }
             <span className="flex items-baseline justify-between text-sm text-stone-600">
               Monthly marketing budget
               <b className="font-display text-base font-bold text-stone-900">
-                {inrShort(inputs.budget)}
+                {money(inputs.budget)}
               </b>
             </span>
             <input
               type="range"
               value={inputs.budget}
               onChange={set("budget")}
-              min={ROI_LIMITS.budget.min}
-              max={ROI_LIMITS.budget.max}
-              step={ROI_LIMITS.budget.step}
+              min={LIMITS.budget.min}
+              max={LIMITS.budget.max}
+              step={LIMITS.budget.step}
               className={`mt-2 ${sliderCls}`}
             />
           </label>
@@ -112,16 +122,16 @@ export default function RoiCalculator({ compact = false }: { compact?: boolean }
             <span className="flex items-baseline justify-between text-sm text-stone-600">
               Average order / deal value
               <b className="font-display text-base font-bold text-stone-900">
-                {inrShort(inputs.orderValue)}
+                {money(inputs.orderValue)}
               </b>
             </span>
             <input
               type="range"
               value={inputs.orderValue}
               onChange={set("orderValue")}
-              min={ROI_LIMITS.orderValue.min}
-              max={ROI_LIMITS.orderValue.max}
-              step={ROI_LIMITS.orderValue.step}
+              min={LIMITS.orderValue.min}
+              max={LIMITS.orderValue.max}
+              step={LIMITS.orderValue.step}
               className={`mt-2 ${sliderCls}`}
             />
           </label>
@@ -137,9 +147,9 @@ export default function RoiCalculator({ compact = false }: { compact?: boolean }
               type="range"
               value={inputs.closeRate}
               onChange={set("closeRate")}
-              min={ROI_LIMITS.closeRate.min}
-              max={ROI_LIMITS.closeRate.max}
-              step={ROI_LIMITS.closeRate.step}
+              min={LIMITS.closeRate.min}
+              max={LIMITS.closeRate.max}
+              step={LIMITS.closeRate.step}
               className={`mt-2 ${sliderCls}`}
             />
           </label>
@@ -153,16 +163,16 @@ export default function RoiCalculator({ compact = false }: { compact?: boolean }
           <Stat label="New orders / month" value={`${r.ordersLow}–${r.ordersHigh}`} />
           <Stat
             label="Revenue / month"
-            value={`${inrShort(r.revenueLow)}–${inrShort(r.revenueHigh)}`}
+            value={`${money(r.revenueLow)}–${money(r.revenueHigh)}`}
             tone="emerald"
           />
           <Stat label="Return on budget" value={`${r.roasLow}×–${r.roasHigh}×`} tone="emerald" />
         </div>
 
         <p className="mt-4 rounded-xl bg-white/5 px-3.5 py-2.5 text-xs leading-relaxed text-stone-400">
-          After the {inrShort(inputs.budget)} budget, that&rsquo;s{" "}
+          After the {money(inputs.budget)} budget, that&rsquo;s{" "}
           <b className="font-semibold text-emerald-400">
-            {inrShort(r.netLow)}–{inrShort(r.netHigh)}
+            {money(r.netLow)}–{money(r.netHigh)}
           </b>{" "}
           left over each month.
         </p>

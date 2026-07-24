@@ -170,7 +170,7 @@ export default async function PricingPage() {
 
         {/* Estimate the return before committing to a plan */}
         <div className="mt-16">
-          <RoiCalculator />
+          <RoiCalculator currency={defaultCurrency} />
         </div>
 
         <div className="mt-14 text-center">

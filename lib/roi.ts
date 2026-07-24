@@ -41,22 +41,46 @@ export type RoiResult = {
   roasHigh: number;
 };
 
-export const ROI_DEFAULTS: RoiInputs = {
-  budget: 50000,
-  orderValue: 8000,
-  closeRate: 0.25,
+export type Currency = "INR" | "USD";
+
+/* Ranges are per currency, not a live FX conversion: the slider stops should
+   be sensible round numbers a buyer recognises, so $1,000 rather than the
+   arithmetic ₹50,000 ÷ 83. The maths downstream is a pure ratio, so it is
+   identical in either currency — only these bounds and the formatting differ. */
+export const ROI_DEFAULTS_BY_CURRENCY: Record<Currency, RoiInputs> = {
+  INR: { budget: 50000, orderValue: 8000, closeRate: 0.25 },
+  USD: { budget: 1500, orderValue: 120, closeRate: 0.25 },
 };
 
-export const ROI_LIMITS = {
-  budget: { min: 15000, max: 500000, step: 5000 },
-  orderValue: { min: 1000, max: 500000, step: 1000 },
-  closeRate: { min: 0.05, max: 0.6, step: 0.05 },
+export const ROI_LIMITS_BY_CURRENCY: Record<
+  Currency,
+  {
+    budget: { min: number; max: number; step: number };
+    orderValue: { min: number; max: number; step: number };
+    closeRate: { min: number; max: number; step: number };
+  }
+> = {
+  INR: {
+    budget: { min: 15000, max: 500000, step: 5000 },
+    orderValue: { min: 1000, max: 500000, step: 1000 },
+    closeRate: { min: 0.05, max: 0.6, step: 0.05 },
+  },
+  USD: {
+    budget: { min: 200, max: 10000, step: 100 },
+    orderValue: { min: 20, max: 10000, step: 20 },
+    closeRate: { min: 0.05, max: 0.6, step: 0.05 },
+  },
 };
 
-export function calculateRoi(input: RoiInputs): RoiResult {
-  const budget = clamp(input.budget, ROI_LIMITS.budget.min, ROI_LIMITS.budget.max);
-  const orderValue = Math.max(500, input.orderValue);
-  const closeRate = clamp(input.closeRate, ROI_LIMITS.closeRate.min, ROI_LIMITS.closeRate.max);
+/* Kept so nothing that imported the old names breaks; they are the INR set. */
+export const ROI_DEFAULTS: RoiInputs = ROI_DEFAULTS_BY_CURRENCY.INR;
+export const ROI_LIMITS = ROI_LIMITS_BY_CURRENCY.INR;
+
+export function calculateRoi(input: RoiInputs, currency: Currency = "INR"): RoiResult {
+  const limits = ROI_LIMITS_BY_CURRENCY[currency];
+  const budget = clamp(input.budget, limits.budget.min, limits.budget.max);
+  const orderValue = Math.max(limits.orderValue.min, input.orderValue);
+  const closeRate = clamp(input.closeRate, limits.closeRate.min, limits.closeRate.max);
 
   const mediaSpend = Math.round(budget * MEDIA_SHARE);
   const revenueLow = Math.round(mediaSpend * ROAS_LOW);
@@ -90,6 +114,20 @@ export function inrShort(value: number): string {
   if (abs >= 10000000) return `₹${round1(value / 10000000)}Cr`;
   if (abs >= 100000) return `₹${round1(value / 100000)}L`;
   return `₹${Math.round(value).toLocaleString("en-IN")}`;
+}
+
+/** $ in Western short form: $1,500 · $45K · $1.3M. */
+export function usdShort(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  const abs = Math.abs(value);
+  if (abs >= 1000000) return `$${round1(value / 1000000)}M`;
+  if (abs >= 10000) return `$${round1(value / 1000)}K`;
+  return `$${Math.round(value).toLocaleString("en-US")}`;
+}
+
+/** Formats a figure in the visitor's currency. */
+export function moneyShort(value: number, currency: Currency): string {
+  return currency === "USD" ? usdShort(value) : inrShort(value);
 }
 
 export const ROI_ASSUMPTIONS = [

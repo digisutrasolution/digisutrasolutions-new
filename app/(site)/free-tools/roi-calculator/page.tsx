@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { ChartLine, FileSearch, ShieldCheck } from "lucide-react";
 import CtaBand from "@/components/CtaBand";
 import PageHero from "@/components/PageHero";
 import RoiCalculator from "@/components/RoiCalculator";
+import { currencyForCountry, visitorCountry } from "@/lib/geo";
 import { RAMP_MONTHS, ROAS_HIGH, ROAS_LOW } from "@/lib/roi";
 import { SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
@@ -14,7 +16,11 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/free-tools/roi-calculator` },
 };
 
-export default function RoiCalculatorPage() {
+export default async function RoiCalculatorPage() {
+  // Reading the edge country header makes this route dynamic, which is the
+  // point: the same URL serves rupees to India and dollars elsewhere.
+  const currency = currencyForCountry(visitorCountry(await headers()));
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -57,7 +63,7 @@ export default function RoiCalculatorPage() {
       />
 
       <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
-        <RoiCalculator />
+        <RoiCalculator currency={currency} />
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-dashed border-stone-200 pt-6 text-sm text-stone-600">
           <span className="flex items-center gap-1.5">
