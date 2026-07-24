@@ -1,0 +1,69 @@
+# Production stack for https://digisutrasolutions.com
+#
+# Deliberately separate from the repo-root docker-compose.yml (staging):
+#   * no ./deploy/db-init mount — production restores a real dump instead of
+#     auto-importing the committed July snapshot on first boot
+#   * Postgres publishes NO host port — it is reachable only on the compose
+#     network, so nothing else on this shared server can touch it
+#   * every container name and volume is namespaced by COMPOSE_PROJECT_NAME
+#     (set in .env) so a second app on this box cannot collide
+#
+# Usage from the repo root on the server:
+#   docker compose -f deploy/production/docker-compose.prod.yml --env-file .env up -d --build
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: digisutra_cms
+      POSTGRES_USER: digisutra
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U digisutra -d digisutra_cms"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+    # Keeps one noisy app from starving the others on a shared box.
+    mem_limit: 512m
+
+  app:
+    build:
+      context: ../..
+      # Host network during build sidesteps bridge MTU/DNS issues that break
+      # npm downloads on some servers.
+      network: host
+      args:
+        SITE_URL: ${SITE_URL:?set SITE_URL in .env}
+        SITE_NOINDEX: ${SITE_NOINDEX:-0}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://digisutra:${DB_PASSWORD}@db:5432/digisutra_cms
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      SITE_URL: ${SITE_URL}
+      # 0 = allow indexing. Leaving this at 1 keeps the live site out of
+      # Google entirely, which is the single easiest launch mistake to make.
+      SITE_NOINDEX: ${SITE_NOINDEX:-0}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-}
+      CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      # Loopback only — nginx owns the public side. Pick a port nothing else
+      # on this server is using (see the port check in DEPLOY.md).
+      - "127.0.0.1:${APP_PORT:-3200}:3000"
+    volumes:
+      # Media uploads must outlive image rebuilds. The DB stores paths, so
+      # losing this volume leaves broken images with intact rows.
+      - uploads:/app/public/uploads
+    mem_limit: 1g
+
+volumes:
+  db-data:
+  uploads:
