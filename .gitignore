@@ -47,3 +47,7 @@ next-env.d.ts
 # local contact form fallback
 contact-submissions.log
 .msg.txt
+
+# Database dumps — contain real user rows and bcrypt hashes, never commit
+*.dump
+*.sql.gz
