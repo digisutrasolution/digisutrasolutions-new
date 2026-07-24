@@ -7,6 +7,7 @@ import { getAnalytics } from "@/lib/analytics";
 import { getBotNudge } from "@/lib/bot-nudge";
 import { DEFAULT_FOOTER_INFO } from "@/lib/footer";
 import { getPayments, maskPayments } from "@/lib/payments";
+import { getSmtp, maskSmtp } from "@/lib/smtp";
 
 export const metadata = { title: "Settings" };
 
@@ -16,12 +17,13 @@ export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user.role, "settings.manage")) redirect("/admin");
 
-  const [social, footer, botNudge, payments, analytics] = await Promise.all([
+  const [social, footer, botNudge, payments, analytics, smtp] = await Promise.all([
     db.siteSetting.findUnique({ where: { key: "socialLinks" } }),
     db.siteSetting.findUnique({ where: { key: "footerInfo" } }),
     getBotNudge(),
     getPayments(),
     getAnalytics(),
+    getSmtp(),
   ]);
   const paymentsView = maskPayments(payments);
   const links = Array.isArray(social?.value) ? (social.value as SocialLink[]) : [];
@@ -40,6 +42,7 @@ export default async function AdminSettingsPage() {
         footerInfo={footerInfo}
         links={links}
         payments={paymentsView}
+        smtp={maskSmtp(smtp)}
       />
     </div>
   );
