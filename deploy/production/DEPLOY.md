@@ -1,8 +1,9 @@
 # Production deploy — digisutrasolutions.com
 
-Target: a dedicated VPS that already hosts other apps, nginx + Let's Encrypt at
-the origin, Cloudflare in front, DNS already pointing at the box, and the
-database seeded from the current local content.
+Target: the shared VPS `srv1773341` (Ubuntu 24.04), which already runs Caddy,
+n8n, aigrowth, ollama and two Postgres containers. Caddy owns :80/:443 and
+terminates TLS; Cloudflare sits in front; DNS already points at the box; the
+database is seeded from the current local content.
 
 Run every command **on the server** unless a step says otherwise. Because the
 box is shared, every step below is written to avoid touching anything that is
@@ -27,8 +28,9 @@ port is free".
   echo "== DISK/MEM =="; df -h / | tail -1; free -h | head -2; } 1>&2
 ```
 
-Pick an `APP_PORT` that does **not** appear in the listening-ports list
-(default in the example env is `3200`).
+On this box the survey already told us: Caddy holds :80/:443, and the app needs
+**no host port at all** — it joins Caddy's network `docker-setup_default` and is
+reached by container name.
 
 ---
 
@@ -54,7 +56,10 @@ scp -r public/uploads user@SERVER:/tmp/uploads
 
 ---
 
-## 2. Install Docker (skip if step 0 showed it)
+## 2. Install Docker — ALREADY PRESENT, SKIP
+
+Docker 29.6.0 and Compose v5.1.4 are installed on this box. Left here only for
+rebuilding on a fresh machine.
 
 ```bash
 { curl -fsSL https://get.docker.com | sh; systemctl enable --now docker; docker compose version; } 1>&2
@@ -70,16 +75,19 @@ scp -r public/uploads user@SERVER:/tmp/uploads
   cp deploy/production/env.production.example .env; } 1>&2
 ```
 
-Now edit `.env` and set `DB_PASSWORD`, `AUTH_SECRET` and `APP_PORT`:
+Generate the secrets and point the app at Caddy's network:
 
 ```bash
 { cd /opt/digisutra; \
   sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$(openssl rand -hex 24)|" .env; \
   sed -i "s|^AUTH_SECRET=.*|AUTH_SECRET=$(openssl rand -hex 48)|" .env; \
-  grep -E '^(SITE_URL|SITE_NOINDEX|APP_PORT|COMPOSE_PROJECT_NAME)=' .env; } 1>&2
+  sed -i "s|^CADDY_NETWORK=.*|CADDY_NETWORK=docker-setup_default|" .env; \
+  grep -E '^(SITE_URL|SITE_NOINDEX|CADDY_NETWORK|COMPOSE_PROJECT_NAME)=' .env; } 1>&2
 ```
 
-Confirm the printout shows `SITE_NOINDEX=0` and the port you chose.
+The printout must show `SITE_NOINDEX=0` (staging uses 1 — copying it here would
+launch a site Google is told never to index) and
+`CADDY_NETWORK=docker-setup_default`.
 
 ---
 
@@ -105,39 +113,50 @@ Confirm the printout shows `SITE_NOINDEX=0` and the port you chose.
   docker compose -f deploy/production/docker-compose.prod.yml --env-file .env restart app; } 1>&2
 ```
 
-Sanity check the app answers locally before wiring nginx:
+Sanity check the app answers before wiring Caddy. It publishes no host port, so
+ask from inside Caddy's own network by container name:
 
 ```bash
-{ curl -s -o /dev/null -w "local app: %{http_code}\n" http://127.0.0.1:3200/; } 1>&2
+{ docker run --rm --network docker-setup_default curlimages/curl:latest \
+    -s -o /dev/null -w "app: %{http_code}\n" http://digisutra-prod-app-1:3000/; } 1>&2
 ```
 
 ---
 
-## 6. nginx + certificate
+## 6. Caddy (NOT nginx)
+
+> **Do not install nginx on this server.** Ports 80 and 443 belong to the
+> running `docker-setup-caddy-1` container, which serves n8n, aigrowth and the
+> rest. Installing nginx would fight it for those ports and take every existing
+> site down. There is also nothing for certbot to do — Caddy issues and renews
+> certificates itself.
+
+Known values on this box:
+
+| thing | value |
+| --- | --- |
+| Caddyfile | `/root/docker-setup/Caddyfile` |
+| Caddy compose dir | `/root/docker-setup` |
+| Docker network | `docker-setup_default` |
+
+Back the Caddyfile up, append the site block, then **reload** (a reload cannot
+drop the other sites; a restart briefly would):
 
 ```bash
-{ cp /opt/digisutra/deploy/production/nginx-digisutrasolutions.conf \
-     /etc/nginx/sites-available/digisutrasolutions.com; \
-  ln -sf /etc/nginx/sites-available/digisutrasolutions.com /etc/nginx/sites-enabled/; \
-  nginx -t; } 1>&2
+{ cp /root/docker-setup/Caddyfile /root/docker-setup/Caddyfile.bak.$(date +%F-%H%M); \
+  cat /opt/digisutra/deploy/production/caddy-digisutrasolutions.conf >> /root/docker-setup/Caddyfile; \
+  docker exec docker-setup-caddy-1 caddy validate --config /etc/caddy/Caddyfile && \
+  docker exec docker-setup-caddy-1 caddy reload --config /etc/caddy/Caddyfile && \
+  echo "caddy reloaded"; } 1>&2
 ```
 
-`nginx -t` will fail until the certificate exists — that is expected. Issue it:
+If `caddy validate` fails, nothing has been applied yet — restore with
+`cp /root/docker-setup/Caddyfile.bak.* /root/docker-setup/Caddyfile` and send me
+the error.
 
-> **Cloudflare gotcha:** while the DNS record is proxied (orange cloud),
-> certbot's HTTP-01 challenge is answered by Cloudflare, not your server, and
-> fails. Either grey-cloud the record for five minutes, or use DNS-01.
-
-```bash
-{ certbot certonly --webroot -w /var/www/html \
-    -d digisutrasolutions.com -d www.digisutrasolutions.com; \
-  nginx -t && systemctl reload nginx; } 1>&2
-```
-
-Re-enable the orange cloud afterwards and set Cloudflare **SSL/TLS → Full
-(strict)**. "Flexible" would make Cloudflare talk HTTP to your origin while
-telling browsers the connection is secure, and the app would build `http://`
-redirect loops.
+Cloudflare must be on **SSL/TLS → Full (strict)**. "Flexible" would make
+Cloudflare talk HTTP to the origin while telling browsers the connection is
+secure, and the app's HTTPS redirects would loop.
 
 ---
 
