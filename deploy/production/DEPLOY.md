@@ -70,7 +70,7 @@ rebuilding on a fresh machine.
 ## 3. Clone and configure
 
 ```bash
-{ mkdir -p /opt/digisutra && cd /opt/digisutra; \
+{ mkdir -p /root/digisutrasolutions.com && cd /root/digisutrasolutions.com; \
   git clone https://github.com/digisutrasolution/digisutrasolutions-new.git . ; \
   cp deploy/production/env.production.example .env; } 1>&2
 ```
@@ -78,7 +78,7 @@ rebuilding on a fresh machine.
 Generate the secrets and point the app at Caddy's network:
 
 ```bash
-{ cd /opt/digisutra; \
+{ cd /root/digisutrasolutions.com; \
   sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$(openssl rand -hex 24)|" .env; \
   sed -i "s|^AUTH_SECRET=.*|AUTH_SECRET=$(openssl rand -hex 48)|" .env; \
   sed -i "s|^CADDY_NETWORK=.*|CADDY_NETWORK=docker-setup_default|" .env; \
@@ -94,7 +94,7 @@ launch a site Google is told never to index) and
 ## 4. Build and start
 
 ```bash
-{ cd /opt/digisutra; \
+{ cd /root/digisutrasolutions.com; \
   docker compose -f deploy/production/docker-compose.prod.yml --env-file .env up -d --build; \
   docker compose -f deploy/production/docker-compose.prod.yml --env-file .env ps; } 1>&2
 ```
@@ -104,7 +104,7 @@ launch a site Google is told never to index) and
 ## 5. Restore the content
 
 ```bash
-{ cd /opt/digisutra; \
+{ cd /root/digisutrasolutions.com; \
   CID=$(docker compose -f deploy/production/docker-compose.prod.yml --env-file .env ps -q db); \
   docker cp /tmp/digisutra-prod-seed.dump "$CID":/tmp/seed.dump; \
   docker exec "$CID" pg_restore -U digisutra -d digisutra_cms --clean --if-exists --no-owner /tmp/seed.dump; \
@@ -144,7 +144,7 @@ drop the other sites; a restart briefly would):
 
 ```bash
 { cp /root/docker-setup/Caddyfile /root/docker-setup/Caddyfile.bak.$(date +%F-%H%M); \
-  cat /opt/digisutra/deploy/production/caddy-digisutrasolutions.conf >> /root/docker-setup/Caddyfile; \
+  cat /root/digisutrasolutions.com/deploy/production/caddy-digisutrasolutions.conf >> /root/docker-setup/Caddyfile; \
   docker exec docker-setup-caddy-1 caddy validate --config /etc/caddy/Caddyfile && \
   docker exec docker-setup-caddy-1 caddy reload --config /etc/caddy/Caddyfile && \
   echo "caddy reloaded"; } 1>&2
@@ -170,7 +170,7 @@ secure, and the app's HTTPS redirects would loop.
   curl -s https://digisutrasolutions.com | grep -o '<link rel="canonical"[^>]*>' | head -1; \
   echo "== robots.txt =="; curl -s https://digisutrasolutions.com/robots.txt | head -5; \
   echo "== real visitor IP reaching the app =="; \
-  docker compose -f /opt/digisutra/deploy/production/docker-compose.prod.yml --env-file /opt/digisutra/.env logs --tail=5 app; } 1>&2
+  docker compose -f /root/digisutrasolutions.com/deploy/production/docker-compose.prod.yml --env-file /root/digisutrasolutions.com/.env logs --tail=5 app; } 1>&2
 ```
 
 **Then, immediately:**
@@ -189,7 +189,7 @@ secure, and the app's HTTPS redirects would loop.
 ## Updating later
 
 ```bash
-{ cd /opt/digisutra && git pull && \
+{ cd /root/digisutrasolutions.com && git pull && \
   docker compose -f deploy/production/docker-compose.prod.yml --env-file .env up -d --build; } 1>&2
 ```
 
@@ -200,7 +200,7 @@ they **overwrite** the CMS copy, so avoid running them casually in production.
 ## Backups
 
 ```bash
-{ cd /opt/digisutra; \
+{ cd /root/digisutrasolutions.com; \
   CID=$(docker compose -f deploy/production/docker-compose.prod.yml --env-file .env ps -q db); \
   docker exec "$CID" pg_dump -U digisutra -Fc digisutra_cms > /root/digisutra-$(date +%F).dump; \
   docker run --rm -v digisutra-prod_uploads:/u -v /root:/b alpine tar czf /b/uploads-$(date +%F).tgz -C /u . ; \
