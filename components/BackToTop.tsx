@@ -45,7 +45,7 @@ export default function BackToTop() {
       }
       aria-label="Back to top"
       tabIndex={visible ? 0 : -1}
-      className={`fixed bottom-[5.75rem] right-[25px] z-[120] h-[46px] w-[46px] cursor-pointer transition-all duration-300 ${
+      className={`fixed bottom-[8.5rem] right-[25px] z-[120] h-[46px] w-[46px] cursor-pointer transition-all duration-300 ${
         visible
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-3 opacity-0"

@@ -476,6 +476,20 @@ body {
   }
 }
 
+/* Floating action button entrance. Base state is fully visible, so
+   reduced-motion (animation:none) simply leaves the button on screen —
+   and no React state is needed to stage the reveal. */
+@keyframes fabIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Peek greeting bubble sliding out from behind the launcher. Base state is
    fully visible, so reduced-motion (animation:none) leaves it on screen. */
 @keyframes botPeekIn {
@@ -603,6 +617,10 @@ body {
   animation: botPeekIn 0.38s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+.animate-fab-in {
+  animation: fabIn 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
 .animate-gradient-pan {
   background-size: 300% 300%;
   animation: gradient-pan 9s ease-in-out infinite;
@@ -725,6 +743,7 @@ body {
   .animate-pulse-ring,
   .animate-bot-breathe,
   .animate-bot-peek,
+  .animate-fab-in,
   .animate-gradient-pan,
   .animate-blink,
   .animate-spin-slow,

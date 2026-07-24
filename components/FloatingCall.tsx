@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
 
 /**
@@ -8,29 +7,25 @@ import { Phone } from "lucide-react";
  * bot launcher and back-to-top on the right. Mobile visitors get a
  * one-tap call to the India line; on desktop it reveals the number on
  * hover (you can't tap-to-call a desktop, but seeing the number still
- * converts). Appears after a short delay so it doesn't fight the hero.
+ * converts).
+ *
+ * The entrance is a CSS keyframe rather than a mount effect flipping state:
+ * the effect version tripped react-hooks/set-state-in-effect and cost a
+ * render, and .animate-fab-in is reset under prefers-reduced-motion.
  */
 const PHONE = "+911204751400";
 const PHONE_LABEL = "+91-120-475-1400";
 
 export default function FloatingCall() {
-  const [shown, setShown] = useState(false);
-
-  // Flip on mount so the entrance transition plays from the opacity-0
-  // first paint. A mount effect runs even in a background tab, so the
-  // button is never stuck hidden the way a throttled timer could leave it.
-  useEffect(() => setShown(true), []);
-
   return (
     <a
       href={`tel:${PHONE}`}
       aria-label={`Call us on ${PHONE_LABEL}`}
-      // bottom-5 left-5 mirrors the bot launcher (bottom-5 right-5) on the
-      // opposite corner. h-14 fixes the box to the circle so the baseline
-      // lines up with the launcher instead of drifting low.
-      className={`group fixed bottom-5 left-5 z-[120] flex h-14 items-center transition-all duration-300 ${
-        shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
-      }`}
+      // bottom-16 left-5 mirrors the bot launcher on the opposite corner.
+      // 64px clears the footer's ~55px orange bar: at bottom-5 this orange
+      // button sat on top of it and became invisible. h-14 fixes the box to
+      // the circle so the baseline lines up with the launcher.
+      className="animate-fab-in group fixed bottom-16 left-5 z-[120] flex h-14 items-center"
     >
       <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#F26419] text-white shadow-[0_10px_28px_rgba(124,45,18,0.4)] transition-transform group-hover:scale-105">
         <span className="absolute inset-0 animate-ping rounded-full bg-[#F26419] opacity-20" aria-hidden />

@@ -355,7 +355,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           panel's header X closes it and the panel covers the ladder. */}
       {/* Proactive greeting bubble */}
       {teaser && !open && (
-        <div className="fixed bottom-[6.25rem] right-5 z-[130] w-[min(17rem,calc(100vw-2.5rem))] rounded-2xl rounded-br-sm border border-stone-700 bg-stone-900 p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+        <div className="fixed bottom-[9rem] right-5 z-[130] w-[min(17rem,calc(100vw-2.5rem))] rounded-2xl rounded-br-sm border border-stone-700 bg-stone-900 p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
           <p className="text-sm leading-relaxed text-stone-100">{teaser}</p>
           <div className="mt-3 flex items-center gap-2">
             <button
@@ -382,7 +382,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           Suppressed while the panel is open or the richer teaser card is
           showing, so the two greetings never stack. */}
       {peek && !teaser && !open && (
-        <div className="animate-bot-peek fixed bottom-[5.75rem] right-5 z-[129] w-max max-w-[13rem] origin-bottom-right lg:hidden">
+        <div className="animate-bot-peek fixed bottom-[8.5rem] right-5 z-[129] w-max max-w-[13rem] origin-bottom-right lg:hidden">
           <div className="relative rounded-2xl rounded-br-sm border border-stone-200 bg-white py-2 pl-3 pr-7 shadow-[0_12px_30px_rgba(124,45,18,0.16)]">
             <button
               onClick={() => {
@@ -417,7 +417,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
         }}
         aria-label="Chat with DigiSutra Bot"
         aria-expanded={open}
-        className={`group fixed bottom-5 right-5 z-[130] cursor-pointer items-center gap-2.5 ${
+        className={`group fixed bottom-16 right-5 z-[130] cursor-pointer items-center gap-2.5 ${
           open ? "hidden" : "flex"
         }`}
       >
