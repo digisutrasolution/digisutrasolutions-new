@@ -175,7 +175,10 @@ export const DEFAULT_FOOTER_LEGAL_NAV: NavNode[] = [
   { label: "Locations", href: "/about/global-presence" },
   { label: "Trust Center", href: "/trust-center" },
   { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Terms", href: "/terms-and-conditions" },
+  /* /terms-and-conditions still 308s here from the redirect table for old
+     inbound links; the internal link points at the canonical URL so a
+     footer click doesn't pay for a redirect hop. */
+  { label: "Terms", href: "/terms" },
   { label: "Cookie Policy", href: "/cookie-policy" },
   { label: "Refund Policy", href: "/refund-policy" },
   { label: "Disclaimer", href: "/disclaimer" },
