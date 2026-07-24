@@ -54,10 +54,12 @@ services:
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-    ports:
-      # Loopback only — nginx owns the public side. Pick a port nothing else
-      # on this server is using (see the port check in DEPLOY.md).
-      - "127.0.0.1:${APP_PORT:-3200}:3000"
+    # No published host port on purpose. The existing Caddy container reaches
+    # this app over the shared Docker network by name, so nothing competes for
+    # a port on a box that already runs n8n, aigrowth, ollama and Caddy.
+    networks:
+      - default
+      - edge
     volumes:
       # Media uploads must outlive image rebuilds. The DB stores paths, so
       # losing this volume leaves broken images with intact rows.
@@ -67,3 +69,14 @@ services:
 volumes:
   db-data:
   uploads:
+
+networks:
+  # Internal network for app <-> db only.
+  default:
+  # The network the running Caddy container is already attached to. Find it:
+  #   docker inspect docker-setup-caddy-1 \
+  #     --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}'
+  # then set CADDY_NETWORK in .env to that value.
+  edge:
+    external: true
+    name: ${CADDY_NETWORK:?set CADDY_NETWORK in .env to the Caddy container network}
