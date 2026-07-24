@@ -12,16 +12,39 @@ const ICONS = {
   sparkles: Sparkles,
 } as const;
 
-/* Each studio panel gets its own duotone-graded stock photo. */
-const PANELS = [
-  { image: "/services/marketing.jpg", metricLabel: "+248% avg organic growth" },
-  {
+/* Each studio panel gets its own duotone-graded stock photo, its headline
+   metric, and the service page that metric belongs to.
+
+   Keyed by studio title rather than held in a positional array: the two
+   lists had drifted out of order, so AI & Systems was showing the
+   development photo with an uptime stat and Design was showing the AI
+   photo. Keying on the title means a reorder in SERVICE_CATEGORIES can
+   never silently mismatch them again. */
+const PANELS: Record<
+  string,
+  { image: string; metricLabel: string; href: string }
+> = {
+  Marketing: {
+    image: "/services/marketing.jpg",
+    metricLabel: "+248% avg organic growth",
+    href: "/services/seo-ai-search",
+  },
+  "AI & Systems": {
+    image: "/services/ai.jpg",
+    metricLabel: "24/7 always-on agents",
+    href: "/services/ai-automation",
+  },
+  Development: {
     image: "/services/development.jpg",
     metricLabel: "99.9% uptime · 214ms responses",
+    href: "/services/website-design-development",
   },
-  { image: "/services/design.jpg", metricLabel: "95+ Lighthouse scores" },
-  { image: "/services/ai.jpg", metricLabel: "24/7 always-on agents" },
-] as const;
+  Design: {
+    image: "/services/design.jpg",
+    metricLabel: "95+ Lighthouse scores",
+    href: "/services/branding-ui-ux",
+  },
+};
 
 export default function ServiceCatalog() {
   return (
@@ -69,7 +92,8 @@ export default function ServiceCatalog() {
         <div className="mt-10 flex flex-col gap-3 lg:h-[360px] lg:flex-row">
           {SERVICE_CATEGORIES.map((cat, i) => {
             const Icon = ICONS[cat.icon];
-            const p = PANELS[i];
+            const p = PANELS[cat.title];
+            if (!p) return null;
             return (
               <div
                 key={cat.title}
@@ -131,7 +155,7 @@ export default function ServiceCatalog() {
                     ))}
                   </ul>
                   <Link
-                    href="/services"
+                    href={p.href}
                     className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-bold text-[#FDBA74] no-underline transition-transform hover:translate-x-1"
                   >
                     {p.metricLabel} →
