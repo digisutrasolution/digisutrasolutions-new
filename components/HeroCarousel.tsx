@@ -74,7 +74,7 @@ const SLIDES: Slide[] = [
   {
     eyebrow: "02 — Software development",
     copy: "Websites, e-commerce stores, web apps and AI automation agents — built to scale.",
-    cta: { label: "Explore development ↗", href: "/#services" },
+    cta: { label: "Explore development ↗", href: "/services/website-design-development" },
     cta2: { label: "See our work", href: "/work" },
     trust: [
       { label: "250+ projects shipped", icon: Code },
@@ -86,8 +86,11 @@ const SLIDES: Slide[] = [
   {
     eyebrow: "03 — AI solutions",
     copy: "Chatbots, workflow automation and AI integrations for support, sales and ops.",
-    cta: { label: "See AI in action ↗", href: "/#services" },
-    cta2: { label: "View case studies", href: "/#case-studies" },
+    cta: { label: "See AI in action ↗", href: "/services/ai-automation" },
+    /* /#case-studies only exists when a case study is published — the
+       section renders null when empty, so the anchor was scrolling
+       nowhere. /work is there either way. */
+    cta2: { label: "View case studies", href: "/work" },
     trust: [
       { label: "24/7 always on", icon: Bot },
       { label: "80% auto-resolved", icon: MessageCircle },
@@ -98,7 +101,7 @@ const SLIDES: Slide[] = [
   {
     eyebrow: "04 — E-commerce",
     copy: "Sub-second storefronts with automated inventory sync and payments built in.",
-    cta: { label: "Launch your store ↗", href: "/contact" },
+    cta: { label: "Launch your store ↗", href: "/services/ecommerce-development" },
     cta2: { label: "View pricing", href: "/pricing" },
     trust: [
       { label: "Sub-second loads", icon: Zap },
