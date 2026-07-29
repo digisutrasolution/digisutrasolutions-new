@@ -15,12 +15,24 @@ export default function ServicesIndex({ services }: { services: LiveService[] })
   const [active, setActive] = useState(0);
 
   return (
-    <div className="mt-10 border-t border-stone-200">
+    <div className="mt-10">
       {services.map((s, i) => {
         const isActive = i === active;
         const num = String(i + 1).padStart(2, "0");
+        // Services arrive pre-sorted by group, so a heading is drawn wherever
+        // the group changes — turning the flat list into labelled sections.
+        const newGroup = s.group && (i === 0 || services[i - 1].group !== s.group);
         return (
           <div key={s.slug} onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)}>
+            {newGroup && (
+              <p
+                className={`text-xs font-black uppercase tracking-[0.22em] text-[#F26419] ${
+                  i === 0 ? "border-t border-stone-200 pt-6" : "mt-8 pt-2"
+                }`}
+              >
+                {s.group}
+              </p>
+            )}
             {isActive ? (
               <div className="my-2 rounded-3xl bg-stone-900 p-6 sm:p-8">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-start">

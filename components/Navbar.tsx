@@ -678,7 +678,14 @@ function DrawerItem({ item, onClose }: { item: NavNode; onClose: () => void }) {
       </button>
       <div
         className="overflow-hidden bg-gray-50 transition-[max-height] duration-300 ease-in-out"
-        style={{ maxHeight: open ? 44 * countTree(children) + 120 : 0 }}
+        style={{
+          maxHeight: open
+            ? 44 * countTree(children) +
+              120 +
+              // room for the per-category header rows added below
+              28 * new Set(children.filter((c) => c.group).map((c) => c.group)).size
+            : 0,
+        }}
       >
         <Link
           href={item.href}
@@ -687,10 +694,18 @@ function DrawerItem({ item, onClose }: { item: NavNode; onClose: () => void }) {
         >
           View all {item.label} <ArrowRightIcon size={11} />
         </Link>
-        {children.map((sub) => {
+        {children.map((sub, i) => {
           const Icon = navIcon(sub.icon);
+          // Mirror the desktop mega panel: label each category once, at the
+          // row where its group first appears, so the drawer reads by section.
+          const newGroup = sub.group && (i === 0 || children[i - 1].group !== sub.group);
           return (
             <div key={sub.href + sub.label}>
+              {newGroup && (
+                <p className={`px-6 pb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-800 ${i === 0 ? "pt-1" : "pt-3"}`}>
+                  {sub.group}
+                </p>
+              )}
               <Link
                 href={sub.href}
                 onClick={onClose}
