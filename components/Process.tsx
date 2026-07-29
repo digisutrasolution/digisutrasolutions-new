@@ -38,7 +38,7 @@ export default function Process() {
   const inView = useInView(sectionRef, { margin: "-120px" });
   const reduced = useReducedMotion();
 
-  // -1 idle · 0..6 running that step · 7 celebrating, then loops back to 0.
+  // -1 idle · 0..5 running that step · 6 celebrating, then loops back to 0.
   const [active, setActive] = useState(-1);
   const [paused, setPaused] = useState(false);
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
@@ -78,7 +78,7 @@ export default function Process() {
             How we work
           </p>
           <h2 className="font-display max-w-xl text-3xl font-extrabold tracking-tight text-stone-50 sm:text-4xl">
-            Seven steps.{" "}
+            Six steps.{" "}
             <span className="font-serif-accent font-medium italic text-orange-400">
               Zero
             </span>{" "}
@@ -156,7 +156,7 @@ export default function Process() {
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {PROCESS_STEPS.map((s, j) => {
               const done = reduced || celebrating || active > j;
               const running = !reduced && active === j;

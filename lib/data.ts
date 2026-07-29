@@ -153,7 +153,6 @@ export const PROCESS_STEPS = [
   { step: "Creative & setup", copy: "Ads, landing pages and tracking" },
   { step: "Launch", copy: "Campaigns live across channels" },
   { step: "Optimize", copy: "A/B tests, CRO and bid tuning" },
-  { step: "Scale", copy: "More budget on what works" },
   { step: "Report & grow", copy: "Live dashboards, monthly reviews" },
 ];
 
