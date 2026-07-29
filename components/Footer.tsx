@@ -233,20 +233,23 @@ export default async function Footer() {
           >
             {/* Brand — sign-off row at the end below lg, first column on lg */}
             <div className="order-3 col-span-2 border-t border-white/10 pt-6 lg:order-none lg:col-span-1 lg:border-0 lg:pt-0">
-              <div className="flex items-center justify-between gap-4 lg:block">
+              {/* Stack on mobile: the old flex-justify-between let six
+                  shrink-0 social icons eat the row and squeeze the brand
+                  column, truncating the description to "A full-spectr…". */}
+              <div className="block">
                 <div className="min-w-0">
                   <Image
                     src={withBase("/footer-logo.webp")}
                     alt="Digisutra Solutions"
                     width={260}
                     height={90}
-                    className="h-10 w-auto object-contain lg:mb-6 lg:ml-1 lg:h-16"
+                    className="h-12 w-auto object-contain lg:mb-6 lg:ml-1 lg:h-16"
                   />
-                  <p className="mt-2 line-clamp-2 text-[0.82rem] leading-relaxed text-white lg:mb-5 lg:ml-4 lg:mt-0 lg:line-clamp-none lg:text-[0.92rem]">
+                  <p className="mt-3 text-[0.9rem] leading-relaxed text-white lg:mb-5 lg:ml-4 lg:mt-0 lg:text-[0.92rem]">
                     {info.description}
                   </p>
                 </div>
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2.5 lg:ml-4 lg:justify-start">
+              <div className="mt-5 flex flex-wrap items-center gap-2.5 lg:ml-4 lg:mt-0 lg:justify-start">
                 {socials.map((s) => {
                   const icon = SOCIAL_ICONS[s.key];
                   return (
