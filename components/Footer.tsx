@@ -118,7 +118,7 @@ function PaymentChips({ compact }: { compact?: boolean }) {
      optimizer never ships a blurry 44px asset. */
   const chip = `flex cursor-default items-center justify-center rounded-lg border border-white/10 bg-white ${
     compact
-      ? "h-8 px-2"
+      ? "h-9 w-full px-2"
       : "h-9 w-full px-2.5 transition-transform duration-200 hover:scale-105"
   }`;
   return (
@@ -388,12 +388,14 @@ export default async function Footer() {
             </div>
           </div>
 
-          {/* We Accept — mobile: label and chips share one wrapping row */}
-          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-white/10 pt-5 lg:hidden">
-            <p className="text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
+          {/* We Accept — mobile: a uniform 3-column grid so the six badges
+              sit in two even rows instead of wrapping ragged (5 + a lone
+              Bank Transfer) as they did in a flex row. */}
+          <div className="mt-6 border-t border-white/10 pt-5 lg:hidden">
+            <p className="mb-3 text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
               We Accept
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="grid max-w-[340px] grid-cols-3 gap-2">
               <PaymentChips compact />
             </div>
           </div>
