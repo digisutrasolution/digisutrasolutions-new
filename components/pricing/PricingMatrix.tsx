@@ -90,9 +90,90 @@ export default function PricingMatrix({
         </p>
       )}
 
-      {/* pt-4 gives the floating RECOMMENDED badge headroom — the scroll
-          container clips anything above the grid. */}
-      <div className="mt-8 overflow-x-auto pt-4">
+      {/* Mobile: stacked plan cards. A horizontal matrix is unreadable on a
+          phone — the feature-label column scrolls out of view, stranding
+          values like "3 + CRO" with no context — so each plan becomes a
+          self-contained card with every feature labelled inline. */}
+      <div className="mt-8 space-y-5 lg:hidden">
+        {plans.map((p, i) => (
+          <div
+            key={p.name + "-card"}
+            className={`relative rounded-2xl p-5 ${
+              p.featured
+                ? "mt-7 border-2 border-[#F26419] bg-[#FFF7F0]"
+                : "border border-stone-200 bg-white"
+            }`}
+          >
+            {p.featured && (
+              <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-[#F26419] px-3 py-1 text-[10px] font-bold text-white">
+                RECOMMENDED
+              </span>
+            )}
+            <p className="font-display text-base font-bold text-stone-900">{p.name}</p>
+            <p className="font-display mt-1 text-3xl font-extrabold leading-none text-stone-900">
+              {priceFor(p)}
+              {p.period && <span className="text-xs font-medium text-stone-400">{p.period}</span>}
+            </p>
+            {quarterly && p.quarterlyPrice && p.quarterlyPrice !== p.price && (
+              <p className="mt-1 text-[11px] text-stone-400">
+                <s>{money(p.price, p.priceUsd)}</s> billed quarterly
+              </p>
+            )}
+            {p.tagline && <p className="mt-1.5 text-xs leading-snug text-stone-500">{p.tagline}</p>}
+            {!usd && p.marketNote && (
+              <p className="mt-1.5 text-xs font-medium text-emerald-700">{p.marketNote}</p>
+            )}
+            <div className={`mt-4 border-t ${p.featured ? "border-[#FFE3CC]" : "border-stone-100"}`}>
+              {matrix.map((row) => {
+                const v = row.values[i] ?? "—";
+                return (
+                  <div
+                    key={p.name + row.label}
+                    className={`flex items-center justify-between gap-4 border-b py-2.5 last:border-b-0 ${
+                      p.featured ? "border-[#FFE9D6]" : "border-stone-100"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5 text-[13px] text-stone-600">
+                      {row.label}
+                      {row.tooltip && (
+                        <span title={row.tooltip} className="cursor-help text-stone-300">
+                          <Info size={12} aria-label={row.tooltip} />
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className={`shrink-0 text-right text-[13px] ${
+                        v === "—"
+                          ? "text-stone-300"
+                          : v.startsWith("✓")
+                            ? "font-medium text-emerald-700"
+                            : "font-medium text-stone-800"
+                      }`}
+                    >
+                      {v}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <Link
+              href="/contact"
+              className={`mt-5 block rounded-full py-2.5 text-center text-sm font-bold transition-colors ${
+                p.featured
+                  ? "bg-[#F26419] text-white hover:bg-orange-600"
+                  : "border border-[#F26419] text-[#F26419] hover:bg-orange-50"
+              }`}
+            >
+              {p.cta ?? "Choose plan"}
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: side-by-side comparison matrix. pt-4 gives the floating
+          RECOMMENDED badge headroom — the scroll container clips anything
+          above the grid. */}
+      <div className="mt-8 hidden overflow-x-auto pt-4 lg:block">
         <div
           className="min-w-[720px]"
           style={{ display: "grid", gridTemplateColumns: `1.2fr repeat(${cols}, 1fr)` }}
