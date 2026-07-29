@@ -9,8 +9,11 @@
 }
 
 :root {
-  /* Height of the fixed announcement bar; header sits directly below it. */
-  --topbar-h: 5rem;
+  /* Height of the fixed announcement bar; header sits directly below it.
+     One row on mobile now that the phone chips moved into the menu — it was
+     5rem for the old two-row stack, which left an empty gap once the chip
+     row was removed. */
+  --topbar-h: 2.5rem;
 }
 
 @media (min-width: 768px) {

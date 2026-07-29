@@ -300,7 +300,9 @@ function AnnouncementBar() {
           />
         </div>
       </div>
-      <div className="flex h-[2.5rem] flex-1 items-center justify-around gap-1.5 bg-[#FAFAF9] px-3 sm:px-4 md:h-auto md:flex-none md:justify-start md:gap-2 md:border-l md:border-black/[0.06]">
+      {/* Phone chips are hidden on mobile — they crowded the bar and clipped;
+          both numbers live in the hamburger menu instead. Shown from md up. */}
+      <div className="hidden h-[2.5rem] flex-1 items-center justify-around gap-1.5 bg-[#FAFAF9] px-3 sm:px-4 md:flex md:h-auto md:flex-none md:justify-start md:gap-2 md:border-l md:border-black/[0.06]">
         {TOPBAR_CONTACTS}
       </div>
     </div>
@@ -782,6 +784,13 @@ function MobileDrawer({
               className="inline-flex items-center gap-2 text-[0.95rem] text-gray-900 no-underline"
             >
               <PhoneIcon size={15} color={ORANGE} /> +91-120-475-1400
+            </a>
+            <a
+              href="tel:+18886445402"
+              className="inline-flex items-center gap-2 text-[0.95rem] text-gray-900 no-underline"
+            >
+              <PhoneIcon size={15} color={ORANGE} /> +1-888-644-5402
+              <span className="text-[0.7rem] font-semibold text-gray-400">USA toll-free</span>
             </a>
             <a
               href="https://wa.me/919953900123"
