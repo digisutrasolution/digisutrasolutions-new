@@ -224,11 +224,14 @@ const chipCls =
 
 const TOPBAR_CONTACTS = (
   <>
+    {/* WhatsApp hidden on phones so the three chips stop overflowing and
+        clipping the India number. It stays in the hamburger menu, the
+        footer and the bot, so no contact path is lost on mobile. */}
     <a
       href="https://wa.me/919953900123"
       target="_blank"
       rel="noopener noreferrer"
-      className={chipCls}
+      className={`${chipCls} max-md:hidden`}
     >
       <WhatsAppSquareIcon />
       +91-9953-900123
