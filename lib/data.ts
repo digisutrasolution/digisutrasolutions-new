@@ -96,7 +96,34 @@ export const STATS = [
 export const CERTS: string[] = [];
 
 /* Home "studios" panels — 4 lanes mapping the 7 service categories. */
+/* Display order: Design · Development · Marketing · AI & Systems. The panel
+   photo, metric and service link are keyed by title in ServiceCatalog, so the
+   numbering (01–04) follows this array without any other change. */
 export const SERVICE_CATEGORIES = [
+  {
+    title: "Design",
+    icon: "palette",
+    items: [
+      "Logo design",
+      "Brand identity",
+      "UI/UX design",
+      "Wireframes",
+      "Design systems",
+      "Landing pages",
+    ],
+  },
+  {
+    title: "Development",
+    icon: "code",
+    items: [
+      "Business websites",
+      "Next.js / React builds",
+      "E-commerce stores",
+      "Custom web applications",
+      "Mobile apps · Flutter & RN",
+      "Speed & maintenance",
+    ],
+  },
   {
     title: "Marketing",
     icon: "megaphone",
@@ -119,30 +146,6 @@ export const SERVICE_CATEGORIES = [
       "Lead qualification AI",
       "Appointment booking bots",
       "Sales automation",
-    ],
-  },
-  {
-    title: "Development",
-    icon: "code",
-    items: [
-      "Business websites",
-      "Next.js / React builds",
-      "E-commerce stores",
-      "Custom web applications",
-      "Mobile apps · Flutter & RN",
-      "Speed & maintenance",
-    ],
-  },
-  {
-    title: "Design",
-    icon: "palette",
-    items: [
-      "Logo design",
-      "Brand identity",
-      "UI/UX design",
-      "Wireframes",
-      "Design systems",
-      "Landing pages",
     ],
   },
 ] as const;
