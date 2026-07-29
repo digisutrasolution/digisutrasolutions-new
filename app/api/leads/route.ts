@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
+import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { notifyRoles } from "@/lib/notify";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { DEPARTMENT_KEYS, departmentEmail } from "@/lib/contact-channels";
@@ -95,40 +97,63 @@ export async function POST(req: Request) {
     },
   });
 
-  // Route the enquiry to the desk the visitor picked. Best-effort: the lead
-  // is already stored, so a mail failure never loses it.
-  const apiKey = process.env.RESEND_API_KEY;
-  if (apiKey) {
+  /* Route the enquiry to the desk the visitor picked. Best-effort: the lead
+     is already stored, so a mail failure never loses it.
+
+     Goes through sendEmail rather than calling Resend directly — this used
+     to bypass it, so the desk alert kept needing a RESEND_API_KEY even after
+     SMTP was configured in the admin. */
+  {
     const to = process.env.CONTACT_TO_EMAIL ?? departmentEmail(d.department);
-    fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from:
-          process.env.CONTACT_FROM_EMAIL ??
-          "DigiSutra <onboarding@resend.dev>",
-        to: [to],
-        ...(d.email ? { reply_to: d.email } : {}),
-        subject: `${d.department ?? "CONTACT"} enquiry: ${lead.name}`,
-        text: [
-          `Desk: ${d.department ?? "—"}`,
-          `Name: ${lead.name}`,
-          `Company: ${d.company || "—"}`,
-          `WhatsApp: ${lead.whatsapp}`,
-          `Email: ${lead.email || "—"}`,
-          `Website: ${lead.website || "—"}`,
-          `Services: ${lead.services.join(", ") || "—"}`,
-          `Budget: ${lead.budget || "—"}`,
-          `Timeline: ${lead.timeline || "—"}`,
-          `Found us via: ${lead.heardFrom || "—"}`,
-          "",
-          lead.message || "(no message)",
-        ].join("\n"),
-      }),
-    }).catch(() => {});
+    const mail = alertEmail({
+      badge: `New enquiry · ${d.department ?? "CONTACT"}`,
+      title: d.company ? `${lead.name} — ${d.company}` : lead.name,
+      subtitle: "Came in through the website contact form.",
+      rows: [
+        { label: "WhatsApp", value: lead.whatsapp },
+        { label: "Email", value: lead.email || "" },
+        { label: "Website", value: lead.website || "" },
+        { label: "Interested in", value: lead.services.join(", ") },
+        { label: "Budget", value: lead.budget || "" },
+        { label: "Timeline", value: lead.timeline || "" },
+        { label: "Found us via", value: lead.heardFrom || "" },
+      ],
+      quote: lead.message || undefined,
+      actionLabel: "Open in CMS",
+      actionUrl: emailUrl("/admin/leads"),
+      secondaryLabel: "Reply on WhatsApp",
+      secondaryUrl: `https://wa.me/${lead.whatsapp.replace(/[^\d]/g, "")}`,
+      footerNote: `Sent to the ${(d.department ?? "contact").toLowerCase()} desk.`,
+    });
+
+    void sendEmail({
+      to: [to],
+      subject: `${d.department ?? "CONTACT"} enquiry: ${lead.name}`,
+      text: mail.text,
+      html: mail.html,
+      ...(d.email ? { replyTo: d.email } : {}),
+    });
+
+    /* Auto-reply to the enquirer. Only when they gave an email, only when the
+       submission is not flagged as spam — confirming receipt to a spammer
+       just turns this into a mail relay for them. */
+    if (d.email && flags.length === 0) {
+      const ack = thankYouEmail({
+        name: lead.name,
+        summary: [
+          { label: "Interested in", value: lead.services.join(", ") },
+          { label: "Budget", value: lead.budget || "" },
+          { label: "Timeline", value: lead.timeline || "" },
+        ],
+        message: lead.message || undefined,
+      });
+      void sendEmail({
+        to: [d.email],
+        subject: "We've got your enquiry — DigiSutra Solutions",
+        text: ack.text,
+        html: ack.html,
+      });
+    }
   }
 
   // Suspected spam lands in the list but does not ping anyone.

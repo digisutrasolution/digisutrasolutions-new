@@ -23,6 +23,8 @@ export async function sendEmail(input: {
   subject: string;
   text: string;
   html?: string;
+  /** Lets the team reply straight to the enquirer on internal alerts. */
+  replyTo?: string;
 }): Promise<SendResult> {
   if (input.to.length === 0) {
     return { ok: false, via: "none", error: "No recipients." };
@@ -60,6 +62,7 @@ export async function sendEmail(input: {
         subject: input.subject,
         text: input.text,
         ...(input.html ? { html: input.html } : {}),
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
       }),
     });
     if (!res.ok) {

@@ -3,6 +3,9 @@ import { appendFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
+import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
+import { getSmtp, smtpReady } from "@/lib/smtp";
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
@@ -119,42 +122,62 @@ export async function POST(req: Request) {
 
   // Email notification — best-effort. A failure here never fails the
   // request, because the lead is already stored and visible in admin.
-  const apiKey = process.env.RESEND_API_KEY;
+  /* Goes through sendEmail so the admin's SMTP settings are honoured; this
+     used to call Resend directly, so the alert kept needing an API key even
+     after SMTP was configured. */
+  const hasProvider = smtpReady(await getSmtp()) || Boolean(process.env.RESEND_API_KEY);
   let emailed = false;
 
-  if (apiKey) {
+  if (hasProvider) {
     const to = process.env.CONTACT_TO_EMAIL ?? "Info@digisutrasolutions.com";
-    const from =
-      process.env.CONTACT_FROM_EMAIL ?? "DigiSutra <onboarding@resend.dev>";
-    try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from,
-          to: [to],
-          ...(email ? { reply_to: email } : {}),
-          subject: `New enquiry: ${name}${record.company ? ` (${record.company})` : ""}`,
-          text: [
-            `Name: ${record.name}`,
-            `Company: ${record.company || "—"}`,
-            `Email: ${record.email || "—"}`,
-            `Phone/WhatsApp: ${record.phone || "—"}`,
-            `Website: ${record.siteUrl || "—"}`,
-            `Service: ${record.service || "—"}`,
-            `Budget: ${record.budget || "—"}`,
-            "",
-            record.message,
-          ].join("\n"),
-        }),
+    const mail = alertEmail({
+      badge: "New enquiry",
+      title: record.company ? `${record.name} — ${record.company}` : record.name,
+      subtitle: "Came in through the website contact form.",
+      rows: [
+        { label: "Email", value: record.email || "" },
+        { label: "Phone / WhatsApp", value: record.phone || "" },
+        { label: "Website", value: record.siteUrl || "" },
+        { label: "Service", value: record.service || "" },
+        { label: "Budget", value: record.budget || "" },
+      ],
+      quote: record.message,
+      actionLabel: "Open in CMS",
+      actionUrl: emailUrl("/admin/leads"),
+      ...(record.phone
+        ? {
+            secondaryLabel: "Reply on WhatsApp",
+            secondaryUrl: `https://wa.me/${record.phone.replace(/[^\d]/g, "")}`,
+          }
+        : {}),
+    });
+
+    const sent = await sendEmail({
+      to: [to],
+      subject: `New enquiry: ${name}${record.company ? ` (${record.company})` : ""}`,
+      text: mail.text,
+      html: mail.html,
+      ...(email ? { replyTo: email } : {}),
+    });
+    emailed = sent.ok;
+    if (!sent.ok) console.error("contact notification failed:", sent.error);
+
+    // Auto-reply so the sender knows it arrived, not just the team.
+    if (email) {
+      const ack = thankYouEmail({
+        name: record.name,
+        summary: [
+          { label: "Service", value: record.service || "" },
+          { label: "Budget", value: record.budget || "" },
+        ],
+        message: record.message,
       });
-      emailed = res.ok;
-      if (!res.ok) console.error("Resend error:", res.status, await res.text());
-    } catch (err) {
-      console.error("Resend request failed:", err);
+      void sendEmail({
+        to: [email],
+        subject: "We've got your enquiry — DigiSutra Solutions",
+        text: ack.text,
+        html: ack.html,
+      });
     }
   } else {
     console.warn("Contact form: RESEND_API_KEY not set — lead saved, no email sent.");

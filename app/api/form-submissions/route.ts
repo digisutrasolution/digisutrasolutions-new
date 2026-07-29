@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { parseFormFields, validateSubmission } from "@/lib/cms/forms";
 import { notifyRoles } from "@/lib/notify";
 import { sendEmail } from "@/lib/email";
+import { alertEmail, emailUrl } from "@/lib/email-templates";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 const SubmitSchema = z.object({
@@ -70,10 +71,22 @@ export async function POST(req: Request) {
     link: "/admin/forms",
   });
   if (form.notifyEmail) {
+    const mail = alertEmail({
+      badge: "New form submission",
+      title: form.name,
+      subtitle: "Submitted from the website.",
+      rows: fields.map((f) => ({
+        label: f.label,
+        value: String(result.clean[f.key] ?? ""),
+      })),
+      actionLabel: "Open in CMS",
+      actionUrl: emailUrl("/admin/forms"),
+    });
     void sendEmail({
       to: [form.notifyEmail],
       subject: `New "${form.name}" submission`,
-      text: summary,
+      text: mail.text,
+      html: mail.html,
     });
   }
 

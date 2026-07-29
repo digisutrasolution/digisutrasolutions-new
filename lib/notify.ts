@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { alertEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
 import type { Role } from "@prisma/client";
 
@@ -38,12 +39,21 @@ export async function notifyUsers(
       where: { id: { in: ids }, isActive: true },
       select: { email: true },
     });
+    const mail = alertEmail({
+      badge: "DigiSutra CMS",
+      title: input.title,
+      subtitle: input.body ?? undefined,
+      rows: [],
+      ...(input.link
+        ? { actionLabel: "Open in CMS", actionUrl: `${SITE_URL}${input.link}` }
+        : {}),
+      footerNote: "You are receiving this because of your role in the CMS.",
+    });
     await sendEmail({
       to: users.map((u) => u.email),
       subject: `[DigiSutra CMS] ${input.title}`,
-      text: `${input.title}\n\n${input.body ?? ""}\n\n${
-        input.link ? `Open: ${SITE_URL}${input.link}` : ""
-      }`.trim(),
+      text: mail.text,
+      html: mail.html,
     });
   } catch (err) {
     console.error("notify failed:", err);

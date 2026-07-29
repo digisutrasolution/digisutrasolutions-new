@@ -4,6 +4,7 @@ import { audit } from "@/lib/audit";
 import { createResetToken, purgeExpiredResetTokens, RESET_TTL_MIN } from "@/lib/auth/reset";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { actionEmail } from "@/lib/email-templates";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { absUrl } from "@/lib/site";
 import { getSmtp, smtpReady } from "@/lib/smtp";
@@ -74,19 +75,24 @@ export async function POST(req: Request) {
     const token = await createResetToken(user.id, ip);
     const link = absUrl(`/admin/reset?token=${encodeURIComponent(token)}`);
 
+    const mail = actionEmail({
+      heading: "Reset your password",
+      greeting: `Hello ${user.name},`,
+      paragraphs: [
+        "We received a request to reset the password for your DigiSutra CMS account. Use the button below to choose a new one.",
+      ],
+      buttonLabel: "Set a new password",
+      buttonUrl: link,
+      note: `<b>This link expires in ${RESET_TTL_MIN} minutes</b> and can only be used once.`,
+      closing:
+        "If you didn't request this, you can ignore this email — your password stays as it is.",
+    });
+
     const sent = await sendEmail({
       to: [user.email],
       subject: "Reset your DigiSutra CMS password",
-      text: [
-        `Hello ${user.name},`,
-        "",
-        "Use the link below to set a new password. It works once and expires in " +
-          `${RESET_TTL_MIN} minutes.`,
-        "",
-        link,
-        "",
-        "If you did not request this, ignore this email — your password stays as it is.",
-      ].join("\n"),
+      text: mail.text,
+      html: mail.html,
     });
 
     // Surfaced in the server log only; the caller still gets GENERIC.

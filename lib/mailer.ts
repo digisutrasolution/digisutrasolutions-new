@@ -47,6 +47,7 @@ export async function sendViaSmtp(input: {
   subject: string;
   text: string;
   html?: string;
+  replyTo?: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const s = await getSmtp();
   if (!smtpReady(s)) return { ok: false, error: "SMTP is not configured." };
@@ -57,6 +58,7 @@ export async function sendViaSmtp(input: {
       subject: input.subject,
       text: input.text,
       ...(input.html ? { html: input.html } : {}),
+      ...(input.replyTo ? { replyTo: input.replyTo } : {}),
     });
     return { ok: true };
   } catch (err) {
