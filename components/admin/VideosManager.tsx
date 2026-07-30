@@ -160,7 +160,14 @@ export default function VideosManager({
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {videos.map((v) => (
             <div key={v.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-              {v.thumbnailUrl ? (
+              {v.provider === "FILE" ? (
+                <video
+                  src={v.videoId.startsWith("http") ? v.videoId : withBase(v.videoId)}
+                  controls
+                  preload="metadata"
+                  className="aspect-video w-full bg-black object-contain"
+                />
+              ) : v.thumbnailUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={withBase(v.thumbnailUrl)} alt="" loading="lazy" className="aspect-video w-full bg-stone-100 object-cover dark:bg-stone-800" />
               ) : (
