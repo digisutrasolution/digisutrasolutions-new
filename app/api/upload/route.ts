@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
-import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 import { saveUpload } from "@/lib/storage";
 
@@ -37,22 +36,10 @@ export async function POST(req: Request) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const stored = await saveUpload(buffer, file.name, file.type);
 
-  await db.mediaAsset
-    .create({
-      data: {
-        filename: stored.filename,
-        originalName: file.name.slice(0, 200),
-        mimeType: stored.mimeType,
-        size: stored.size,
-        width: null,
-        height: null,
-        alt: "",
-        url: stored.url,
-        uploadedById: user.id,
-        uploadedByName: user.name,
-      },
-    })
-    .catch(() => {});
+  // Deliberately NOT recorded as a MediaAsset: this endpoint feeds the Videos
+  // library, which owns the record. Creating a MediaAsset too would show the
+  // same video twice (once in Videos, once in Media) and orphan it there when
+  // the Video is deleted. Images still go through /api/media, which does track.
 
   audit({
     userId: user.id,

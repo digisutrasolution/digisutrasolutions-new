@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
+import { deleteStoredFile } from "@/lib/storage";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -66,6 +67,14 @@ export async function DELETE(req: Request, { params }: Params) {
     );
   }
   await db.video.delete({ where: { id } });
+
+  // Uploaded (FILE) videos own their file — remove it so it doesn't orphan in
+  // /uploads. YouTube/Vimeo videos have no file (videoId is an external id).
+  if (video.provider === "FILE") {
+    const filename = video.videoId.split("/").pop() ?? "";
+    if (filename) void deleteStoredFile(filename, video.videoId);
+  }
+
   audit({
     userId: user.id,
     action: "video.delete",
