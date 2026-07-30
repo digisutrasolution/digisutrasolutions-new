@@ -690,6 +690,33 @@ model Lead {
   @@index([deletedAt])
 }
 
+/* Ordered rules that route a freshly-captured lead to an owner. The first
+   enabled rule whose conditions all match wins; its target pool is worked
+   round-robin (rrIndex is the cursor). Empty condition lists are wildcards,
+   so a rule with no conditions is a catch-all — put it last. */
+model AssignmentRule {
+  id         String         @id @default(cuid())
+  name       String
+  enabled    Boolean        @default(true)
+  order      Int            @default(0)
+  // Conditions: AND across categories, OR within each list, [] = any.
+  sources    LeadSource[]   @default([])
+  services   String[]       @default([])
+  countries  String[]       @default([])
+  states     String[]       @default([])
+  cities     String[]       @default([])
+  priorities LeadPriority[] @default([])
+  keyword    String?
+  // Target pool worked round-robin.
+  targetUserIds String[]    @default([])
+  rrIndex       Int         @default(0)
+  matchCount    Int         @default(0)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([enabled, order])
+}
+
 enum FollowUpStatus {
   PENDING
   DONE

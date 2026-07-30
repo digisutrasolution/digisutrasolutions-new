@@ -11,6 +11,7 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { getContactConfig } from "@/lib/contact-config-server";
 import { deskEmail } from "@/lib/contact-config";
 import { logLeadActivity } from "@/lib/crm-server";
+import { autoAssignLead } from "@/lib/assignment";
 import { sourceLabel } from "@/lib/crm";
 
 const LeadSchema = z.object({
@@ -106,6 +107,9 @@ export async function POST(req: Request) {
     type: "created",
     message: `Lead captured from ${sourceLabel(lead.source)}`,
   });
+
+  // Route to an owner by the assignment rules (best-effort, never blocks).
+  void autoAssignLead(lead);
 
   /* Route the enquiry to the desk the visitor picked. Best-effort: the lead
      is already stored, so a mail failure never loses it.

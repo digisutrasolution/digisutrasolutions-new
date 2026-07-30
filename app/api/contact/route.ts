@@ -3,6 +3,7 @@ import { appendFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { autoAssignLead } from "@/lib/assignment";
 import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { getSmtp, smtpReady } from "@/lib/smtp";
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
   // via a synthesised placeholder so nothing is ever silently dropped.
   let leadSaved = false;
   try {
-    await db.lead.create({
+    const lead = await db.lead.create({
       data: {
         name,
         whatsapp: whatsapp ? whatsapp.replace(/[\s-]/g, "") : "—",
@@ -104,6 +105,8 @@ export async function POST(req: Request) {
       },
     });
     leadSaved = true;
+    // Route to an owner by the assignment rules (best-effort, never blocks).
+    void autoAssignLead(lead);
   } catch {
     /* DB write failed — email below becomes the only capture path. */
   }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { leadFromSubmission, parseFormFields, validateSubmission } from "@/lib/cms/forms";
+import { autoAssignLead } from "@/lib/assignment";
 import { notifyRoles } from "@/lib/notify";
 import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl } from "@/lib/email-templates";
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
   // works them like any contact enquiry; "submission" forms just notify.
   if (form.destination === "lead") {
     const lead = leadFromSubmission(result.clean);
-    await db.lead
+    const created = await db.lead
       .create({
         data: {
           name: lead.name,
@@ -84,6 +85,8 @@ export async function POST(req: Request) {
         },
       })
       .catch(() => null);
+    // Route to an owner by the assignment rules (best-effort, never blocks).
+    if (created) void autoAssignLead(created);
     void notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
       type: "lead",
       title: `New lead from "${form.name}"`,
