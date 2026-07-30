@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useReducedMotion } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 
@@ -15,6 +16,10 @@ export default function BackToTop() {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(false);
   const reduced = useReducedMotion();
+  /* The pricing page lifts the bot launcher (and call button) by 48px so they
+     clear the full-width plan-card CTAs; lift this by the same amount to keep
+     the right-side ladder from colliding with the launcher. Mirrors SutraBot. */
+  const liftFab = usePathname() === "/pricing";
 
   useEffect(() => {
     let raf = 0;
@@ -45,7 +50,9 @@ export default function BackToTop() {
       }
       aria-label="Back to top"
       tabIndex={visible ? 0 : -1}
-      className={`fixed bottom-[8.5rem] right-[25px] z-[120] h-[46px] w-[46px] cursor-pointer transition-all duration-300 ${
+      className={`fixed right-[25px] z-[120] h-[46px] w-[46px] cursor-pointer transition-all duration-300 ${
+        liftFab ? "bottom-[11.5rem]" : "bottom-[8.5rem]"
+      } ${
         visible
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-3 opacity-0"
