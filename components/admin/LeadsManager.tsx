@@ -50,6 +50,9 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAssignee, setBulkAssignee] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const params = useCallback(() => {
     const sp = new URLSearchParams({ page: String(page) });
@@ -91,6 +94,68 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
     setter(v);
     setPage(1);
   };
+
+  // ---- bulk selection / assignment ----
+  const toggleSel = (id: string) =>
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  const allOnPage = leads.length > 0 && leads.every((l) => selected.has(l.id));
+  const toggleAll = () =>
+    setSelected((s) => {
+      const n = new Set(s);
+      if (allOnPage) leads.forEach((l) => n.delete(l.id));
+      else leads.forEach((l) => n.add(l.id));
+      return n;
+    });
+  const clearSel = () => setSelected(new Set());
+
+  async function bulkAssign(assignedToId: string | null) {
+    const ids = [...selected];
+    if (!ids.length) return;
+    setBulkBusy(true);
+    try {
+      await fetch(withBase("/api/leads/bulk"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, assignedToId }),
+      });
+      clearSel();
+      await load();
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  // Round-robin: spread the selected leads evenly across active users.
+  async function roundRobin() {
+    const ids = [...selected];
+    if (!ids.length || assignees.length === 0) return;
+    setBulkBusy(true);
+    try {
+      const buckets: Record<string, string[]> = {};
+      ids.forEach((id, i) => {
+        const uid = assignees[i % assignees.length].id;
+        (buckets[uid] ??= []).push(id);
+      });
+      await Promise.all(
+        Object.entries(buckets).map(([uid, bIds]) =>
+          fetch(withBase("/api/leads/bulk"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: bIds, assignedToId: uid }),
+          }),
+        ),
+      );
+      clearSel();
+      await load();
+    } finally {
+      setBulkBusy(false);
+    }
+  }
 
   return (
     <div>
@@ -136,10 +201,42 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
         {loading ? "Loading…" : `${total.toLocaleString("en-IN")} lead${total === 1 ? "" : "s"}`}
       </p>
 
+      {selected.size > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs dark:border-orange-900/60 dark:bg-orange-950/30">
+          <span className="font-semibold text-orange-800 dark:text-orange-300">{selected.size} selected</span>
+          <select value={bulkAssignee} onChange={(e) => setBulkAssignee(e.target.value)} className={inputCls} aria-label="Bulk assign to">
+            <option value="">Assign to…</option>
+            <option value="__unassign">Unassign</option>
+            {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+          <button
+            onClick={() => void bulkAssign(bulkAssignee === "__unassign" ? null : bulkAssignee)}
+            disabled={bulkBusy || !bulkAssignee}
+            className="cursor-pointer rounded-lg bg-orange-600 px-3 py-1.5 font-semibold text-white hover:bg-orange-500 disabled:opacity-50"
+          >
+            Assign
+          </button>
+          <button
+            onClick={() => void roundRobin()}
+            disabled={bulkBusy || assignees.length === 0}
+            title="Spread the selected leads evenly across all team members"
+            className="cursor-pointer rounded-lg border border-stone-300 px-3 py-1.5 font-semibold text-stone-700 hover:border-orange-400 hover:text-orange-700 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300"
+          >
+            Round-robin
+          </button>
+          <button onClick={clearSel} className="ml-auto cursor-pointer font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-stone-200">
+            Clear
+          </button>
+        </div>
+      )}
+
       <div className="mt-2 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-        <table className="w-full min-w-[820px] text-sm">
+        <table className="w-full min-w-[860px] text-sm">
           <thead>
             <tr className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-400 dark:border-stone-800">
+              <th className="w-9 px-3 py-2.5">
+                <input type="checkbox" checked={allOnPage} onChange={toggleAll} aria-label="Select all" className="h-4 w-4 accent-orange-600" />
+              </th>
               <th className="px-4 py-2.5">Lead</th>
               <th className="px-4 py-2.5">Source</th>
               <th className="px-4 py-2.5">Status</th>
@@ -152,7 +249,7 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
           <tbody>
             {leads.length === 0 && !loading && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-sm text-stone-500">
+                <td colSpan={8} className="px-4 py-10 text-center text-sm text-stone-500">
                   No leads match these filters.
                 </td>
               </tr>
@@ -161,8 +258,11 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
               <tr
                 key={l.id}
                 onClick={() => router.push(`/admin/leads/${l.id}`)}
-                className="cursor-pointer border-b border-stone-50 transition-colors last:border-0 hover:bg-orange-50/40 dark:border-stone-800/60 dark:hover:bg-stone-800/40"
+                className={`cursor-pointer border-b border-stone-50 transition-colors last:border-0 hover:bg-orange-50/40 dark:border-stone-800/60 dark:hover:bg-stone-800/40 ${selected.has(l.id) ? "bg-orange-50/60 dark:bg-stone-800/50" : ""}`}
               >
+                <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                  <input type="checkbox" checked={selected.has(l.id)} onChange={() => toggleSel(l.id)} aria-label={`Select ${l.name}`} className="h-4 w-4 accent-orange-600" />
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5 font-semibold text-stone-900 dark:text-stone-100">
                     {l.name}

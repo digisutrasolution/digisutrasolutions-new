@@ -213,13 +213,15 @@ export async function GET(req: Request) {
   }
 
   const isCsv = p.get("format") === "csv";
+  // Kanban needs the whole pipeline at once (not a 25-row page).
+  const board = p.get("view") === "board";
   const [total, leads] = await Promise.all([
     db.lead.count({ where }),
     db.lead.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip: isCsv ? 0 : (page - 1) * PAGE_SIZE,
-      take: isCsv ? 5000 : PAGE_SIZE,
+      skip: isCsv || board ? 0 : (page - 1) * PAGE_SIZE,
+      take: isCsv ? 5000 : board ? 300 : PAGE_SIZE,
       include: { assignedTo: { select: { id: true, name: true } } },
     }),
   ]);

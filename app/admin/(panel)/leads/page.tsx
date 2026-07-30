@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { can } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import LeadsManager from "@/components/admin/LeadsManager";
+import LeadsWorkspace from "@/components/admin/LeadsWorkspace";
 
 export const metadata = { title: "Leads" };
 
@@ -26,7 +26,7 @@ export default async function AdminLeadsPage() {
         entries. Filter, assign and click a lead to open its full record.
       </p>
       <div className="mt-6">
-        <LeadsManager assignees={assignees} />
+        <LeadsWorkspace assignees={assignees} />
       </div>
     </div>
   );
