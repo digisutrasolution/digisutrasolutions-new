@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
@@ -8,6 +9,8 @@ import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { notifyRoles } from "@/lib/notify";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { DEPARTMENT_KEYS, departmentEmail } from "@/lib/contact-channels";
+import { logLeadActivity } from "@/lib/crm-server";
+import { sourceLabel } from "@/lib/crm";
 
 const LeadSchema = z.object({
   name: z.string().trim().min(2).max(90),
@@ -97,6 +100,12 @@ export async function POST(req: Request) {
     },
   });
 
+  void logLeadActivity({
+    leadId: lead.id,
+    type: "created",
+    message: `Lead captured from ${sourceLabel(lead.source)}`,
+  });
+
   /* Route the enquiry to the desk the visitor picked. Best-effort: the lead
      is already stored, so a mail failure never loses it.
 
@@ -169,30 +178,60 @@ export async function POST(req: Request) {
   return NextResponse.json({ ok: true, id: lead.id }, { status: 201 });
 }
 
-/** Admin: list/filter leads; ?format=csv exports. */
+const PAGE_SIZE = 25;
+
+/** Admin: list/filter/search leads (paginated); ?format=csv exports the match. */
 export async function GET(req: Request) {
   const { error } = await requirePermission("leads.manage");
   if (error) return error;
 
   const url = new URL(req.url);
-  const status = url.searchParams.get("status");
-  const where = status && status !== "ALL" ? { status: status as never } : {};
-  const leads = await db.lead.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: 500,
-  });
+  const p = url.searchParams;
+  const status = p.get("status");
+  const source = p.get("source");
+  const priority = p.get("priority");
+  const assignedTo = p.get("assignedTo"); // user id, or "unassigned"
+  const q = (p.get("q") ?? "").trim().slice(0, 100);
+  const page = Math.max(1, parseInt(p.get("page") ?? "1", 10) || 1);
 
-  if (url.searchParams.get("format") === "csv") {
+  const where: Prisma.LeadWhereInput = { deletedAt: null };
+  if (status && status !== "ALL") where.status = status as Prisma.LeadWhereInput["status"];
+  if (source && source !== "ALL") where.source = source as Prisma.LeadWhereInput["source"];
+  if (priority && priority !== "ALL")
+    where.priority = priority as Prisma.LeadWhereInput["priority"];
+  if (assignedTo === "unassigned") where.assignedToId = null;
+  else if (assignedTo && assignedTo !== "ALL") where.assignedToId = assignedTo;
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { company: { contains: q, mode: "insensitive" } },
+      { email: { contains: q, mode: "insensitive" } },
+      { whatsapp: { contains: q } },
+    ];
+  }
+
+  const isCsv = p.get("format") === "csv";
+  const [total, leads] = await Promise.all([
+    db.lead.count({ where }),
+    db.lead.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: isCsv ? 0 : (page - 1) * PAGE_SIZE,
+      take: isCsv ? 5000 : PAGE_SIZE,
+      include: { assignedTo: { select: { id: true, name: true } } },
+    }),
+  ]);
+
+  if (isCsv) {
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const rows = [
-      ["Created", "Name", "WhatsApp", "Email", "Website", "Department", "Services", "Budget", "Timeline", "Found us via", "Source", "Status", "Verified", "Message", "Notes"].join(","),
+      ["Created", "Name", "Company", "WhatsApp", "Email", "Website", "Source", "Status", "Priority", "Score", "Assigned to", "Country", "City", "Services", "Budget", "Message", "Notes"].join(","),
       ...leads.map((l) =>
         [
           l.createdAt.toISOString(),
-          l.name, l.whatsapp, l.email, l.website, l.department,
-          l.services.join("; "), l.budget, l.timeline, l.heardFrom,
-          l.source, l.status, l.verified ? "yes" : "no", l.message, l.notes,
+          l.name, l.company, l.whatsapp, l.email, l.website,
+          l.source, l.status, l.priority, l.score, l.assignedTo?.name,
+          l.country, l.city, l.services.join("; "), l.budget, l.message, l.notes,
         ].map(esc).join(","),
       ),
     ].join("\n");
@@ -203,5 +242,12 @@ export async function GET(req: Request) {
       },
     });
   }
-  return NextResponse.json({ ok: true, leads });
+
+  return NextResponse.json({
+    ok: true,
+    leads,
+    total,
+    page,
+    pages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+  });
 }

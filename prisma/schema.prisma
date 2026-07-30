@@ -30,6 +30,7 @@ model User {
   pagesCreated  Page[]         @relation("PageCreatedBy")
   pagesUpdated  Page[]         @relation("PageUpdatedBy")
   pushSubs      PushSubscription[]
+  assignedLeads Lead[]         @relation("LeadAssignee")
 }
 
 model PushSubscription {
@@ -591,14 +592,48 @@ enum LeadSource {
   ESTIMATOR
   SUTRABOT
   FORM
+  WEBSITE
+  SEO_AUDIT
+  PPC
+  LANDING
+  WHATSAPP
+  FACEBOOK
+  INSTAGRAM
+  GOOGLE_ADS
+  LINKEDIN
+  REFERRAL
+  ORGANIC
+  EMAIL_CAMPAIGN
+  COLD_CALL
+  WALK_IN
+  TRADE_SHOW
+  MANUAL
+  API
+  CSV_IMPORT
 }
 
 enum LeadStatus {
   NEW
+  ATTEMPTED
+  CONTACTED
   VERIFIED
   QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  FOLLOW_UP
+  MEETING
   WON
   LOST
+  SPAM
+  DUPLICATE
+  HOLD
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
 model Lead {
@@ -620,11 +655,53 @@ model Lead {
   verified  Boolean    @default(false)
   notes     String?
   ipHash    String?
+
+  // CRM fields (all optional so existing intake — contact/forms/audit/bot —
+  // keeps writing leads with just the core fields).
+  company         String?
+  industry        String?
+  country         String?
+  state           String?
+  city            String?
+  address         String?
+  campaign        String?
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  expectedRevenue Int?
+  priority        LeadPriority @default(MEDIUM)
+  score           Int?
+  tags            String[]     @default([])
+  assignedTo      User?        @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  assignedToId    String?
+  /** Soft delete — rows are hidden, never physically removed. */
+  deletedAt       DateTime?
+  activities      LeadActivity[]
+
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   @@index([status, createdAt])
   @@index([whatsapp])
+  @@index([assignedToId])
+  @@index([source, createdAt])
+  @@index([deletedAt])
+}
+
+/* Immutable activity log per lead — powers the CRM timeline. Every status
+   change, assignment, note and comms action appends one row. */
+model LeadActivity {
+  id        String   @id @default(cuid())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId    String
+  userId    String?
+  userName  String?
+  type      String
+  message   String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
 }
 
 model MenuVersion {

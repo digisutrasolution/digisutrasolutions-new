@@ -1,200 +1,320 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Download, Plus, ShieldCheck } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import {
+  LEAD_PRIORITIES,
+  LEAD_SOURCES,
+  LEAD_STATUSES,
+  PRIORITY_LABEL,
+  PRIORITY_STYLE,
+  SOURCE_LABEL,
+  STATUS_LABEL,
+  STATUS_STYLE,
+  sourceLabel,
+} from "@/lib/crm";
 
-import { Fragment, useCallback, useEffect, useState } from "react";
-import { Download, ExternalLink, ShieldCheck, Trash2 } from "lucide-react";
+type Assignee = { id: string; name: string };
 
 type Lead = {
   id: string;
   name: string;
+  company: string | null;
   whatsapp: string;
   email: string | null;
-  website: string | null;
-  services: string[];
-  budget: string | null;
-  timeline: string | null;
-  department: string | null;
-  heardFrom: string | null;
-  message: string | null;
   source: string;
   status: string;
+  priority: string;
+  score: number | null;
   verified: boolean;
-  notes: string | null;
   createdAt: string;
+  assignedTo: { id: string; name: string } | null;
 };
 
-const STATUSES = ["ALL", "NEW", "VERIFIED", "QUALIFIED", "WON", "LOST"] as const;
+const inputCls =
+  "rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs outline-none transition-colors focus:border-orange-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
 
-const STATUS_TONES: Record<string, string> = {
-  NEW: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200",
-  VERIFIED: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
-  QUALIFIED: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
-  WON: "bg-emerald-600 text-white",
-  LOST: "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
-};
+export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
+  const router = useRouter();
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("ALL");
+  const [source, setSource] = useState("ALL");
+  const [priority, setPriority] = useState("ALL");
+  const [assignee, setAssignee] = useState("ALL");
+  const [page, setPage] = useState(1);
 
-export default function LeadsManager() {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [filter, setFilter] = useState<(typeof STATUSES)[number]>("ALL");
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState<string | null>(null);
-  const [noteDraft, setNoteDraft] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
 
-  const reload = useCallback(async () => {
-    const res = await fetch(withBase(`/api/leads?status=${filter}`));
-    const data = await res.json();
-    if (data.ok) setLeads(data.leads);
-    setLoading(false);
-  }, [filter]);
+  const params = useCallback(() => {
+    const sp = new URLSearchParams({ page: String(page) });
+    if (q) sp.set("q", q);
+    if (status !== "ALL") sp.set("status", status);
+    if (source !== "ALL") sp.set("source", source);
+    if (priority !== "ALL") sp.set("priority", priority);
+    if (assignee !== "ALL") sp.set("assignedTo", assignee);
+    return sp;
+  }, [page, q, status, source, priority, assignee]);
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(withBase(`/api/leads?${params().toString()}`));
+      const json = await res.json();
+      if (json.ok) {
+        setLeads(json.leads);
+        setTotal(json.total);
+        setPages(json.pages);
+      }
+    } catch {
+      /* transient */
+    } finally {
+      setLoading(false);
+    }
+  }, [params]);
+
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    const t = setTimeout(() => {
-      setLoading(true);
-      void reload();
-    }, 0);
-    return () => clearTimeout(t);
-  }, [reload]);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(load, 250);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [load]);
 
-  const patch = async (id: string, body: object) => {
-    await fetch(withBase(`/api/leads/${id}`), {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    await reload();
+  const onFilter = (setter: (v: string) => void) => (v: string) => {
+    setter(v);
+    setPage(1);
   };
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2">
-        {STATUSES.map((s) => (
-          <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-              filter === s
-                ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900"
-                : "border border-stone-200 text-stone-600 hover:border-orange-400 dark:border-stone-700 dark:text-stone-300"
-            }`}
-          >
-            {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-end gap-2">
+        <input
+          value={q}
+          onChange={(e) => onFilter(setQ)(e.target.value)}
+          placeholder="Search name, company, email, phone…"
+          className={`${inputCls} min-w-56 flex-1`}
+        />
+        <select value={status} onChange={(e) => onFilter(setStatus)(e.target.value)} className={inputCls} aria-label="Status">
+          <option value="ALL">All statuses</option>
+          {LEAD_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+        </select>
+        <select value={source} onChange={(e) => onFilter(setSource)(e.target.value)} className={inputCls} aria-label="Source">
+          <option value="ALL">All sources</option>
+          {LEAD_SOURCES.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s]}</option>)}
+        </select>
+        <select value={priority} onChange={(e) => onFilter(setPriority)(e.target.value)} className={inputCls} aria-label="Priority">
+          <option value="ALL">All priorities</option>
+          {LEAD_PRIORITIES.map((s) => <option key={s} value={s}>{PRIORITY_LABEL[s]}</option>)}
+        </select>
+        <select value={assignee} onChange={(e) => onFilter(setAssignee)(e.target.value)} className={inputCls} aria-label="Assignee">
+          <option value="ALL">Anyone</option>
+          <option value="unassigned">Unassigned</option>
+          {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </select>
         <button
-          onClick={() => { window.location.href = withBase(`/api/leads?status=${filter}&format=csv`); }}
-          className="ml-auto flex cursor-pointer items-center gap-1.5 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:border-orange-400 dark:border-stone-700 dark:text-stone-300"
+          onClick={() => setShowAdd(true)}
+          className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-orange-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-orange-500"
         >
-          <Download size={13} /> Export CSV
+          <Plus size={13} /> Add lead
         </button>
+        <a
+          href={withBase(`/api/leads?${params().toString()}&format=csv`)}
+          className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:border-orange-400 dark:border-stone-700 dark:text-stone-300"
+        >
+          <Download size={13} /> CSV
+        </a>
       </div>
 
-      {loading ? (
-        <p className="mt-6 text-sm text-stone-500">Loading leads…</p>
-      ) : leads.length === 0 ? (
-        <p className="mt-6 rounded-2xl border border-dashed border-stone-300 p-10 text-center text-sm text-stone-500 dark:border-stone-700">
-          No leads {filter !== "ALL" ? `with status ${filter}` : "yet"}. They arrive from the contact page, the audit band and the estimator.
-        </p>
-      ) : (
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead>
-              <tr className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-400 dark:border-stone-800">
-                <th className="px-4 py-2.5">Lead</th>
-                <th className="px-4 py-2.5">Interested in</th>
-                <th className="px-4 py-2.5">Budget</th>
-                <th className="px-4 py-2.5">Source</th>
-                <th className="px-4 py-2.5">Status</th>
-                <th className="px-4 py-2.5"></th>
+      <p className="mt-3 text-xs text-stone-500 dark:text-stone-400">
+        {loading ? "Loading…" : `${total.toLocaleString("en-IN")} lead${total === 1 ? "" : "s"}`}
+      </p>
+
+      <div className="mt-2 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+        <table className="w-full min-w-[820px] text-sm">
+          <thead>
+            <tr className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-400 dark:border-stone-800">
+              <th className="px-4 py-2.5">Lead</th>
+              <th className="px-4 py-2.5">Source</th>
+              <th className="px-4 py-2.5">Status</th>
+              <th className="px-4 py-2.5">Priority</th>
+              <th className="px-4 py-2.5">Score</th>
+              <th className="px-4 py-2.5">Assigned</th>
+              <th className="px-4 py-2.5">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.length === 0 && !loading && (
+              <tr>
+                <td colSpan={7} className="px-4 py-10 text-center text-sm text-stone-500">
+                  No leads match these filters.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {leads.map((l) => (
-                <Fragment key={l.id}>
-                  <tr
-                    onClick={() => { setOpen(open === l.id ? null : l.id); setNoteDraft(l.notes ?? ""); }}
-                    className="cursor-pointer border-b border-stone-50 align-top transition-colors hover:bg-orange-50/40 dark:border-stone-800/60 dark:hover:bg-stone-800/40"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 font-semibold text-stone-900 dark:text-stone-100">
-                        {l.name}
-                        {l.verified && <ShieldCheck size={13} className="text-emerald-600" aria-label="WhatsApp verified" />}
-                      </div>
-                      <a
-                        href={`https://wa.me/${l.whatsapp.replace(/^\+/, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs text-emerald-700 hover:underline dark:text-emerald-400"
-                      >
-                        {l.whatsapp} ↗
-                      </a>
-                      <div className="text-xs text-stone-400">{new Date(l.createdAt).toLocaleString("en-IN")}</div>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-stone-600 dark:text-stone-300">{l.services.join(", ") || "—"}</td>
-                    <td className="px-4 py-3 text-xs text-stone-600 dark:text-stone-300">{l.budget ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-stone-500">{l.source}</td>
-                    <td className="px-4 py-3">
-                      <select
-                        value={l.status}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) => void patch(l.id, { status: e.target.value })}
-                        className={`cursor-pointer rounded-full border-none px-2.5 py-1 text-xs font-bold outline-none ${STATUS_TONES[l.status] ?? ""}`}
-                      >
-                        {STATUSES.filter((s) => s !== "ALL").map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); if (confirm(`Delete lead "${l.name}"?`)) void fetch(withBase(`/api/leads/${l.id}`), { method: "DELETE" }).then(reload); }}
-                        className="cursor-pointer text-stone-300 hover:text-red-600"
-                        aria-label="Delete lead"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                  {open === l.id && (
-                    <tr className="border-b border-stone-100 bg-stone-50/60 dark:border-stone-800 dark:bg-stone-950/40">
-                      <td colSpan={6} className="px-4 py-3">
-                        <div className="grid gap-3 text-xs text-stone-600 dark:text-stone-300 sm:grid-cols-2">
-                          <div className="space-y-1.5">
-                            {l.email && <p><b className="font-semibold">Email:</b> {l.email}</p>}
-                            {l.website && (
-                              <p className="flex items-center gap-1">
-                                <b className="font-semibold">Website:</b> {l.website}
-                                <a href={l.website.startsWith("http") ? l.website : `https://${l.website}`} target="_blank" rel="noopener noreferrer" className="text-orange-600"><ExternalLink size={11} /></a>
-                              </p>
-                            )}
-                            {l.timeline && <p><b className="font-semibold">Timeline:</b> {l.timeline}</p>}
-                            {l.department && <p><b className="font-semibold">Desk:</b> {l.department}</p>}
-                            {l.heardFrom && <p><b className="font-semibold">Found us via:</b> {l.heardFrom}</p>}
-                            {l.message && <p className="whitespace-pre-wrap"><b className="font-semibold">Message:</b> {l.message}</p>}
-                          </div>
-                          <div>
-                            <label className="mb-1 block font-semibold">Internal notes</label>
-                            <textarea
-                              value={noteDraft}
-                              onChange={(e) => setNoteDraft(e.target.value)}
-                              className="min-h-16 w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-orange-500 dark:border-stone-700 dark:bg-stone-950"
-                            />
-                            <button
-                              onClick={() => void patch(l.id, { notes: noteDraft || null })}
-                              className="mt-1 cursor-pointer rounded-lg bg-stone-900 px-3 py-1 text-xs font-bold text-white dark:bg-stone-100 dark:text-stone-900"
-                            >
-                              Save note
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+            )}
+            {leads.map((l) => (
+              <tr
+                key={l.id}
+                onClick={() => router.push(`/admin/leads/${l.id}`)}
+                className="cursor-pointer border-b border-stone-50 transition-colors last:border-0 hover:bg-orange-50/40 dark:border-stone-800/60 dark:hover:bg-stone-800/40"
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5 font-semibold text-stone-900 dark:text-stone-100">
+                    {l.name}
+                    {l.verified && <ShieldCheck size={13} className="text-emerald-600" aria-label="verified" />}
+                  </div>
+                  <div className="text-xs text-stone-500">
+                    {l.company ? `${l.company} · ` : ""}{l.whatsapp}
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-xs text-stone-500">{sourceLabel(l.source)}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLE[l.status as keyof typeof STATUS_STYLE] ?? ""}`}>
+                    {STATUS_LABEL[l.status as keyof typeof STATUS_LABEL] ?? l.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold ${PRIORITY_STYLE[l.priority as keyof typeof PRIORITY_STYLE] ?? ""}`}>
+                    {PRIORITY_LABEL[l.priority as keyof typeof PRIORITY_LABEL] ?? l.priority}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-xs font-semibold text-stone-600 dark:text-stone-300">{l.score ?? "—"}</td>
+                <td className="px-4 py-3 text-xs text-stone-600 dark:text-stone-300">{l.assignedTo?.name ?? <span className="text-stone-400">Unassigned</span>}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-stone-400">
+                  {new Date(l.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {pages > 1 && (
+        <div className="mt-4 flex items-center justify-between text-xs">
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-stone-300 px-3 py-1.5 font-semibold text-stone-600 disabled:opacity-40 dark:border-stone-700 dark:text-stone-300">← Prev</button>
+          <span className="text-stone-500">Page {page} of {pages}</span>
+          <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-stone-300 px-3 py-1.5 font-semibold text-stone-600 disabled:opacity-40 dark:border-stone-700 dark:text-stone-300">Next →</button>
         </div>
       )}
+
+      {showAdd && (
+        <AddLeadModal
+          assignees={assignees}
+          onClose={() => setShowAdd(false)}
+          onCreated={(id) => router.push(`/admin/leads/${id}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddLeadModal({
+  assignees,
+  onClose,
+  onCreated,
+}: {
+  assignees: Assignee[];
+  onClose: () => void;
+  onCreated: (id: string) => void;
+}) {
+  const [f, setF] = useState({
+    name: "",
+    whatsapp: "",
+    email: "",
+    company: "",
+    website: "",
+    country: "",
+    city: "",
+    budget: "",
+    message: "",
+    source: "MANUAL",
+    priority: "MEDIUM",
+    assignedToId: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const set = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
+
+  async function submit() {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(withBase("/api/leads/manual"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...f, assignedToId: f.assignedToId || undefined, email: f.email || undefined }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        setErr(json.error ?? "Could not create lead.");
+        return;
+      }
+      onCreated(json.id);
+    } catch {
+      setErr("Network error.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl dark:border-stone-700 dark:bg-stone-900"
+      >
+        <h2 className="font-display text-lg font-bold">Add lead</h2>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <Field label="Name *"><input value={f.name} onChange={(e) => set("name", e.target.value)} className={`${inputCls} w-full`} /></Field>
+          <Field label="WhatsApp *"><input value={f.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} className={`${inputCls} w-full`} placeholder="+91…" /></Field>
+          <Field label="Email"><input value={f.email} onChange={(e) => set("email", e.target.value)} className={`${inputCls} w-full`} /></Field>
+          <Field label="Company"><input value={f.company} onChange={(e) => set("company", e.target.value)} className={`${inputCls} w-full`} /></Field>
+          <Field label="Website"><input value={f.website} onChange={(e) => set("website", e.target.value)} className={`${inputCls} w-full`} /></Field>
+          <Field label="Budget"><input value={f.budget} onChange={(e) => set("budget", e.target.value)} className={`${inputCls} w-full`} /></Field>
+          <Field label="Country"><input value={f.country} onChange={(e) => set("country", e.target.value)} className={`${inputCls} w-full`} /></Field>
+          <Field label="City"><input value={f.city} onChange={(e) => set("city", e.target.value)} className={`${inputCls} w-full`} /></Field>
+          <Field label="Source">
+            <select value={f.source} onChange={(e) => set("source", e.target.value)} className={`${inputCls} w-full`}>
+              {LEAD_SOURCES.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s]}</option>)}
+            </select>
+          </Field>
+          <Field label="Priority">
+            <select value={f.priority} onChange={(e) => set("priority", e.target.value)} className={`${inputCls} w-full`}>
+              {LEAD_PRIORITIES.map((s) => <option key={s} value={s}>{PRIORITY_LABEL[s]}</option>)}
+            </select>
+          </Field>
+          <Field label="Assign to" full>
+            <select value={f.assignedToId} onChange={(e) => set("assignedToId", e.target.value)} className={`${inputCls} w-full`}>
+              <option value="">Unassigned</option>
+              {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Message / notes" full>
+            <textarea value={f.message} onChange={(e) => set("message", e.target.value)} rows={2} className={`${inputCls} w-full`} />
+          </Field>
+        </div>
+        {err && <p className="mt-3 text-xs font-medium text-red-600">{err}</p>}
+        <div className="mt-5 flex justify-end gap-2">
+          <button onClick={onClose} className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-600 dark:border-stone-700 dark:text-stone-300">Cancel</button>
+          <button onClick={() => void submit()} disabled={busy || !f.name || !f.whatsapp} className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-500 disabled:opacity-50">
+            {busy ? "Creating…" : "Create lead"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, full, children }: { label: string; full?: boolean; children: React.ReactNode }) {
+  return (
+    <div className={full ? "col-span-2" : ""}>
+      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">{label}</label>
+      {children}
     </div>
   );
 }
