@@ -29,7 +29,10 @@ export default function FloatingCall() {
       // 64px clears the footer's ~55px orange bar: at bottom-5 this orange
       // button sat on top of it and became invisible. h-14 fixes the box to
       // the circle so the baseline lines up with the launcher.
-      className={`animate-fab-in group fixed left-5 z-[120] flex h-14 items-center ${
+      // Hidden on phones — mobile visitors already have the topbar/menu phone
+      // numbers, the "Contact Us" button and the WhatsApp/bot launcher, so the
+      // extra corner button is clutter there. Shown from md up.
+      className={`animate-fab-in group fixed left-5 z-[120] hidden h-14 items-center md:flex ${
         liftFab ? "bottom-28" : "bottom-16"
       }`}
     >
