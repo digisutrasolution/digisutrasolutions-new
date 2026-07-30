@@ -46,7 +46,10 @@ const securityHeaders = [
    use — this holds even if the sanitiser in lib/storage.ts misses a
    vector. */
 const uploadHeaders = [
-  { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+  // Caching is set per-response by app/api/serve-upload (long-lived on a hit,
+  // no-store on a miss) — NOT here, because a config-level Cache-Control also
+  // applies to the 404 for a not-yet-served file and gets that 404 cached for
+  // a year at the CDN, which is exactly what broke runtime video uploads.
   {
     key: "Content-Security-Policy",
     value:

@@ -36,21 +36,27 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
+  // Never let a miss be cached — a cached 404 for a not-yet-served file is
+  // what broke runtime uploads at the CDN in the first place.
+  const noStore = { "Cache-Control": "no-store" };
+
   const { path } = await params;
   // Resolve safely under UPLOAD_DIR — never allow path traversal out of it.
   const rel = normalize(path.join("/")).replace(/^(\.\.(\/|\\|$))+/, "");
   const file = join(UPLOAD_DIR, rel);
   if (file !== UPLOAD_DIR && !file.startsWith(UPLOAD_DIR + sep)) {
-    return new NextResponse("Forbidden", { status: 403 });
+    return new NextResponse("Forbidden", { status: 403, headers: noStore });
   }
 
   let info;
   try {
     info = await stat(file);
   } catch {
-    return new NextResponse("Not found", { status: 404 });
+    return new NextResponse("Not found", { status: 404, headers: noStore });
   }
-  if (!info.isFile()) return new NextResponse("Not found", { status: 404 });
+  if (!info.isFile()) {
+    return new NextResponse("Not found", { status: 404, headers: noStore });
+  }
 
   const ext = (rel.split(".").pop() ?? "").toLowerCase();
   const type = TYPES[ext] ?? "application/octet-stream";
