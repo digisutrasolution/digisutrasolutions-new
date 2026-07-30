@@ -9,14 +9,10 @@ import ArticleRightRail from "@/components/blog/ArticleRightRail";
 import ArticleToc from "@/components/blog/ArticleToc";
 import Reviews from "@/components/blog/Reviews";
 import ShareRail from "@/components/blog/ShareRail";
+import BlogBody from "@/components/BlogBody";
 import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
-import {
-  categoryByDb,
-  extractHeadings,
-  extractTakeaways,
-  slugifyHeading,
-} from "@/lib/blog";
+import { categoryByDb, extractHeadings, extractTakeaways } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -50,39 +46,6 @@ export async function generateMetadata({
   };
 }
 
-/** Body renderer: blank-line paragraphs, ## (anchored) and ### headings. */
-function renderBody(body: string) {
-  return body
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean)
-    .map((block, i) => {
-      if (block.startsWith("### ")) {
-        return (
-          <h3 key={i} className="font-display mt-8 text-lg font-bold text-stone-900">
-            {block.slice(4)}
-          </h3>
-        );
-      }
-      if (block.startsWith("## ")) {
-        const text = block.slice(3);
-        return (
-          <h2
-            key={i}
-            id={slugifyHeading(text)}
-            className="font-display mt-10 scroll-mt-40 text-2xl font-extrabold tracking-tight text-stone-900"
-          >
-            {text}
-          </h2>
-        );
-      }
-      return (
-        <p key={i} className="mt-5 text-base leading-relaxed text-stone-600">
-          {block}
-        </p>
-      );
-    });
-}
 
 const dateFmt = (d: Date) =>
   d.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
@@ -308,7 +271,7 @@ export default async function BlogPostPage({
             </div>
           )}
 
-          <div className="mt-2">{renderBody(post.body)}</div>
+          <div className="mt-2"><BlogBody body={post.body} /></div>
 
           {post.tags.length > 0 && (
             <div className="mt-8 flex flex-wrap gap-2">

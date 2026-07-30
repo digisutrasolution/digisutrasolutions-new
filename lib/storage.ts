@@ -134,6 +134,28 @@ export async function saveImage(
   };
 }
 
+const EXT_BY_MIME: Record<string, string> = {
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+};
+
+/** Store a non-image file (e.g. a video) as-is — no sharp re-encoding. Uses
+    the same dual backend (Vercel Blob in prod, public/uploads in dev). */
+export async function saveUpload(
+  buffer: Buffer,
+  originalName: string,
+  mimeType: string,
+): Promise<{ filename: string; url: string; size: number; mimeType: string }> {
+  const id = randomBytes(10).toString("hex");
+  const ext =
+    EXT_BY_MIME[mimeType] ||
+    (path.extname(originalName).replace(".", "").toLowerCase().slice(0, 5) || "bin");
+  const filename = `${id}.${ext}`;
+  const url = await persist(filename, buffer, mimeType);
+  return { filename, url, size: buffer.length, mimeType };
+}
+
 export async function deleteStoredFile(
   filename: string,
   url: string,

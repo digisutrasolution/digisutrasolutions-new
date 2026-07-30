@@ -2,12 +2,14 @@
 
 import { withBase } from "@/lib/base-path";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Save } from "lucide-react";
+import { ArrowLeft, Bold, ExternalLink, Eye, Italic, Link2, List, Pencil, Save } from "lucide-react";
 import type { PageStatus } from "@prisma/client";
 import AiAssist from "@/components/admin/AiAssist";
+import BlogBody from "@/components/BlogBody";
+import UploadButton from "@/components/admin/UploadButton";
 
 type EditorPost = {
   id: string;
@@ -38,6 +40,29 @@ const STATUS_STYLE: Record<PageStatus, string> = {
   ARCHIVED: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
 };
 
+/** A single body-toolbar button. */
+function TB({
+  onClick,
+  title,
+  children,
+}: {
+  onClick: () => void;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      className="flex h-7 min-w-7 cursor-pointer items-center justify-center rounded px-2 text-xs font-bold text-stone-600 transition-colors hover:bg-white hover:text-orange-700 dark:text-stone-300 dark:hover:bg-stone-800"
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function BlogEditor({
   post,
   canPublish,
@@ -63,6 +88,43 @@ export default function BlogEditor({
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const [preview, setPreview] = useState(false);
+
+  // Wrap the selection (bold/italic/link) and keep the caret sensible.
+  function surround(before: string, after: string, placeholder: string) {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const { selectionStart: s, selectionEnd: e, value } = ta;
+    const sel = value.slice(s, e) || placeholder;
+    set("body", value.slice(0, s) + before + sel + after + value.slice(e));
+    requestAnimationFrame(() => {
+      ta.focus();
+      const pos = s + before.length + sel.length + after.length;
+      ta.setSelectionRange(pos, pos);
+    });
+  }
+
+  // Prefix the current line (headings, list items).
+  function linePrefix(prefix: string) {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const { selectionStart: s, value } = ta;
+    const lineStart = value.lastIndexOf("\n", s - 1) + 1;
+    set("body", value.slice(0, lineStart) + prefix + value.slice(lineStart));
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(s + prefix.length, s + prefix.length);
+    });
+  }
+
+  function insertImage(url: string) {
+    const ta = bodyRef.current;
+    const s = ta?.selectionStart ?? form.body.length;
+    const md = `\n\n![](${url})\n\n`;
+    set("body", form.body.slice(0, s) + md + form.body.slice(s));
   }
 
   async function api(path: string, body: unknown, method = "PATCH") {
@@ -204,10 +266,33 @@ export default function BlogEditor({
               <textarea id="be-excerpt" rows={2} value={form.excerpt} onChange={(e) => set("excerpt", e.target.value)} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="be-body" className={labelCls}>
-                Body — blank line for a new paragraph, “## ” and “### ” for headings
-              </label>
-              <textarea id="be-body" rows={18} value={form.body} onChange={(e) => set("body", e.target.value)} className={`${inputCls} font-mono text-xs leading-relaxed`} />
+              <div className="mb-1 flex items-center justify-between">
+                <label htmlFor="be-body" className={labelCls}>Body</label>
+                <button type="button" onClick={() => setPreview((v) => !v)} className="flex items-center gap-1 text-xs font-semibold text-orange-600 hover:underline">
+                  {preview ? <><Pencil size={12} /> Write</> : <><Eye size={12} /> Preview</>}
+                </button>
+              </div>
+              {preview ? (
+                <div className="min-h-[24rem] rounded-xl border border-stone-300 bg-white p-6 dark:border-stone-700 dark:bg-stone-900">
+                  {form.body.trim() ? <BlogBody body={form.body} /> : <p className="text-sm text-stone-400">Nothing to preview yet.</p>}
+                </div>
+              ) : (
+                <>
+                  <div className="mb-1.5 flex flex-wrap items-center gap-0.5 rounded-lg border border-stone-200 bg-stone-50 p-1 dark:border-stone-800 dark:bg-stone-900/50">
+                    <TB onClick={() => linePrefix("## ")}>H2</TB>
+                    <TB onClick={() => linePrefix("### ")}>H3</TB>
+                    <TB onClick={() => surround("**", "**", "bold text")} title="Bold"><Bold size={13} /></TB>
+                    <TB onClick={() => surround("*", "*", "italic")} title="Italic"><Italic size={13} /></TB>
+                    <TB onClick={() => linePrefix("- ")} title="Bullet list"><List size={13} /></TB>
+                    <TB onClick={() => surround("[", "](https://)", "link text")} title="Link"><Link2 size={13} /></TB>
+                    <UploadButton accept="image/*" label="Image" onUploaded={insertImage} className="border-none bg-transparent px-2 py-1 hover:bg-white dark:hover:bg-stone-800" />
+                  </div>
+                  <textarea ref={bodyRef} id="be-body" rows={18} value={form.body} onChange={(e) => set("body", e.target.value)} className={`${inputCls} font-mono text-xs leading-relaxed`} />
+                  <p className="mt-1 text-[11px] text-stone-400">
+                    Markdown: **bold**, *italic*, [link](url), “- ” lists, “## / ### ” headings, ![alt](url) images.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -223,8 +308,11 @@ export default function BlogEditor({
               <input id="be-tags" value={form.tags} onChange={(e) => set("tags", e.target.value)} className={inputCls} placeholder="seo, local-seo" />
             </div>
             <div>
-              <label htmlFor="be-cover" className={labelCls}>Cover image URL</label>
-              <input id="be-cover" value={form.coverUrl} onChange={(e) => set("coverUrl", e.target.value)} className={inputCls} placeholder="/uploads/… (copy from Media)" />
+              <label htmlFor="be-cover" className={labelCls}>Cover image</label>
+              <div className="flex items-center gap-2">
+                <input id="be-cover" value={form.coverUrl} onChange={(e) => set("coverUrl", e.target.value)} className={inputCls} placeholder="Paste a URL or upload →" />
+                <UploadButton accept="image/*" onUploaded={(url) => set("coverUrl", url)} />
+              </div>
               {form.coverUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={withBase(form.coverUrl)} alt="" className="mt-2 h-24 w-full rounded-lg object-cover" />

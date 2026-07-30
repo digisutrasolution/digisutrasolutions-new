@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Plus, Star, Trash2 } from "lucide-react";
 import type { VideoProvider } from "@prisma/client";
+import UploadButton from "@/components/admin/UploadButton";
 
 type VideoRow = {
   id: string;
@@ -40,6 +41,7 @@ export default function VideosManager({
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
+  const [url, setUrl] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
 
   async function api(path: string, init: RequestInit): Promise<boolean> {
@@ -74,7 +76,7 @@ export default function VideosManager({
       body: JSON.stringify({
         title,
         slug,
-        url: fd.get("url"),
+        url,
         description: fd.get("description") || undefined,
         category: fd.get("category") || undefined,
         featured: fd.get("featured") === "on",
@@ -84,6 +86,7 @@ export default function VideosManager({
       form.reset();
       setTitle("");
       setSlug("");
+      setUrl("");
       setShowCreate(false);
     }
   }
@@ -121,8 +124,11 @@ export default function VideosManager({
             <input id="v-slug" required minLength={2} value={slug} onChange={(e) => setSlug(slugify(e.target.value))} className={inputCls} />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="v-url" className="mb-1 block text-xs font-semibold">Video URL (YouTube, Vimeo, or .mp4/.webm)</label>
-            <input id="v-url" name="url" required placeholder="https://www.youtube.com/watch?v=…" className={inputCls} />
+            <label htmlFor="v-url" className="mb-1 block text-xs font-semibold">Video URL (YouTube, Vimeo, or .mp4/.webm) — or upload a file</label>
+            <div className="flex items-center gap-2">
+              <input id="v-url" value={url} onChange={(e) => setUrl(e.target.value)} required placeholder="https://www.youtube.com/watch?v=…" className={inputCls} />
+              <UploadButton accept="video/mp4,video/webm" endpoint="/api/upload" label="Upload video" onUploaded={setUrl} />
+            </div>
           </div>
           <div>
             <label htmlFor="v-category" className="mb-1 block text-xs font-semibold">Category</label>
