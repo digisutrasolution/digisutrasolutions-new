@@ -12,11 +12,20 @@ function daysAgo(n: number): Date {
   return d;
 }
 
+function flag(code: string | null): string {
+  if (!code || code.length !== 2) return "🌐";
+  const A = 0x1f1e6;
+  return String.fromCodePoint(
+    A + code.toUpperCase().charCodeAt(0) - 65,
+    A + code.toUpperCase().charCodeAt(1) - 65,
+  );
+}
+
 export default async function AdminAnalyticsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user.role, "analytics.view")) redirect("/admin");
 
-  const [today, last7, last30, topPages, topReferrers, daily, content] =
+  const [today, last7, last30, topPages, topReferrers, daily, topCountries, devices, content] =
     await Promise.all([
       db.pageView.count({ where: { createdAt: { gte: daysAgo(0) } } }),
       db.pageView.count({ where: { createdAt: { gte: daysAgo(7) } } }),
@@ -41,6 +50,21 @@ export default async function AdminAnalyticsPage() {
         WHERE "createdAt" >= NOW() - INTERVAL '14 days'
         GROUP BY 1 ORDER BY 1
       `,
+      // Country + device come from Session (recorded since the session
+      // tracking shipped), so early rows may be sparse until it fills in.
+      db.session.groupBy({
+        by: ["country"],
+        where: { startedAt: { gte: daysAgo(30) }, country: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { country: "desc" } },
+        take: 10,
+      }),
+      db.session.groupBy({
+        by: ["device"],
+        where: { startedAt: { gte: daysAgo(30) }, device: { not: null } },
+        _count: { _all: true },
+        orderBy: { _count: { device: "desc" } },
+      }),
       Promise.all([
         db.page.count({ where: { status: "PUBLISHED" } }),
         db.blogPost.count({ where: { status: "PUBLISHED" } }),
@@ -52,6 +76,7 @@ export default async function AdminAnalyticsPage() {
 
   const [publishedPages, publishedPosts, submissions, mediaCount, aiCount] = content;
   const maxDaily = Math.max(1, ...daily.map((d) => Number(d.views)));
+  const deviceTotal = Math.max(1, devices.reduce((n, d) => n + d._count._all, 0));
 
   const stats = [
     { label: "Views today", value: today },
@@ -84,25 +109,81 @@ export default async function AdminAnalyticsPage() {
         {daily.length === 0 ? (
           <p className="mt-4 text-sm text-stone-500">No views recorded yet — browse the public site to generate data.</p>
         ) : (
-          <div className="mt-4 flex h-32 items-end gap-1.5">
-            {daily.map((d) => {
-              const views = Number(d.views);
-              return (
-                <div key={d.day.toISOString()} className="group flex flex-1 flex-col items-center gap-1">
-                  <span className="text-[10px] text-stone-400 opacity-0 transition-opacity group-hover:opacity-100">{views}</span>
-                  <div
-                    className="w-full rounded-t bg-orange-500 transition-colors group-hover:bg-orange-600"
-                    style={{ height: `${Math.max(4, (views / maxDaily) * 100)}%` }}
-                    title={`${d.day.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}: ${views}`}
-                  />
-                  <span className="text-[10px] text-stone-400">
-                    {d.day.toLocaleDateString("en-IN", { day: "numeric" })}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="mt-4">
+            {/* Row is items-stretch so each column gets the definite 10rem
+                height the bars' percentage heights resolve against; the bar
+                sits at the bottom via justify-end. */}
+            <div className="flex h-40 gap-1.5">
+              {daily.map((d) => {
+                const views = Number(d.views);
+                const pct = Math.max(2, (views / maxDaily) * 100);
+                return (
+                  <div key={d.day.toISOString()} className="group relative flex flex-1 flex-col justify-end">
+                    <span className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold text-stone-500 opacity-0 transition-opacity group-hover:opacity-100">
+                      {views}
+                    </span>
+                    <div
+                      className="w-full rounded-t bg-orange-500 transition-colors group-hover:bg-orange-600"
+                      style={{ height: `${pct}%` }}
+                      title={`${d.day.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}: ${views}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-1.5 flex gap-1.5">
+              {daily.map((d) => (
+                <span key={d.day.toISOString()} className="flex-1 text-center text-[10px] text-stone-400">
+                  {d.day.toLocaleDateString("en-IN", { day: "numeric" })}
+                </span>
+              ))}
+            </div>
           </div>
         )}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+          <h2 className="font-display text-sm font-bold">Top countries — 30 days</h2>
+          <ul className="mt-4 space-y-2">
+            {topCountries.length === 0 && (
+              <li className="text-sm text-stone-500">
+                No country data yet — this fills in as visitor sessions are recorded.
+              </li>
+            )}
+            {topCountries.map((c) => (
+              <li key={c.country} className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="truncate">
+                  <span className="mr-1.5">{flag(c.country)}</span>
+                  {c.country}
+                </span>
+                <span className="shrink-0 font-semibold text-orange-700 dark:text-orange-400">{c._count._all}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+          <h2 className="font-display text-sm font-bold">Devices — 30 days</h2>
+          <ul className="mt-4 space-y-3">
+            {devices.length === 0 && <li className="text-sm text-stone-500">No device data yet.</li>}
+            {devices.map((d) => {
+              const pct = Math.round((d._count._all / deviceTotal) * 100);
+              return (
+                <li key={d.device}>
+                  <div className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="capitalize">{d.device}</span>
+                    <span className="shrink-0 text-stone-500">
+                      <span className="font-semibold text-orange-700 dark:text-orange-400">{d._count._all}</span> · {pct}%
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+                    <div className="h-full rounded-full bg-orange-500" style={{ width: `${pct}%` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
