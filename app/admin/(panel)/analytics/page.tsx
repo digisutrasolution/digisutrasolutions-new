@@ -25,7 +25,7 @@ export default async function AdminAnalyticsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user.role, "analytics.view")) redirect("/admin");
 
-  const [today, last7, last30, topPages, topReferrers, daily, topCountries, devices, content] =
+  const [today, last7, last30, topPages, topReferrers, daily, topCountries, devices, topSearches, content] =
     await Promise.all([
       db.pageView.count({ where: { createdAt: { gte: daysAgo(0) } } }),
       db.pageView.count({ where: { createdAt: { gte: daysAgo(7) } } }),
@@ -64,6 +64,14 @@ export default async function AdminAnalyticsPage() {
         where: { startedAt: { gte: daysAgo(30) }, device: { not: null } },
         _count: { _all: true },
         orderBy: { _count: { device: "desc" } },
+      }),
+      db.searchQuery.groupBy({
+        by: ["query"],
+        where: { createdAt: { gte: daysAgo(30) } },
+        _count: { _all: true },
+        _avg: { results: true },
+        orderBy: { _count: { query: "desc" } },
+        take: 10,
       }),
       Promise.all([
         db.page.count({ where: { status: "PUBLISHED" } }),
@@ -210,6 +218,32 @@ export default async function AdminAnalyticsPage() {
                   <span className="shrink-0 font-semibold text-orange-700 dark:text-orange-400">{r._count._all}</span>
                 </li>
               ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+            <h2 className="font-display text-sm font-bold">Top searches — 30 days</h2>
+            <ul className="mt-4 space-y-2">
+              {topSearches.length === 0 && (
+                <li className="text-sm text-stone-500">
+                  No on-site searches yet — terms typed into the site search appear here.
+                </li>
+              )}
+              {topSearches.map((s) => {
+                const noResults = (s._avg.results ?? 0) < 0.5;
+                return (
+                  <li key={s.query} className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="truncate">
+                      {s.query}
+                      {noResults && (
+                        <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                          no results
+                        </span>
+                      )}
+                    </span>
+                    <span className="shrink-0 font-semibold text-orange-700 dark:text-orange-400">{s._count._all}</span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
           <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">

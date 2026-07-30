@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import TrackSearch from "@/components/TrackSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,7 @@ export default async function SearchPage({
 
   return (
     <section className="mx-auto max-w-3xl px-6 pb-16 pt-12 sm:pb-24 sm:pt-16">
+      {query && <TrackSearch query={query} results={total} />}
       <h1 className="font-display text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
         Search
       </h1>

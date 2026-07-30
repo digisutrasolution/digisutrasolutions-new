@@ -265,6 +265,19 @@ model Redirect {
   createdAt DateTime @default(now())
 }
 
+/* On-site search terms typed into the /search box. Normalized (lowercased,
+   trimmed) for grouping; `results` lets the admin spot content gaps (0-result
+   searches). No visitor identifier stored. */
+model SearchQuery {
+  id        String   @id @default(cuid())
+  query     String
+  results   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([query])
+}
+
 model PageView {
   id        String   @id @default(cuid())
   path      String
