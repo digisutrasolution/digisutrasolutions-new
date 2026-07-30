@@ -135,7 +135,7 @@ export const DEFAULT_NAV: NavNode[] = [
     ],
   },
   { label: "Pricing", href: "/pricing" },
-  { label: "Career", href: "/career" },
+  { label: "Career", href: "/careers" },
   { label: "Referral", href: "/referral-program" },
 ];
 
@@ -162,7 +162,7 @@ export const DEFAULT_FOOTER_NAV: NavNode[] = [
       { label: "About Us", href: "/about" },
       { label: "Our Work", href: "/work/portfolio" },
       { label: "Pricing", href: "/pricing" },
-      { label: "Career", href: "/career" },
+      { label: "Career", href: "/careers" },
       { label: "Referral Program", href: "/referral-program" },
       { label: "Payment Options", href: "/payment" },
       { label: "Blog", href: "/blog" },
