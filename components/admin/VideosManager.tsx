@@ -142,6 +142,9 @@ export default function VideosManager({
               <input id="v-url" value={url} onChange={(e) => setUrl(e.target.value)} required placeholder="https://www.youtube.com/watch?v=…" className={inputCls} />
               <UploadButton accept="video/mp4,video/webm" endpoint="/api/upload" label="Upload video" onUploaded={setUrl} />
             </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-stone-400">
+              For real videos, paste a <b className="font-semibold">YouTube/Vimeo</b> link — it streams faster and uses no server bandwidth. Only upload short clips (a few MB); compress large files first (e.g. HandBrake) — max 100 MB.
+            </p>
           </div>
           <div>
             <label htmlFor="v-category" className="mb-1 block text-xs font-semibold">Category</label>
