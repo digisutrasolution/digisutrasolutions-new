@@ -5,6 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
+import PushToggle from "@/components/admin/PushToggle";
 
 type NotificationItem = {
   id: string;
@@ -144,6 +145,7 @@ export default function NotificationsBell() {
               </button>
             ))}
           </div>
+          <PushToggle />
         </div>
       )}
     </div>

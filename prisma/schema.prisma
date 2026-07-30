@@ -29,6 +29,20 @@ model User {
   auditLogs     AuditLog[]
   pagesCreated  Page[]         @relation("PageCreatedBy")
   pagesUpdated  Page[]         @relation("PageUpdatedBy")
+  pushSubs      PushSubscription[]
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  ua        String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 enum PageStatus {

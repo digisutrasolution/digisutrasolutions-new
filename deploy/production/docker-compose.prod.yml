@@ -54,6 +54,11 @@ services:
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # Web push (desktop notifications). Generate a keypair once with:
+      #   docker compose ... exec app node -e "console.log(require('web-push').generateVAPIDKeys())"
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:info@digisutrasolutions.com}
     # No published host port on purpose. The existing Caddy container reaches
     # this app over the shared Docker network by name, so nothing competes for
     # a port on a box that already runs n8n, aigrowth, ollama and Caddy.

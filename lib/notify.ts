@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { alertEmail } from "@/lib/email-templates";
+import { sendPushToUsers } from "@/lib/push";
 import { SITE_URL } from "@/lib/site";
 import type { Role } from "@prisma/client";
 
@@ -34,6 +35,13 @@ export async function notifyUsers(
         body: input.body,
         link: input.link,
       })),
+    });
+    // Desktop/browser push — additive, best-effort, no-op without VAPID keys.
+    void sendPushToUsers(ids, {
+      title: input.title,
+      body: input.body,
+      link: input.link,
+      tag: input.type,
     });
     const users = await db.user.findMany({
       where: { id: { in: ids }, isActive: true },
