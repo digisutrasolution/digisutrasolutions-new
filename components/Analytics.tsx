@@ -16,7 +16,16 @@ import { hasAnyTag } from "@/lib/analytics";
  */
 export default function Analytics({ settings }: { settings: AnalyticsSettings }) {
   if (!hasAnyTag(settings)) return null;
-  const { ga4Id, gtmId, metaPixelId, clarityId } = settings;
+  const {
+    ga4Id,
+    gtmId,
+    metaPixelId,
+    clarityId,
+    bingUetId,
+    linkedInPartnerId,
+    pinterestTagId,
+    tiktokPixelId,
+  } = settings;
   const google = ga4Id || gtmId;
 
   return (
@@ -55,6 +64,30 @@ gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personali
       {clarityId && (
         <Script id="clarity" strategy="afterInteractive">
           {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${clarityId}");`}
+        </Script>
+      )}
+
+      {bingUetId && (
+        <Script id="bing-uet" strategy="afterInteractive">
+          {`(function(w,d,t,r,u){var f,n,i;w[u]=w[u]||[],f=function(){var o={ti:"${bingUetId}",enableAutoSpaTracking:true};o.q=w[u],w[u]=new UET(o),w[u].push("pageLoad")},n=d.createElement(t),n.src=r,n.async=1,n.onload=n.onreadystatechange=function(){var s=this.readyState;s&&"loaded"!==s&&"complete"!==s||(f(),n.onload=n.onreadystatechange=null)},i=d.getElementsByTagName(t)[0],i.parentNode.insertBefore(n,i)})(window,document,"script","//bat.bing.com/bat.js","uetq");`}
+        </Script>
+      )}
+
+      {linkedInPartnerId && (
+        <Script id="linkedin-insight" strategy="afterInteractive">
+          {`window._linkedin_partner_id="${linkedInPartnerId}";window._linkedin_data_partner_ids=window._linkedin_data_partner_ids||[];window._linkedin_data_partner_ids.push("${linkedInPartnerId}");(function(l){if(!l){window.lintrk=function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]}var s=document.getElementsByTagName("script")[0],b=document.createElement("script");b.type="text/javascript";b.async=true;b.src="https://snap.licdn.com/li.lms-analytics/insight.min.js";s.parentNode.insertBefore(b,s)})(window.lintrk);`}
+        </Script>
+      )}
+
+      {pinterestTagId && (
+        <Script id="pinterest-tag" strategy="afterInteractive">
+          {`!function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");pintrk("load","${pinterestTagId}");pintrk("page");`}
+        </Script>
+      )}
+
+      {tiktokPixelId && (
+        <Script id="tiktok-pixel" strategy="afterInteractive">
+          {`!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load("${tiktokPixelId}");ttq.page()}(window,document,"ttq");`}
         </Script>
       )}
     </>

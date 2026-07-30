@@ -21,6 +21,10 @@ const GA4 = /^G-[A-Z0-9]{4,}$/;
 const GTM = /^GTM-[A-Z0-9]{4,}$/;
 const PIXEL = /^[0-9]{10,20}$/;
 const CLARITY = /^[a-z0-9]{6,20}$/;
+const BING_UET = /^[0-9]{6,12}$/;
+const LINKEDIN = /^[0-9]{4,10}$/;
+const PINTEREST = /^[0-9]{13}$/;
+const TIKTOK = /^[A-Z0-9]{12,30}$/;
 
 const idField = (re: RegExp, hint: string) =>
   z
@@ -35,6 +39,10 @@ export const AnalyticsSchema = z.object({
   gtmId: idField(GTM, "GTM IDs look like GTM-XXXXXXX."),
   metaPixelId: idField(PIXEL, "Meta Pixel IDs are 10–20 digits."),
   clarityId: idField(CLARITY, "Clarity IDs are lowercase letters and digits."),
+  bingUetId: idField(BING_UET, "Bing/UET tag IDs are numeric."),
+  linkedInPartnerId: idField(LINKEDIN, "LinkedIn Partner IDs are numeric."),
+  pinterestTagId: idField(PINTEREST, "Pinterest Tag IDs are 13 digits."),
+  tiktokPixelId: idField(TIKTOK, "TikTok Pixel IDs are letters and digits."),
   /** Off until the owner has a consent banner or has decided they need none. */
   enabled: z.boolean().default(false),
 });
@@ -46,6 +54,10 @@ export const DEFAULT_ANALYTICS: AnalyticsSettings = {
   gtmId: "",
   metaPixelId: "",
   clarityId: "",
+  bingUetId: "",
+  linkedInPartnerId: "",
+  pinterestTagId: "",
+  tiktokPixelId: "",
   enabled: false,
 };
 
@@ -64,6 +76,15 @@ export async function getAnalytics(): Promise<AnalyticsSettings> {
 export function hasAnyTag(a: AnalyticsSettings): boolean {
   return (
     a.enabled &&
-    Boolean(a.ga4Id || a.gtmId || a.metaPixelId || a.clarityId)
+    Boolean(
+      a.ga4Id ||
+        a.gtmId ||
+        a.metaPixelId ||
+        a.clarityId ||
+        a.bingUetId ||
+        a.linkedInPartnerId ||
+        a.pinterestTagId ||
+        a.tiktokPixelId,
+    )
   );
 }

@@ -38,6 +38,10 @@ export default function SettingsTabs({
         analytics.gtmId && "GTM",
         analytics.metaPixelId && "Meta",
         analytics.clarityId && "Clarity",
+        analytics.bingUetId && "Bing",
+        analytics.linkedInPartnerId && "LinkedIn",
+        analytics.pinterestTagId && "Pinterest",
+        analytics.tiktokPixelId && "TikTok",
       ]
         .filter(Boolean)
         .join(" · ") || "On"
@@ -55,7 +59,7 @@ export default function SettingsTabs({
       key: "analytics",
       label: "Analytics & tracking",
       chip: analyticsChip,
-      hint: "Google Analytics, Tag Manager, Meta Pixel and Clarity. Nothing loads until you add an ID and switch tracking on.",
+      hint: "Google (GA4/GTM), Bing/Microsoft Ads, Meta, Clarity, LinkedIn, Pinterest and TikTok. Nothing loads until you add an ID and switch tracking on.",
     },
     {
       key: "bot",

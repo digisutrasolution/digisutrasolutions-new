@@ -35,6 +35,30 @@ const TAGS = [
     placeholder: "abcdefghij",
     hint: "Heatmaps and session recordings. Project ID from the Clarity URL.",
   },
+  {
+    key: "bingUetId" as const,
+    label: "Bing / Microsoft Ads (UET)",
+    placeholder: "12345678",
+    hint: "UET tag ID from Microsoft Advertising → Tools → UET tag.",
+  },
+  {
+    key: "linkedInPartnerId" as const,
+    label: "LinkedIn Insight Tag",
+    placeholder: "1234567",
+    hint: "Partner ID from Campaign Manager → Insight Tag.",
+  },
+  {
+    key: "pinterestTagId" as const,
+    label: "Pinterest Tag",
+    placeholder: "2612345678901",
+    hint: "13-digit Tag ID from Pinterest Ads → Conversions.",
+  },
+  {
+    key: "tiktokPixelId" as const,
+    label: "TikTok Pixel",
+    placeholder: "CABC1DEF2GHI3JKL",
+    hint: "Pixel ID from TikTok Events Manager.",
+  },
 ];
 
 export default function AnalyticsManager({
