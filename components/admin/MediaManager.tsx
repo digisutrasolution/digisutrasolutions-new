@@ -4,7 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Trash2, Upload } from "lucide-react";
+import { Code2, Link2, Trash2, Upload } from "lucide-react";
 
 type Asset = {
   id: string;
@@ -75,11 +75,27 @@ export default function MediaManager({
     if (res.ok) router.refresh();
   }
 
-  function copyUrl(asset: Asset) {
-    void navigator.clipboard.writeText(asset.url).then(() => {
-      setCopied(asset.id);
+  // Absolute URL so it works when pasted into another site (or ours). Blob
+  // URLs are already absolute; local /uploads paths get the current origin.
+  function toAbs(url: string) {
+    if (url.startsWith("http")) return url;
+    return (typeof window !== "undefined" ? window.location.origin : "") + withBase(url);
+  }
+  function copyText(id: string, text: string) {
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(id);
       setTimeout(() => setCopied(null), 1500);
     });
+  }
+  function copyUrl(asset: Asset) {
+    copyText(asset.id, toAbs(asset.url));
+  }
+  function copyEmbed(asset: Asset) {
+    const src = toAbs(asset.url);
+    const html = asset.mimeType.startsWith("video/")
+      ? `<video src="${src}" controls width="640" style="max-width:100%"></video>`
+      : `<img src="${src}" alt="${(asset.alt || "").replace(/"/g, "&quot;")}"${asset.width ? ` width="${asset.width}" height="${asset.height}"` : ""} style="max-width:100%;height:auto" />`;
+    copyText(asset.id, html);
   }
 
   return (
@@ -167,15 +183,23 @@ export default function MediaManager({
                 <div className="mt-2 flex justify-end gap-1">
                   <button
                     onClick={() => copyUrl(asset)}
-                    aria-label={`Copy URL for ${asset.originalName}`}
-                    title="Copy URL"
+                    aria-label={`Copy link for ${asset.originalName}`}
+                    title="Copy link (full URL)"
                     className="cursor-pointer rounded-lg p-1.5 text-stone-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
                   >
                     {copied === asset.id ? (
                       <span className="text-[10px] font-bold text-green-600">✓</span>
                     ) : (
-                      <Copy size={13} aria-hidden />
+                      <Link2 size={13} aria-hidden />
                     )}
+                  </button>
+                  <button
+                    onClick={() => copyEmbed(asset)}
+                    aria-label={`Copy embed code for ${asset.originalName}`}
+                    title="Copy embed code (HTML)"
+                    className="cursor-pointer rounded-lg p-1.5 text-stone-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
+                  >
+                    <Code2 size={13} aria-hidden />
                   </button>
                   {canUpload && (
                     <button

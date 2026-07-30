@@ -4,9 +4,10 @@ import { withBase } from "@/lib/base-path";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Plus, Star, Trash2 } from "lucide-react";
+import { Code2, Copy, Plus, Star, Trash2 } from "lucide-react";
 import type { VideoProvider } from "@prisma/client";
 import UploadButton from "@/components/admin/UploadButton";
+import { embedUrl } from "@/lib/cms/videos";
 
 type VideoRow = {
   id: string;
@@ -26,6 +27,18 @@ const inputCls =
 
 function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+/** HTML embed snippet for pasting into another site (or ours). */
+function embedCode(v: { provider: VideoProvider; videoId: string; title: string }): string {
+  const title = v.title.replace(/"/g, "&quot;");
+  if (v.provider === "FILE") {
+    const src = v.videoId.startsWith("http")
+      ? v.videoId
+      : (typeof window !== "undefined" ? window.location.origin : "") + withBase(v.videoId);
+    return `<video src="${src}" controls width="640" style="max-width:100%"></video>`;
+  }
+  return `<iframe width="560" height="315" src="${embedUrl(v.provider, v.videoId)}" title="${title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
 }
 
 export default function VideosManager({
@@ -208,6 +221,19 @@ export default function VideosManager({
                     className="cursor-pointer rounded-lg p-1.5 text-stone-500 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
                   >
                     {copied === v.id ? <span className="text-[10px] font-bold text-green-600">✓</span> : <Copy size={14} aria-hidden />}
+                  </button>
+                  <button
+                    onClick={() => {
+                      void navigator.clipboard.writeText(embedCode(v)).then(() => {
+                        setCopied(v.id);
+                        setTimeout(() => setCopied(null), 1500);
+                      });
+                    }}
+                    aria-label={`Copy embed code for ${v.title}`}
+                    title="Copy embed code (HTML)"
+                    className="cursor-pointer rounded-lg p-1.5 text-stone-500 hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
+                  >
+                    <Code2 size={14} aria-hidden />
                   </button>
                   {canManage && (
                     <button
