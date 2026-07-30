@@ -129,13 +129,22 @@ export default function MediaManager({
               key={asset.id}
               className="overflow-hidden rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={withBase(asset.url)}
-                alt={asset.alt || asset.originalName}
-                loading="lazy"
-                className="h-32 w-full bg-stone-100 object-cover dark:bg-stone-800"
-              />
+              {asset.mimeType.startsWith("video/") ? (
+                <video
+                  src={asset.url.startsWith("http") ? asset.url : withBase(asset.url)}
+                  controls
+                  preload="metadata"
+                  className="h-32 w-full bg-black object-contain"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={withBase(asset.url)}
+                  alt={asset.alt || asset.originalName}
+                  loading="lazy"
+                  className="h-32 w-full bg-stone-100 object-cover dark:bg-stone-800"
+                />
+              )}
               <div className="p-3">
                 <p className="truncate text-xs font-medium" title={asset.originalName}>
                   {asset.originalName}
