@@ -73,6 +73,17 @@ const nextConfig: NextConfig = {
   // floating call button lives — move it out of the way during dev.
   // (It never renders in production.)
   devIndicators: { position: "bottom-right" },
+  async rewrites() {
+    // Serve /uploads/* through a filesystem route (app/api/serve-upload) so
+    // files uploaded at RUNTIME are served — Next's built-in public/ handler
+    // only serves files present at server start, which 404s new uploads.
+    // beforeFiles so it wins over the static handler for every upload.
+    return {
+      beforeFiles: [
+        { source: "/uploads/:path*", destination: "/api/serve-upload/:path*" },
+      ],
+    };
+  },
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },

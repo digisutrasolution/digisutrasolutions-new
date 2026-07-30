@@ -66,17 +66,17 @@ services:
       - default
       - edge
     volumes:
-      # Media uploads live on a HOST bind-mount (a real directory on the
-      # server), NOT a Docker named volume. A named volume is tied to the
-      # compose project name, so a deploy with a slightly different command
-      # could mount a different/empty volume and "lose" every upload while the
-      # DB rows still point at them. A fixed host path survives all of that.
-      # Override UPLOADS_DIR in .env if the app lives elsewhere.
-      - ${UPLOADS_DIR:-/root/digisutrasolutions.com/uploads}:/app/public/uploads
+      # Media uploads must outlive image rebuilds. The DB stores paths, so
+      # losing this volume leaves broken images with intact rows. Files here
+      # are served at /uploads/* by app/api/serve-upload (a filesystem route),
+      # because Next's built-in public/ handler only serves files present at
+      # server start and 404s anything uploaded at runtime.
+      - uploads:/app/public/uploads
     mem_limit: 1g
 
 volumes:
   db-data:
+  uploads:
 
 networks:
   # Internal network for app <-> db only.
