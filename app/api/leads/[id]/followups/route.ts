@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 import { logLeadActivity } from "@/lib/crm-server";
+import { canSeeAllLeads } from "@/lib/auth/rbac";
 import { FOLLOWUP_TYPES, followUpTypeLabel } from "@/lib/crm";
 
 type Params = { params: Promise<{ id: string }> };
@@ -31,7 +32,7 @@ export async function POST(req: Request, { params }: Params) {
     where: { id, deletedAt: null },
     select: { id: true, name: true, assignedToId: true },
   });
-  if (!lead) {
+  if (!lead || (!canSeeAllLeads(user) && lead.assignedToId !== user.id)) {
     return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
   }
 

@@ -6,6 +6,8 @@ import {
   REFRESH_TOKEN_TTL_SEC,
   verifyAccessToken,
 } from "@/lib/auth/tokens";
+import { effectivePermissions, type Permission } from "@/lib/auth/rbac";
+import { ensureRbacLoaded } from "@/lib/auth/rbac-server";
 import type { Role } from "@prisma/client";
 
 export const ACCESS_COOKIE = "ds_access";
@@ -21,6 +23,9 @@ export type SessionUser = {
   name: string;
   email: string;
   role: Role;
+  /** Effective permissions after admin overrides — the client and server both
+      check this so nav visibility and enforcement always agree. */
+  permissions: Permission[];
 };
 
 export async function setSessionCookies(
@@ -62,11 +67,21 @@ export const getCurrentUser = cache(
     if (!token) return null;
     const payload = await verifyAccessToken(token);
     if (!payload) return null;
-    const user = await db.user.findUnique({
-      where: { id: payload.sub },
-      select: { id: true, name: true, email: true, role: true, isActive: true },
-    });
+    const [user] = await Promise.all([
+      db.user.findUnique({
+        where: { id: payload.sub },
+        select: { id: true, name: true, email: true, role: true, isActive: true },
+      }),
+      // Refresh the override matrix before resolving permissions.
+      ensureRbacLoaded(),
+    ]);
     if (!user || !user.isActive) return null;
-    return { id: user.id, name: user.name, email: user.email, role: user.role };
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      permissions: effectivePermissions(user.role),
+    };
   },
 );

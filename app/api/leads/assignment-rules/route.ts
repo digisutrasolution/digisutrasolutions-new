@@ -25,7 +25,7 @@ export const RuleSchema = z.object({
 
 /** All rules in evaluation order. */
 export async function GET() {
-  const { error } = await requirePermission("leads.manage");
+  const { error } = await requirePermission("leads.rules");
   if (error) return error;
   const rules = await db.assignmentRule.findMany({
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
@@ -34,7 +34,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { user, error } = await requirePermission("leads.manage");
+  const { user, error } = await requirePermission("leads.rules");
   if (error) return error;
 
   const parsed = RuleSchema.safeParse(await req.json().catch(() => null));

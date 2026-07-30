@@ -8,7 +8,7 @@ export const metadata = { title: "Assignment rules" };
 
 export default async function AssignmentRulesPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.manage")) redirect("/admin");
+  if (!user || !can(user.role, "leads.rules")) redirect("/admin");
 
   const [rules, assignees] = await Promise.all([
     db.assignmentRule.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] }),

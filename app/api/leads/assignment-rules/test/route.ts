@@ -18,7 +18,7 @@ const Schema = z.object({
 /** Dry-run the rules against a hypothetical lead — which rule claims it and
     who is next in line — without touching any round-robin cursor. */
 export async function POST(req: Request) {
-  const { error } = await requirePermission("leads.manage");
+  const { error } = await requirePermission("leads.rules");
   if (error) return error;
 
   const parsed = Schema.safeParse(await req.json().catch(() => null));

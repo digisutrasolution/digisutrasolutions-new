@@ -8,7 +8,13 @@ import LeadsManager from "@/components/admin/LeadsManager";
 
 type Assignee = { id: string; name: string };
 
-export default function LeadsWorkspace({ assignees }: { assignees: Assignee[] }) {
+export default function LeadsWorkspace({
+  assignees,
+  canManageRules = false,
+}: {
+  assignees: Assignee[];
+  canManageRules?: boolean;
+}) {
   const [view, setView] = useState<"table" | "board">("table");
 
   const btn = (active: boolean) =>
@@ -29,12 +35,14 @@ export default function LeadsWorkspace({ assignees }: { assignees: Assignee[] })
             <LayoutGrid size={13} /> Board
           </button>
         </div>
-        <Link
-          href="/admin/leads/assignment"
-          className="flex items-center gap-1.5 rounded-full border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-stone-500 transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-stone-800 dark:text-stone-400"
-        >
-          <Route size={13} /> Assignment rules
-        </Link>
+        {canManageRules && (
+          <Link
+            href="/admin/leads/assignment"
+            className="flex items-center gap-1.5 rounded-full border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-stone-500 transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-stone-800 dark:text-stone-400"
+          >
+            <Route size={13} /> Assignment rules
+          </Link>
+        )}
       </div>
       {view === "table" ? <LeadsManager assignees={assignees} /> : <LeadsKanban assignees={assignees} />}
     </div>

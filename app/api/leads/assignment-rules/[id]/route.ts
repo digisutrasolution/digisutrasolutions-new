@@ -11,7 +11,7 @@ type Params = { params: Promise<{ id: string }> };
 const PatchSchema = RuleSchema.partial();
 
 export async function PATCH(req: Request, { params }: Params) {
-  const { user, error } = await requirePermission("leads.manage");
+  const { user, error } = await requirePermission("leads.rules");
   if (error) return error;
   const { id } = await params;
 
@@ -46,7 +46,7 @@ export async function PATCH(req: Request, { params }: Params) {
 }
 
 export async function DELETE(req: Request, { params }: Params) {
-  const { user, error } = await requirePermission("leads.manage");
+  const { user, error } = await requirePermission("leads.rules");
   if (error) return error;
   const { id } = await params;
 

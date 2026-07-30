@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
+import { canSeeAllLeads } from "@/lib/auth/rbac";
 import { FOLLOWUP_STATUSES } from "@/lib/crm";
 
 /** List follow-ups for the board/calendar/list views.
@@ -49,6 +50,14 @@ export async function GET(req: Request) {
     where.OR = [
       { title: { contains: q, mode: "insensitive" } },
       { lead: { is: { name: { contains: q, mode: "insensitive" }, deletedAt: null } } },
+    ];
+  }
+
+  // Visibility scope: without leads.viewAll, only follow-ups you own or that
+  // sit on a lead assigned to you.
+  if (!canSeeAllLeads(user)) {
+    where.AND = [
+      { OR: [{ ownerId: user.id }, { lead: { is: { assignedToId: user.id } } }] },
     ];
   }
 

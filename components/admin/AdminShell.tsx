@@ -26,6 +26,7 @@ import {
   Newspaper,
   ScrollText,
   Settings,
+  ShieldCheck,
   Users,
   Video,
   LogOut,
@@ -35,7 +36,7 @@ import {
   X,
   Quote,
 } from "lucide-react";
-import { can, ROLE_LABELS } from "@/lib/auth/rbac";
+import { ROLE_LABELS } from "@/lib/auth/rbac";
 import type { SessionUser } from "@/lib/auth/session";
 import NotificationsBell from "@/components/admin/NotificationsBell";
 
@@ -84,6 +85,7 @@ const NAV_GROUPS = [
     label: "System",
     items: [
       { label: "Users", href: "/admin/users", icon: Users, permission: "users.manage" },
+      { label: "Roles", href: "/admin/roles", icon: ShieldCheck, permission: "roles.manage" },
       { label: "Settings", href: "/admin/settings", icon: Settings, permission: "settings.manage" },
       { label: "Audit log", href: "/admin/audit", icon: ScrollText, permission: "audit.read" },
     ],
@@ -228,7 +230,8 @@ export default function AdminShell({
   }
 
   const allowed = (item: NavItem) =>
-    item.permission === null || can(user.role, item.permission as never);
+    item.permission === null ||
+    (user.permissions as string[]).includes(item.permission);
 
   const badgeFor = (item: NavItem) =>
     item.badge === "newLeads"

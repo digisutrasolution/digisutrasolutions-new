@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 import { logLeadActivity } from "@/lib/crm-server";
+import { canSeeAllLeads } from "@/lib/auth/rbac";
 import {
   LEAD_PRIORITIES,
   LEAD_SOURCES,
@@ -44,7 +45,7 @@ const PatchSchema = z.object({
 
 /** Full lead record + its activity timeline. */
 export async function GET(_req: Request, { params }: Params) {
-  const { error } = await requirePermission("leads.manage");
+  const { user, error } = await requirePermission("leads.manage");
   if (error) return error;
   const { id } = await params;
 
@@ -59,7 +60,7 @@ export async function GET(_req: Request, { params }: Params) {
       },
     },
   });
-  if (!lead) {
+  if (!lead || (!canSeeAllLeads(user) && lead.assignedToId !== user.id)) {
     return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
   }
   return NextResponse.json({ ok: true, lead });
@@ -71,7 +72,7 @@ export async function PATCH(req: Request, { params }: Params) {
   const { id } = await params;
 
   const existing = await db.lead.findFirst({ where: { id, deletedAt: null } });
-  if (!existing) {
+  if (!existing || (!canSeeAllLeads(user) && existing.assignedToId !== user.id)) {
     return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
   }
 
@@ -153,7 +154,7 @@ export async function DELETE(req: Request, { params }: Params) {
   const { id } = await params;
 
   const existing = await db.lead.findFirst({ where: { id, deletedAt: null } });
-  if (!existing) {
+  if (!existing || (!canSeeAllLeads(user) && existing.assignedToId !== user.id)) {
     return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
   }
   await db.lead.update({ where: { id }, data: { deletedAt: new Date() } });

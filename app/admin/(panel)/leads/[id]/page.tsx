@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { can, canSeeAllLeads } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import LeadDetail from "@/components/admin/LeadDetail";
@@ -34,6 +34,8 @@ export default async function LeadDetailPage({
     }),
   ]);
   if (!lead) notFound();
+  // Scoped users (no leads.viewAll) can only open their own assigned leads.
+  if (!canSeeAllLeads(user) && lead.assignedToId !== user.id) notFound();
 
   // Serialize dates for the client component.
   const serialized = {

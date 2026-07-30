@@ -12,6 +12,7 @@ import { getContactConfig } from "@/lib/contact-config-server";
 import { deskEmail } from "@/lib/contact-config";
 import { logLeadActivity } from "@/lib/crm-server";
 import { autoAssignLead } from "@/lib/assignment";
+import { leadScopeWhere } from "@/lib/auth/rbac";
 import { sourceLabel } from "@/lib/crm";
 
 const LeadSchema = z.object({
@@ -188,7 +189,7 @@ const PAGE_SIZE = 25;
 
 /** Admin: list/filter/search leads (paginated); ?format=csv exports the match. */
 export async function GET(req: Request) {
-  const { error } = await requirePermission("leads.manage");
+  const { user, error } = await requirePermission("leads.manage");
   if (error) return error;
 
   const url = new URL(req.url);
@@ -215,6 +216,9 @@ export async function GET(req: Request) {
       { whatsapp: { contains: q } },
     ];
   }
+  // Visibility scope: a user without leads.viewAll only ever sees their own
+  // assigned leads — this overrides any assignee filter above.
+  Object.assign(where, leadScopeWhere(user));
 
   const isCsv = p.get("format") === "csv";
   // Kanban needs the whole pipeline at once (not a 25-row page).

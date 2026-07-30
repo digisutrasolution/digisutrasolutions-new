@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { logLeadActivity } from "@/lib/crm-server";
+import { canSeeAllLeads } from "@/lib/auth/rbac";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -19,9 +20,9 @@ export async function POST(req: Request, { params }: Params) {
 
   const lead = await db.lead.findFirst({
     where: { id, deletedAt: null },
-    select: { id: true },
+    select: { id: true, assignedToId: true },
   });
-  if (!lead) {
+  if (!lead || (!canSeeAllLeads(user) && lead.assignedToId !== user.id)) {
     return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
   }
 

@@ -15,6 +15,7 @@ export default async function AdminLeadsPage() {
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
+  const canManageRules = can(user.role, "leads.rules");
 
   return (
     <div>
@@ -26,7 +27,7 @@ export default async function AdminLeadsPage() {
         entries. Filter, assign and click a lead to open its full record.
       </p>
       <div className="mt-6">
-        <LeadsWorkspace assignees={assignees} />
+        <LeadsWorkspace assignees={assignees} canManageRules={canManageRules} />
       </div>
     </div>
   );
