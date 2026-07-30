@@ -8,7 +8,8 @@ import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { notifyRoles } from "@/lib/notify";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
-import { DEPARTMENT_KEYS, departmentEmail } from "@/lib/contact-channels";
+import { getContactConfig } from "@/lib/contact-config-server";
+import { deskEmail } from "@/lib/contact-config";
 import { logLeadActivity } from "@/lib/crm-server";
 import { sourceLabel } from "@/lib/crm";
 
@@ -21,7 +22,7 @@ const LeadSchema = z.object({
   email: z.string().trim().email().max(200).optional().or(z.literal("").transform(() => undefined)),
   website: z.string().trim().max(300).optional().or(z.literal("").transform(() => undefined)),
   company: z.string().trim().max(120).optional(),
-  department: z.enum(DEPARTMENT_KEYS).optional(),
+  department: z.string().trim().max(24).optional(),
   services: z.array(z.string().trim().max(80)).max(10).optional(),
   budget: z.string().trim().max(60).optional(),
   timeline: z.string().trim().max(60).optional(),
@@ -113,7 +114,8 @@ export async function POST(req: Request) {
      to bypass it, so the desk alert kept needing a RESEND_API_KEY even after
      SMTP was configured in the admin. */
   {
-    const to = process.env.CONTACT_TO_EMAIL ?? departmentEmail(d.department);
+    const contactConfig = await getContactConfig();
+    const to = process.env.CONTACT_TO_EMAIL ?? deskEmail(contactConfig, d.department);
     const mail = alertEmail({
       badge: `New enquiry · ${d.department ?? "CONTACT"}`,
       title: d.company ? `${lead.name} — ${d.company}` : lead.name,

@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
 import LeadForm from "@/components/contact/LeadForm";
+import { getContactConfig } from "@/lib/contact-config-server";
 import { getLiveServices } from "@/lib/services";
 import { SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Contact Us: Free 15-Page Growth Audit in 48 Hours",
-  description:
-    "Talk to DigiSutra Solutions in Noida — reply within 2 business hours on WhatsApp, free 15-page website audit with every enquiry. +91-9953-900123.",
-  alternates: { canonical: `${SITE_URL}/contact` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const c = await getContactConfig();
+  return {
+    title: c.seoTitle,
+    description: c.seoDescription,
+    alternates: { canonical: `${SITE_URL}/contact` },
+  };
+}
 
 export default async function ContactPage() {
-  const services = await getLiveServices();
+  const [services, config] = await Promise.all([getLiveServices(), getContactConfig()]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -33,14 +36,14 @@ export default async function ContactPage() {
         mainEntity: {
           "@type": "Organization",
           name: "DigiSutra Solutions",
-          telephone: "+91-120-475-1400",
-          email: "Info@digisutrasolutions.com",
+          telephone: config.mainPhone,
+          email: config.mainEmail,
           address: {
             "@type": "PostalAddress",
-            streetAddress: "B-521, iThum Tower B, Sector 62",
-            addressLocality: "Noida",
-            addressRegion: "Uttar Pradesh",
-            addressCountry: "IN",
+            streetAddress: config.street,
+            addressLocality: config.locality,
+            addressRegion: config.region,
+            addressCountry: config.country,
           },
         },
       },
@@ -49,11 +52,9 @@ export default async function ContactPage() {
 
   return (
     <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(jsonLd)} />
       <LeadForm
+        config={config}
         serviceOptions={services.map((s) => ({ name: s.name, group: s.group }))}
       />
     </section>

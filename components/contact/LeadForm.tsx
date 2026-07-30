@@ -11,10 +11,21 @@ import {
   parsePhoneNumberFromString,
   type CountryCode,
 } from "libphonenumber-js/min";
-import { ArrowRight, Check, Clock, FileSearch, MapPin, ShieldCheck, Timer } from "lucide-react";
+import { ArrowRight, Briefcase, Check, Clock, FileSearch, Headphones, LifeBuoy, Mail, MapPin, MessageCircle, Phone, ShieldCheck, Timer } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import CountrySelect from "@/components/contact/CountrySelect";
 import ServicePicker, { type ServiceOption } from "@/components/contact/ServicePicker";
-import { DEPARTMENTS, HEARD_FROM } from "@/lib/contact-channels";
+import { HEARD_FROM } from "@/lib/contact-channels";
+import type { ContactConfig, DeskIcon } from "@/lib/contact-config";
+
+const DESK_ICON: Record<DeskIcon, LucideIcon> = {
+  briefcase: Briefcase,
+  lifebuoy: LifeBuoy,
+  message: MessageCircle,
+  phone: Phone,
+  mail: Mail,
+  headset: Headphones,
+};
 
 const DRAFT_KEY = "ds-lead-draft";
 
@@ -86,7 +97,13 @@ const inputCls = (invalid: boolean, valid?: boolean) =>
         : "border-stone-200 focus:border-[#F26419]"
   }`;
 
-export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOption[] }) {
+export default function LeadForm({
+  serviceOptions,
+  config,
+}: {
+  serviceOptions: ServiceOption[];
+  config: ContactConfig;
+}) {
   const [f, setF] = useState<Fields>(EMPTY);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
@@ -205,24 +222,20 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
           aria-hidden
         />
         <div className="relative">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">Contact us</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#FDBA74]">{config.eyebrow}</p>
         <h1 className="font-display mt-3 text-3xl font-extrabold leading-tight text-white sm:text-4xl">
-          We&rsquo;re here to{" "}
-          <span className="font-serif-accent font-medium italic text-[#F26419]">help</span>
+          {config.heading}{" "}
+          <span className="font-serif-accent font-medium italic text-[#F26419]">{config.headingAccent}</span>
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-stone-400">
-          Digital marketing, web development, AI automation and technical
-          support — reach the right desk directly.
-        </p>
+        <p className="mt-3 text-sm leading-relaxed text-stone-400">{config.subheading}</p>
         {/* Reassurance bullets are desktop-only: on a phone this panel sits
             on top of the form, and pushing the form below four paragraphs
-            costs more enquiries than the bullets win. The audit promise is
-            repeated in the form header anyway. */}
+            costs more enquiries than the bullets win. */}
         <ul className="mt-8 hidden space-y-4 lg:block">
           <li className="flex items-start gap-3">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-emerald-400"><Timer size={13} aria-hidden /></span>
             <span className="text-sm leading-relaxed text-stone-300">
-              Reply in <b className="font-bold text-white">under 2 hours</b> — Mon–Fri, 24-hour desk
+              Reply in <b className="font-bold text-white">{config.responsePromise}</b> — {config.responseNote}
             </span>
           </li>
           <li className="flex items-start gap-3">
@@ -234,64 +247,56 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
           <li className="flex items-start gap-3">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-emerald-400"><FileSearch size={13} aria-hidden /></span>
             <span className="text-sm leading-relaxed text-stone-300">
-              Free <b className="font-bold text-white">15-page audit</b> with every request — in 48 hours
+              Free <b className="font-bold text-white">{config.auditPromise}</b> with every request — {config.auditNote}
             </span>
           </li>
           <li className="flex items-start gap-3">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-800 text-emerald-400"><MapPin size={13} aria-hidden /></span>
-            <span className="text-sm leading-relaxed text-stone-300">
-              B-521, iThum Tower B, Sector 62, Noida — serving 12 countries
-            </span>
+            <span className="text-sm leading-relaxed text-stone-300">{config.addressLine}</span>
           </li>
         </ul>
         {/* Desks: every address and number reachable without the form. */}
         <div className="mt-8 space-y-5 border-t border-[lab(99_0_0)] pt-7">
-          {DEPARTMENTS.map((d) => (
-            <div key={d.key}>
-              <p className="font-display flex items-center gap-2 text-sm font-bold text-white">
-                <d.icon size={14} aria-hidden className="text-[#F26419]" />
-                {d.label}
-              </p>
-              <p className="mt-1 hidden text-xs leading-relaxed text-stone-400 lg:block">
-                {d.blurb}
-              </p>
-              <div className="mt-1.5 flex flex-col gap-1 text-sm">
-                <a
-                  href={`mailto:${d.email}`}
-                  className="break-all font-medium text-stone-300 transition-colors hover:text-[#FDBA74]"
-                >
-                  {d.email}
-                </a>
-                <a
-                  href={d.phoneHref}
-                  className="font-medium text-stone-300 transition-colors hover:text-[#FDBA74]"
-                >
-                  {d.phone}
-                </a>
-                {d.key === "GENERAL" && (
-                  <a
-                    href="tel:+18886445402"
-                    className="font-medium text-stone-300 transition-colors hover:text-[#FDBA74]"
-                  >
-                    +1-888-644-5402 <span className="text-stone-500">(USA toll-free)</span>
-                  </a>
+          {config.desks.map((d) => {
+            const Icon = DESK_ICON[d.icon] ?? MessageCircle;
+            return (
+              <div key={d.key}>
+                <p className="font-display flex items-center gap-2 text-sm font-bold text-white">
+                  <Icon size={14} aria-hidden className="text-[#F26419]" />
+                  {d.label}
+                </p>
+                {d.blurb && (
+                  <p className="mt-1 hidden text-xs leading-relaxed text-stone-400 lg:block">{d.blurb}</p>
                 )}
+                <div className="mt-1.5 flex flex-col gap-1 text-sm">
+                  <a href={`mailto:${d.email}`} className="break-all font-medium text-stone-300 transition-colors hover:text-[#FDBA74]">{d.email}</a>
+                  {d.phone && (
+                    <a href={`tel:${d.phone.replace(/[^\d+]/g, "")}`} className="font-medium text-stone-300 transition-colors hover:text-[#FDBA74]">{d.phone}</a>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+          {config.usaTollFree && (
+            <a href={`tel:${config.usaTollFree.replace(/[^\d+]/g, "")}`} className="block font-medium text-stone-300 transition-colors hover:text-[#FDBA74]">
+              {config.usaTollFree} <span className="text-stone-500">(USA toll-free)</span>
+            </a>
+          )}
           <p className="flex items-center gap-2 text-sm text-stone-400">
             <Clock size={13} aria-hidden className="shrink-0 text-[#F26419]" />
             Business hours:&nbsp;
-            <b className="font-semibold text-stone-200">Monday – Friday, 24 hours</b>
+            <b className="font-semibold text-stone-200">{config.hours}</b>
           </p>
-          <a
-            href="https://wa.me/919953900123"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block font-semibold text-emerald-400 hover:underline"
-          >
-            WhatsApp +91-9953-900123 →
-          </a>
+          {config.whatsappNumber && (
+            <a
+              href={`https://wa.me/${config.whatsappNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block font-semibold text-emerald-400 hover:underline"
+            >
+              WhatsApp {config.whatsappDisplay || config.whatsappNumber} →
+            </a>
+          )}
         </div>
         </div>
       </div>
@@ -309,7 +314,7 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
               lands within 48.
             </p>
             <a
-              href="https://wa.me/919953900123"
+              href={`https://wa.me/${config.whatsappNumber}`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-bold text-white"
@@ -486,7 +491,7 @@ export default function LeadForm({ serviceOptions }: { serviceOptions: ServiceOp
                 {status === "sending" ? "Sending…" : "Send my enquiry"}
               </button>
               <a
-                href="https://wa.me/919953900123?text=Hi%20DigiSutra!%20I%27d%20rather%20chat%20than%20fill%20a%20form."
+                href={`https://wa.me/${config.whatsappNumber}?text=${encodeURIComponent("Hi DigiSutra! I'd rather chat than fill a form.")}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Skip the form — WhatsApp us"

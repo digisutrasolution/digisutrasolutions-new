@@ -3,21 +3,24 @@
 import { useState } from "react";
 import AnalyticsManager from "@/components/admin/AnalyticsManager";
 import BotNudgeManager from "@/components/admin/BotNudgeManager";
+import ContactManager from "@/components/admin/ContactManager";
 import FooterInfoManager from "@/components/admin/FooterInfoManager";
 import PaymentGatewayManager, { type PaymentsView } from "@/components/admin/PaymentGatewayManager";
 import SmtpManager, { type MaskedSmtp } from "@/components/admin/SmtpManager";
 import SocialLinksManager from "@/components/admin/SocialLinksManager";
 import type { AnalyticsSettings } from "@/lib/analytics";
 import type { BotNudge } from "@/lib/bot-nudge";
+import type { ContactConfig } from "@/lib/contact-config";
 import type { FooterInfo } from "@/lib/footer";
 
 type SocialLink = { key: string; label: string; followers?: string; url: string };
 
-type TabKey = "analytics" | "bot" | "email" | "footer" | "social" | "payments";
+type TabKey = "analytics" | "bot" | "email" | "contact" | "footer" | "social" | "payments";
 
 export default function SettingsTabs({
   analytics,
   botNudge,
+  contact,
   footerInfo,
   links,
   payments,
@@ -25,6 +28,7 @@ export default function SettingsTabs({
 }: {
   analytics: AnalyticsSettings;
   botNudge: BotNudge;
+  contact: ContactConfig;
   footerInfo: FooterInfo;
   links: SocialLink[];
   payments: PaymentsView;
@@ -74,6 +78,12 @@ export default function SettingsTabs({
       hint: "Outgoing mail for password resets, form notifications and workflow alerts. Test the connection before saving — without working email a password reset silently sends nothing.",
     },
     {
+      key: "contact",
+      label: "Contact page",
+      chip: `${contact.desks.length} desk${contact.desks.length === 1 ? "" : "s"}`,
+      hint: "The /contact page — heading, promises, address, hours, WhatsApp, the enquiry desks (and the inbox each routes to) and SEO.",
+    },
+    {
       key: "footer",
       label: "Footer & contact",
       chip: footerInfo.email,
@@ -121,6 +131,7 @@ export default function SettingsTabs({
       {tab === "analytics" && <AnalyticsManager settings={analytics} />}
       {tab === "bot" && <BotNudgeManager initial={botNudge} />}
       {tab === "email" && <SmtpManager initial={smtp} />}
+      {tab === "contact" && <ContactManager contact={contact} />}
       {tab === "footer" && <FooterInfoManager initial={footerInfo} />}
       {tab === "social" && <SocialLinksManager initial={links} />}
       {tab === "payments" && <PaymentGatewayManager initial={payments} />}
