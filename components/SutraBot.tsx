@@ -118,6 +118,10 @@ const WA_HREF =
    capture form, which writes a Lead with source SUTRABOT. */
 export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
   const pathname = usePathname();
+  /* The pricing page ends in full-width plan cards whose CTAs run to the
+     corners; lift the launcher (and its greeting bubbles) so they don't sit
+     on top of those buttons. Mirrors the same lift in FloatingCall. */
+  const liftFab = pathname === "/pricing";
   const [teaser, setTeaser] = useState<string | null>(null);
   const [peek, setPeek] = useState(false);
   const [open, setOpen] = useState(false);
@@ -355,7 +359,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           panel's header X closes it and the panel covers the ladder. */}
       {/* Proactive greeting bubble */}
       {teaser && !open && (
-        <div className="fixed bottom-[9rem] right-5 z-[130] w-[min(17rem,calc(100vw-2.5rem))] rounded-2xl rounded-br-sm border border-stone-700 bg-stone-900 p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+        <div className={`fixed right-5 z-[130] w-[min(17rem,calc(100vw-2.5rem))] rounded-2xl rounded-br-sm border border-stone-700 bg-stone-900 p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.35)] ${liftFab ? "bottom-[12rem]" : "bottom-[9rem]"}`}>
           <p className="text-sm leading-relaxed text-stone-100">{teaser}</p>
           <div className="mt-3 flex items-center gap-2">
             <button
@@ -382,7 +386,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           Suppressed while the panel is open or the richer teaser card is
           showing, so the two greetings never stack. */}
       {peek && !teaser && !open && (
-        <div className="animate-bot-peek fixed bottom-[8.5rem] right-5 z-[129] w-max max-w-[13rem] origin-bottom-right lg:hidden">
+        <div className={`animate-bot-peek fixed right-5 z-[129] w-max max-w-[13rem] origin-bottom-right lg:hidden ${liftFab ? "bottom-[11.5rem]" : "bottom-[8.5rem]"}`}>
           <div className="relative rounded-2xl rounded-br-sm border border-stone-200 bg-white py-2 pl-3 pr-7 shadow-[0_12px_30px_rgba(124,45,18,0.16)]">
             <button
               onClick={() => {
@@ -417,9 +421,9 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
         }}
         aria-label="Chat with DigiSutra Bot"
         aria-expanded={open}
-        className={`group fixed bottom-16 right-5 z-[130] cursor-pointer items-center gap-2.5 ${
-          open ? "hidden" : "flex"
-        }`}
+        className={`group fixed right-5 z-[130] cursor-pointer items-center gap-2.5 ${
+          liftFab ? "bottom-28" : "bottom-16"
+        } ${open ? "hidden" : "flex"}`}
       >
         {/* Desktop affordance — collapsed at rest so it never overlaps
             page content (the persistent pill used to cover the newsletter
