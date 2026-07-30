@@ -2,18 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LayoutGrid, List, Route } from "lucide-react";
+import { Gauge, LayoutGrid, List, Route } from "lucide-react";
 import LeadsKanban from "@/components/admin/LeadsKanban";
 import LeadsManager from "@/components/admin/LeadsManager";
+import type { ScoringConfig } from "@/lib/scoring";
 
 type Assignee = { id: string; name: string };
 
 export default function LeadsWorkspace({
   assignees,
   canManageRules = false,
+  scoringConfig,
 }: {
   assignees: Assignee[];
   canManageRules?: boolean;
+  scoringConfig: ScoringConfig;
 }) {
   const [view, setView] = useState<"table" | "board">("table");
 
@@ -23,6 +26,9 @@ export default function LeadsWorkspace({
         ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900"
         : "text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
     }`;
+
+  const chip =
+    "flex items-center gap-1.5 rounded-full border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-stone-500 transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-stone-800 dark:text-stone-400";
 
   return (
     <div>
@@ -36,15 +42,21 @@ export default function LeadsWorkspace({
           </button>
         </div>
         {canManageRules && (
-          <Link
-            href="/admin/leads/assignment"
-            className="flex items-center gap-1.5 rounded-full border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-stone-500 transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-stone-800 dark:text-stone-400"
-          >
-            <Route size={13} /> Assignment rules
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/admin/leads/scoring" className={chip}>
+              <Gauge size={13} /> Scoring
+            </Link>
+            <Link href="/admin/leads/assignment" className={chip}>
+              <Route size={13} /> Assignment rules
+            </Link>
+          </div>
         )}
       </div>
-      {view === "table" ? <LeadsManager assignees={assignees} /> : <LeadsKanban assignees={assignees} />}
+      {view === "table" ? (
+        <LeadsManager assignees={assignees} scoringConfig={scoringConfig} />
+      ) : (
+        <LeadsKanban assignees={assignees} scoringConfig={scoringConfig} />
+      )}
     </div>
   );
 }

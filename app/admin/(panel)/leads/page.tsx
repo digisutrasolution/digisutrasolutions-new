@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { can } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import { getScoringConfig } from "@/lib/scoring-server";
 import LeadsWorkspace from "@/components/admin/LeadsWorkspace";
 
 export const metadata = { title: "Leads" };
@@ -10,11 +11,14 @@ export default async function AdminLeadsPage() {
   const user = await getCurrentUser();
   if (!user || !can(user.role, "leads.manage")) redirect("/admin");
 
-  const assignees = await db.user.findMany({
-    where: { isActive: true },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  const [assignees, scoringConfig] = await Promise.all([
+    db.user.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    getScoringConfig(),
+  ]);
   const canManageRules = can(user.role, "leads.rules");
 
   return (
@@ -27,7 +31,7 @@ export default async function AdminLeadsPage() {
         entries. Filter, assign and click a lead to open its full record.
       </p>
       <div className="mt-6">
-        <LeadsWorkspace assignees={assignees} canManageRules={canManageRules} />
+        <LeadsWorkspace assignees={assignees} canManageRules={canManageRules} scoringConfig={scoringConfig} />
       </div>
     </div>
   );

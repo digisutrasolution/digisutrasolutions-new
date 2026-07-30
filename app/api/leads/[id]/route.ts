@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 import { logLeadActivity } from "@/lib/crm-server";
+import { scoreAndSave } from "@/lib/scoring-server";
 import { canSeeAllLeads } from "@/lib/auth/rbac";
 import {
   LEAD_PRIORITIES,
@@ -135,6 +136,9 @@ export async function PATCH(req: Request, { params }: Params) {
   if (otherEdited) {
     void logLeadActivity({ ...who, leadId: id, type: "updated", message: "Details updated" });
   }
+
+  // Keep the score fresh after edits — unless the caller set it explicitly.
+  if (data.score === undefined) void scoreAndSave(id);
 
   audit({
     userId: user.id,

@@ -5,7 +5,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 import { logLeadActivity } from "@/lib/crm-server";
-import { autoAssignLead } from "@/lib/assignment";
+import { onLeadCreated } from "@/lib/lead-intake";
 import { LEAD_PRIORITIES, LEAD_SOURCES } from "@/lib/crm";
 
 const opt = (max: number) => z.string().trim().max(max).optional();
@@ -71,8 +71,8 @@ export async function POST(req: Request) {
     message: `Lead created manually by ${user.name}`,
   });
 
-  // If the admin didn't pick an owner, let the rules route it (no-op when set).
-  if (!lead.assignedToId) void autoAssignLead(lead);
+  // Auto-route (no-op if the admin already picked an owner) and score it.
+  onLeadCreated(lead);
 
   audit({
     userId: user.id,

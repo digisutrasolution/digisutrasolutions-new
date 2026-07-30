@@ -3,7 +3,7 @@ import { appendFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { autoAssignLead } from "@/lib/assignment";
+import { onLeadCreated } from "@/lib/lead-intake";
 import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { getSmtp, smtpReady } from "@/lib/smtp";
@@ -105,8 +105,8 @@ export async function POST(req: Request) {
       },
     });
     leadSaved = true;
-    // Route to an owner by the assignment rules (best-effort, never blocks).
-    void autoAssignLead(lead);
+    // Auto-route + score (best-effort, never blocks).
+    onLeadCreated(lead);
   } catch {
     /* DB write failed — email below becomes the only capture path. */
   }

@@ -12,6 +12,7 @@ import {
   sourceLabel,
   type LeadStatusKey,
 } from "@/lib/crm";
+import { BAND_LABEL, BAND_STYLE, bandOf, type ScoringConfig } from "@/lib/scoring";
 
 type Assignee = { id: string; name: string };
 type Lead = {
@@ -28,7 +29,13 @@ type Lead = {
 const inputCls =
   "rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs outline-none focus:border-orange-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
 
-export default function LeadsKanban({ assignees }: { assignees: Assignee[] }) {
+export default function LeadsKanban({
+  assignees,
+  scoringConfig,
+}: {
+  assignees: Assignee[];
+  scoringConfig: ScoringConfig;
+}) {
   const router = useRouter();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +143,12 @@ export default function LeadsKanban({ assignees }: { assignees: Assignee[] }) {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-semibold leading-tight text-stone-900 dark:text-stone-100">{l.name}</p>
-                      <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${PRIORITY_STYLE[l.priority as keyof typeof PRIORITY_STYLE] ?? ""}`}>{l.priority.charAt(0)}</span>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {l.score != null && (
+                          <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${BAND_STYLE[bandOf(l.score, scoringConfig)]}`} title={`Score ${l.score}/100`}>{BAND_LABEL[bandOf(l.score, scoringConfig)]}</span>
+                        )}
+                        <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${PRIORITY_STYLE[l.priority as keyof typeof PRIORITY_STYLE] ?? ""}`}>{l.priority.charAt(0)}</span>
+                      </div>
                     </div>
                     {l.company && <p className="truncate text-xs text-stone-500">{l.company}</p>}
                     <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">

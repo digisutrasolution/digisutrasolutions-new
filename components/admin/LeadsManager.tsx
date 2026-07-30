@@ -15,6 +15,13 @@ import {
   STATUS_STYLE,
   sourceLabel,
 } from "@/lib/crm";
+import {
+  BAND_LABEL,
+  BAND_STYLE,
+  SCORE_BANDS,
+  bandOf,
+  type ScoringConfig,
+} from "@/lib/scoring";
 
 type Assignee = { id: string; name: string };
 
@@ -36,13 +43,20 @@ type Lead = {
 const inputCls =
   "rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs outline-none transition-colors focus:border-orange-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
 
-export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
+export default function LeadsManager({
+  assignees,
+  scoringConfig,
+}: {
+  assignees: Assignee[];
+  scoringConfig: ScoringConfig;
+}) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("ALL");
   const [source, setSource] = useState("ALL");
   const [priority, setPriority] = useState("ALL");
   const [assignee, setAssignee] = useState("ALL");
+  const [band, setBand] = useState("ALL");
   const [page, setPage] = useState(1);
 
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -61,8 +75,9 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
     if (source !== "ALL") sp.set("source", source);
     if (priority !== "ALL") sp.set("priority", priority);
     if (assignee !== "ALL") sp.set("assignedTo", assignee);
+    if (band !== "ALL") sp.set("band", band);
     return sp;
-  }, [page, q, status, source, priority, assignee]);
+  }, [page, q, status, source, priority, assignee, band]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -178,6 +193,10 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
           <option value="ALL">All priorities</option>
           {LEAD_PRIORITIES.map((s) => <option key={s} value={s}>{PRIORITY_LABEL[s]}</option>)}
         </select>
+        <select value={band} onChange={(e) => onFilter(setBand)(e.target.value)} className={inputCls} aria-label="Score band">
+          <option value="ALL">All scores</option>
+          {SCORE_BANDS.map((b) => <option key={b} value={b}>{BAND_LABEL[b]}</option>)}
+        </select>
         <select value={assignee} onChange={(e) => onFilter(setAssignee)(e.target.value)} className={inputCls} aria-label="Assignee">
           <option value="ALL">Anyone</option>
           <option value="unassigned">Unassigned</option>
@@ -283,7 +302,16 @@ export default function LeadsManager({ assignees }: { assignees: Assignee[] }) {
                     {PRIORITY_LABEL[l.priority as keyof typeof PRIORITY_LABEL] ?? l.priority}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-xs font-semibold text-stone-600 dark:text-stone-300">{l.score ?? "—"}</td>
+                <td className="px-4 py-3 text-xs">
+                  {l.score == null ? (
+                    <span className="text-stone-400">—</span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="font-semibold tabular-nums text-stone-600 dark:text-stone-300">{l.score}</span>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${BAND_STYLE[bandOf(l.score, scoringConfig)]}`}>{BAND_LABEL[bandOf(l.score, scoringConfig)]}</span>
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-xs text-stone-600 dark:text-stone-300">{l.assignedTo?.name ?? <span className="text-stone-400">Unassigned</span>}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-stone-400">
                   {new Date(l.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { logLeadActivity } from "@/lib/crm-server";
+import { scoreAndSave } from "@/lib/scoring-server";
 import { canSeeAllLeads } from "@/lib/auth/rbac";
 
 type Params = { params: Promise<{ id: string }> };
@@ -38,5 +39,7 @@ export async function POST(req: Request, { params }: Params) {
     type: parsed.data.type,
     message: parsed.data.message,
   });
+  // Engagement can change the score (e.g. crossing the "3+ activities" signal).
+  void scoreAndSave(id);
   return NextResponse.json({ ok: true });
 }

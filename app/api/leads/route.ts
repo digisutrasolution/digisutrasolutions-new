@@ -11,7 +11,8 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { getContactConfig } from "@/lib/contact-config-server";
 import { deskEmail } from "@/lib/contact-config";
 import { logLeadActivity } from "@/lib/crm-server";
-import { autoAssignLead } from "@/lib/assignment";
+import { onLeadCreated } from "@/lib/lead-intake";
+import { getScoringConfig } from "@/lib/scoring-server";
 import { leadScopeWhere } from "@/lib/auth/rbac";
 import { sourceLabel } from "@/lib/crm";
 
@@ -109,8 +110,8 @@ export async function POST(req: Request) {
     message: `Lead captured from ${sourceLabel(lead.source)}`,
   });
 
-  // Route to an owner by the assignment rules (best-effort, never blocks).
-  void autoAssignLead(lead);
+  // Auto-route to an owner and score the lead (best-effort, never blocks).
+  onLeadCreated(lead);
 
   /* Route the enquiry to the desk the visitor picked. Best-effort: the lead
      is already stored, so a mail failure never loses it.
@@ -216,6 +217,15 @@ export async function GET(req: Request) {
       { whatsapp: { contains: q } },
     ];
   }
+  // Score band filter → a score range from the current thresholds.
+  const band = p.get("band");
+  if (band === "HOT" || band === "WARM" || band === "COLD") {
+    const cfg = await getScoringConfig();
+    if (band === "HOT") where.score = { gte: cfg.hotMin };
+    else if (band === "WARM") where.score = { gte: cfg.warmMin, lt: cfg.hotMin };
+    else where.score = { lt: cfg.warmMin };
+  }
+
   // Visibility scope: a user without leads.viewAll only ever sees their own
   // assigned leads — this overrides any assignee filter above.
   Object.assign(where, leadScopeWhere(user));

@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
 import {
@@ -15,6 +16,12 @@ import {
   STATUS_STYLE,
   sourceLabel,
 } from "@/lib/crm";
+import {
+  BAND_LABEL,
+  BAND_STYLE,
+  computeScore,
+  type ScoringConfig,
+} from "@/lib/scoring";
 
 type Activity = {
   id: string;
@@ -66,9 +73,11 @@ const inputCls =
 export default function LeadDetail({
   lead: initial,
   assignees,
+  scoringConfig,
 }: {
   lead: Lead;
   assignees: { id: string; name: string }[];
+  scoringConfig: ScoringConfig;
 }) {
   const router = useRouter();
   const [lead, setLead] = useState<Lead>(initial);
@@ -154,10 +163,18 @@ export default function LeadDetail({
             {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </label>
-        <label className="text-xs">
+        <div className="text-xs">
           <span className="mb-1 block font-semibold uppercase tracking-wide text-stone-500">Score</span>
-          <input type="number" min={0} max={100} defaultValue={lead.score ?? ""} disabled={saving} onBlur={(e) => { const v = e.target.value === "" ? null : Number(e.target.value); if (v !== lead.score) void patch({ score: v }); }} className={`${inputCls} w-20`} />
-        </label>
+          {(() => {
+            const r = computeScore({ ...lead, activityCount: lead.activities.length }, scoringConfig);
+            return (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 px-3 py-1.5 dark:border-stone-700">
+                <span className="text-sm font-bold tabular-nums">{r.score}</span>
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${BAND_STYLE[r.band]}`}>{BAND_LABEL[r.band]}</span>
+              </span>
+            );
+          })()}
+        </div>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_360px]">
@@ -201,6 +218,9 @@ export default function LeadDetail({
               </dl>
             )}
           </div>
+
+          {/* Score */}
+          <ScoreCard leadId={initial.id} lead={lead} config={scoringConfig} />
 
           {/* Follow-ups */}
           <LeadFollowUps
@@ -311,6 +331,70 @@ function NotesCard({ notes, onSave }: { notes: string | null; onSave: (v: string
       <button onClick={async () => { setBusy(true); await onSave(v); setBusy(false); }} disabled={busy} className="mt-2 rounded-lg bg-stone-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900">
         {busy ? "Saving…" : "Save notes"}
       </button>
+    </div>
+  );
+}
+
+function ScoreCard({ leadId, lead, config }: { leadId: string; lead: Lead; config: ScoringConfig }) {
+  const result = computeScore({ ...lead, activityCount: lead.activities.length }, config);
+  const [ai, setAi] = useState<{ score: number; reason: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function runAi() {
+    setBusy(true); setErr(""); setAi(null);
+    try {
+      const res = await fetch(withBase(`/api/leads/${leadId}/ai-score`), { method: "POST" });
+      const json = await res.json();
+      if (json.ok) setAi({ score: json.score, reason: json.reason });
+      else setErr(json.error ?? "AI scoring failed.");
+    } catch {
+      setErr("AI scoring failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-sm font-bold">Lead score</h2>
+        <button onClick={() => void runAi()} disabled={busy} className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-2.5 py-1 text-xs font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300">
+          <Sparkles size={13} /> {busy ? "Scoring…" : "AI score"}
+        </button>
+      </div>
+
+      <div className="mt-3 flex items-center gap-3">
+        <div className="flex h-16 w-16 flex-col items-center justify-center rounded-2xl bg-stone-100 dark:bg-stone-800">
+          <span className="text-2xl font-extrabold tabular-nums leading-none">{result.score}</span>
+          <span className="text-[9px] font-semibold uppercase text-stone-400">/ 100</span>
+        </div>
+        <div>
+          <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${BAND_STYLE[result.band]}`}>{BAND_LABEL[result.band]}</span>
+          <p className="mt-1 text-[11px] text-stone-400">Auto-scored from {result.breakdown.length} signal{result.breakdown.length === 1 ? "" : "s"}.</p>
+        </div>
+      </div>
+
+      {result.breakdown.length > 0 && (
+        <ul className="mt-3 space-y-1">
+          {result.breakdown.map((b) => (
+            <li key={b.key} className="flex items-center justify-between text-xs">
+              <span className="text-stone-600 dark:text-stone-300">{b.label}</span>
+              <span className={`font-semibold tabular-nums ${b.points < 0 ? "text-red-500" : "text-green-600"}`}>{b.points > 0 ? "+" : ""}{b.points}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {err && <p className="mt-3 text-xs text-red-500">{err}</p>}
+      {ai && (
+        <div className="mt-3 rounded-xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-900 dark:bg-orange-950/40">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-orange-800 dark:text-orange-300">
+            <Sparkles size={12} /> AI conversion score: {ai.score}/100
+          </p>
+          <p className="mt-1 text-xs text-stone-600 dark:text-stone-300">{ai.reason}</p>
+        </div>
+      )}
     </div>
   );
 }

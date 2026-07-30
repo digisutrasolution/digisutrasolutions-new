@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { leadFromSubmission, parseFormFields, validateSubmission } from "@/lib/cms/forms";
-import { autoAssignLead } from "@/lib/assignment";
+import { onLeadCreated } from "@/lib/lead-intake";
 import { notifyRoles } from "@/lib/notify";
 import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl } from "@/lib/email-templates";
@@ -85,8 +85,8 @@ export async function POST(req: Request) {
         },
       })
       .catch(() => null);
-    // Route to an owner by the assignment rules (best-effort, never blocks).
-    if (created) void autoAssignLead(created);
+    // Auto-route + score (best-effort, never blocks).
+    if (created) onLeadCreated(created);
     void notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
       type: "lead",
       title: `New lead from "${form.name}"`,

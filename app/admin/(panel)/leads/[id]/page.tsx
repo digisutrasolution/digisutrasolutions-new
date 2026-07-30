@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { can, canSeeAllLeads } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import { getScoringConfig } from "@/lib/scoring-server";
 import LeadDetail from "@/components/admin/LeadDetail";
 
 export const metadata = { title: "Lead" };
@@ -15,7 +16,7 @@ export default async function LeadDetailPage({
   const user = await getCurrentUser();
   if (!user || !can(user.role, "leads.manage")) redirect("/admin");
 
-  const [lead, assignees] = await Promise.all([
+  const [lead, assignees, scoringConfig] = await Promise.all([
     db.lead.findFirst({
       where: { id, deletedAt: null },
       include: {
@@ -32,6 +33,7 @@ export default async function LeadDetailPage({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    getScoringConfig(),
   ]);
   if (!lead) notFound();
   // Scoped users (no leads.viewAll) can only open their own assigned leads.
@@ -62,5 +64,5 @@ export default async function LeadDetailPage({
     })),
   };
 
-  return <LeadDetail lead={serialized} assignees={assignees} />;
+  return <LeadDetail lead={serialized} assignees={assignees} scoringConfig={scoringConfig} />;
 }
