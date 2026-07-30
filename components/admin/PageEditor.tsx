@@ -572,6 +572,8 @@ function SectionFields({
           <div><label className={labelCls}>CTA label</label><input value={section.ctaLabel} disabled={disabled} onChange={(e) => onChange({ ctaLabel: e.target.value })} className={inputCls} /></div>
           <div className="sm:col-span-2"><label className={labelCls}>Copy</label><textarea rows={2} value={section.copy} disabled={disabled} onChange={(e) => onChange({ copy: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>CTA link</label><input value={section.ctaHref} disabled={disabled} onChange={(e) => onChange({ ctaHref: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>2nd button label</label><input value={section.cta2Label} disabled={disabled} onChange={(e) => onChange({ cta2Label: e.target.value })} className={inputCls} placeholder="optional — e.g. WhatsApp HR team" /></div>
+          <div><label className={labelCls}>2nd button link</label><input value={section.cta2Href} disabled={disabled} onChange={(e) => onChange({ cta2Href: e.target.value })} className={inputCls} placeholder="https://wa.me/91… for WhatsApp" /></div>
         </div>
       );
     case "richText":
@@ -721,6 +723,8 @@ function SectionFields({
           <div><label className={labelCls}>Copy</label><input value={section.copy} disabled={disabled} onChange={(e) => onChange({ copy: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>CTA label</label><input value={section.ctaLabel} disabled={disabled} onChange={(e) => onChange({ ctaLabel: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>CTA link</label><input value={section.ctaHref} disabled={disabled} onChange={(e) => onChange({ ctaHref: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>2nd button label</label><input value={section.cta2Label} disabled={disabled} onChange={(e) => onChange({ cta2Label: e.target.value })} className={inputCls} placeholder="optional — e.g. WhatsApp HR team" /></div>
+          <div><label className={labelCls}>2nd button link</label><input value={section.cta2Href} disabled={disabled} onChange={(e) => onChange({ cta2Href: e.target.value })} className={inputCls} placeholder="https://wa.me/91… for WhatsApp" /></div>
         </div>
       );
     case "form":

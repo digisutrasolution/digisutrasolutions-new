@@ -14,6 +14,10 @@ export const HeroSectionSchema = z.object({
   copy: z.string().max(500).default(""),
   ctaLabel: z.string().max(60).default(""),
   ctaHref: z.string().max(300).default("/#contact"),
+  /* Optional second button beside the primary CTA. A wa.me / whatsapp href
+     renders as a green WhatsApp button; anything else as a neutral outline. */
+  cta2Label: z.string().max(60).default(""),
+  cta2Href: z.string().max(300).default(""),
 });
 
 export const RichTextSectionSchema = z.object({
@@ -79,6 +83,9 @@ export const CtaSectionSchema = z.object({
   copy: z.string().max(400).default(""),
   ctaLabel: z.string().max(60).default("Get free consultation"),
   ctaHref: z.string().max(300).default("/#contact"),
+  /* Optional second button (e.g. a WhatsApp contact) beside the primary. */
+  cta2Label: z.string().max(60).default(""),
+  cta2Href: z.string().max(300).default(""),
 });
 
 export const CountriesSectionSchema = z.object({
