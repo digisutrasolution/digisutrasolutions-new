@@ -143,3 +143,69 @@ export const SOURCE_LABEL: Record<LeadSourceKey, string> = {
 export const statusLabel = (s: string) => STATUS_LABEL[s as LeadStatusKey] ?? s;
 export const sourceLabel = (s: string) => SOURCE_LABEL[s as LeadSourceKey] ?? s;
 export const priorityLabel = (p: string) => PRIORITY_LABEL[p as LeadPriorityKey] ?? p;
+
+/* ---- Follow-ups (Phase 3) ---- */
+
+export const FOLLOWUP_TYPES = [
+  "call",
+  "whatsapp",
+  "email",
+  "meeting",
+  "task",
+] as const;
+export type FollowUpTypeKey = (typeof FOLLOWUP_TYPES)[number];
+
+export const FOLLOWUP_TYPE_LABEL: Record<FollowUpTypeKey, string> = {
+  call: "Call",
+  whatsapp: "WhatsApp",
+  email: "Email",
+  meeting: "Meeting",
+  task: "Task",
+};
+
+export const FOLLOWUP_STATUSES = ["PENDING", "DONE", "CANCELLED"] as const;
+export type FollowUpStatusKey = (typeof FOLLOWUP_STATUSES)[number];
+
+export const FOLLOWUP_STATUS_LABEL: Record<FollowUpStatusKey, string> = {
+  PENDING: "Pending",
+  DONE: "Done",
+  CANCELLED: "Cancelled",
+};
+
+export const FOLLOWUP_STATUS_STYLE: Record<FollowUpStatusKey, string> = {
+  PENDING: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  DONE: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
+  CANCELLED: "bg-stone-200 text-stone-500 dark:bg-stone-800 dark:text-stone-400",
+};
+
+export const followUpTypeLabel = (t: string) =>
+  FOLLOWUP_TYPE_LABEL[t as FollowUpTypeKey] ?? t;
+
+/** How overdue a pending follow-up is, for at-a-glance urgency in the UI. */
+export type DueBucket = "overdue" | "today" | "soon" | "later";
+
+export function dueBucket(dueAtIso: string | Date, now = new Date()): DueBucket {
+  const due = new Date(dueAtIso);
+  const startOfTomorrow = new Date(now);
+  startOfTomorrow.setHours(24, 0, 0, 0);
+  if (due.getTime() < now.getTime()) return "overdue";
+  if (due.getTime() < startOfTomorrow.getTime()) return "today";
+  const soon = new Date(now);
+  soon.setDate(soon.getDate() + 3);
+  if (due.getTime() < soon.getTime()) return "soon";
+  return "later";
+}
+
+export const DUE_STYLE: Record<DueBucket, string> = {
+  overdue: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+  today: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
+  soon: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  later: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
+};
+
+export const DUE_LABEL: Record<DueBucket, string> = {
+  overdue: "Overdue",
+  today: "Today",
+  soon: "Soon",
+  later: "Upcoming",
+};

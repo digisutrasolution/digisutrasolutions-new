@@ -31,6 +31,7 @@ model User {
   pagesUpdated  Page[]         @relation("PageUpdatedBy")
   pushSubs      PushSubscription[]
   assignedLeads Lead[]         @relation("LeadAssignee")
+  followUps     FollowUp[]     @relation("FollowUpOwner")
 }
 
 model PushSubscription {
@@ -677,6 +678,7 @@ model Lead {
   /** Soft delete — rows are hidden, never physically removed. */
   deletedAt       DateTime?
   activities      LeadActivity[]
+  followUps       FollowUp[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -686,6 +688,41 @@ model Lead {
   @@index([assignedToId])
   @@index([source, createdAt])
   @@index([deletedAt])
+}
+
+enum FollowUpStatus {
+  PENDING
+  DONE
+  CANCELLED
+}
+
+/* A scheduled next-touch on a lead — a call/email/meeting reminder owned by
+   one user. A cron pass reminds the owner as the due time nears and escalates
+   to admins once it slips past due (each fired once via the *SentAt stamps). */
+model FollowUp {
+  id        String         @id @default(cuid())
+  lead      Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId    String
+  owner     User?          @relation("FollowUpOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId   String?
+  /** call | whatsapp | email | meeting | task — mirrors activity kinds. */
+  type      String         @default("task")
+  title     String
+  notes     String?
+  dueAt     DateTime
+  status    FollowUpStatus @default(PENDING)
+  completedAt    DateTime?
+  /** Cron bookkeeping so each notification fires exactly once. */
+  reminderSentAt DateTime?
+  escalatedAt    DateTime?
+  createdById   String?
+  createdByName String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([status, dueAt])
+  @@index([ownerId, status, dueAt])
+  @@index([leadId, dueAt])
 }
 
 /* Immutable activity log per lead — powers the CRM timeline. Every status

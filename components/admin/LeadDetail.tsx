@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
 import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
@@ -56,6 +57,7 @@ type Lead = {
   assignedToId: string | null;
   assignedTo: { id: string; name: string } | null;
   activities: Activity[];
+  followUps: FollowUp[];
 };
 
 const inputCls =
@@ -199,6 +201,14 @@ export default function LeadDetail({
               </dl>
             )}
           </div>
+
+          {/* Follow-ups */}
+          <LeadFollowUps
+            leadId={initial.id}
+            followUps={lead.followUps}
+            assignees={assignees}
+            onChanged={reload}
+          />
 
           {/* Notes */}
           <NotesCard notes={lead.notes} onSave={(v) => patch({ notes: v || null })} />

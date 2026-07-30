@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  CalendarClock,
   ChartBar,
   ChevronDown,
   CircleHelp,
@@ -44,6 +45,7 @@ import NotificationsBell from "@/components/admin/NotificationsBell";
 const PINNED = [
   { label: "Dashboard", href: "/admin", icon: Gauge, permission: null },
   { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage", badge: "newLeads" },
+  { label: "Follow-ups", href: "/admin/followups", icon: CalendarClock, permission: "leads.manage", badge: "dueFollowups" },
 ] as const;
 
 const NAV_GROUPS = [
@@ -93,7 +95,7 @@ type NavItem = {
   href: string;
   icon: typeof Gauge;
   permission: string | null;
-  badge?: "newLeads" | "pendingComments";
+  badge?: "newLeads" | "pendingComments" | "dueFollowups";
 };
 
 export default function AdminShell({
@@ -108,9 +110,10 @@ export default function AdminShell({
   const [dark, setDark] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
-  const [badges, setBadges] = useState<{ newLeads: number; pendingComments: number }>({
+  const [badges, setBadges] = useState<{ newLeads: number; pendingComments: number; dueFollowups: number }>({
     newLeads: 0,
     pendingComments: 0,
+    dueFollowups: 0,
   });
 
   // Restore persisted group state, then make sure the active page's group
@@ -158,7 +161,7 @@ export default function AdminShell({
         const res = await fetch(withBase("/api/admin/badges"));
         const data = await res.json();
         if (data.ok && !cancelled) {
-          setBadges({ newLeads: data.newLeads, pendingComments: data.pendingComments });
+          setBadges({ newLeads: data.newLeads, pendingComments: data.pendingComments, dueFollowups: data.dueFollowups ?? 0 });
         }
       } catch {
         /* transient */
@@ -232,7 +235,9 @@ export default function AdminShell({
       ? badges.newLeads
       : item.badge === "pendingComments"
         ? badges.pendingComments
-        : 0;
+        : item.badge === "dueFollowups"
+          ? badges.dueFollowups
+          : 0;
 
   const renderLink = (item: NavItem, indent = false) => {
     const active =

@@ -21,6 +21,10 @@ export default async function LeadDetailPage({
       include: {
         assignedTo: { select: { id: true, name: true } },
         activities: { orderBy: { createdAt: "desc" }, take: 200 },
+        followUps: {
+          orderBy: [{ status: "asc" }, { dueAt: "asc" }],
+          include: { owner: { select: { id: true, name: true } } },
+        },
       },
     }),
     db.user.findMany({
@@ -43,6 +47,16 @@ export default async function LeadDetailPage({
       message: a.message,
       userName: a.userName,
       createdAt: a.createdAt.toISOString(),
+    })),
+    followUps: lead.followUps.map((f) => ({
+      id: f.id,
+      type: f.type,
+      title: f.title,
+      notes: f.notes,
+      status: f.status,
+      dueAt: f.dueAt.toISOString(),
+      completedAt: f.completedAt ? f.completedAt.toISOString() : null,
+      owner: f.owner,
     })),
   };
 

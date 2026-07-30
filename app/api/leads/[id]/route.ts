@@ -53,6 +53,10 @@ export async function GET(_req: Request, { params }: Params) {
     include: {
       assignedTo: { select: { id: true, name: true } },
       activities: { orderBy: { createdAt: "desc" }, take: 200 },
+      followUps: {
+        orderBy: [{ status: "asc" }, { dueAt: "asc" }],
+        include: { owner: { select: { id: true, name: true } } },
+      },
     },
   });
   if (!lead) {
