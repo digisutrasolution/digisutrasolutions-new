@@ -1,16 +1,21 @@
+import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { parseUa } from "@/lib/ua";
 
 const TrackSchema = z.object({
   path: z.string().trim().min(1).max(300).startsWith("/"),
   referrer: z.string().trim().max(500).optional(),
+  /** Ephemeral per-tab session key from sessionStorage — not a cookie. */
+  sid: z.string().trim().max(64).optional(),
 });
 
 /**
- * First-party page-view beacon — no cookies, no user identifiers, just
- * path + referrer host. Admin paths are never recorded.
+ * First-party page-view beacon — no cookies, no persistent identifiers. Views
+ * are grouped into a Session by an ephemeral sessionStorage key (cleared when
+ * the tab closes). The IP is only ever stored hashed. Admin paths are skipped.
  */
 export async function POST(req: Request) {
   const ip = clientIp(req);
@@ -36,9 +41,43 @@ export async function POST(req: Request) {
     }
   }
 
-  await db.pageView
-    .create({ data: { path, referrer } })
-    .catch(() => {});
+  let sessionId: string | null = null;
+  const key = parsed.data.sid;
+  if (key) {
+    const { device, browser, os } = parseUa(req.headers.get("user-agent"));
+    const country =
+      req.headers.get("cf-ipcountry") ?? req.headers.get("x-vercel-ip-country") ?? null;
+    const ipHash = ip
+      ? createHash("sha256").update(ip).digest("hex").slice(0, 16)
+      : null;
+    try {
+      const session = await db.session.upsert({
+        where: { key },
+        create: {
+          key,
+          landingPath: path,
+          exitPath: path,
+          referrer,
+          device,
+          browser,
+          os,
+          country: country && country !== "XX" ? country : null,
+          ipHash,
+        },
+        update: {
+          lastSeenAt: new Date(),
+          exitPath: path,
+          pageCount: { increment: 1 },
+        },
+        select: { id: true },
+      });
+      sessionId = session.id;
+    } catch {
+      sessionId = null;
+    }
+  }
+
+  await db.pageView.create({ data: { path, referrer, sessionId } }).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }

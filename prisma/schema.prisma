@@ -270,9 +270,37 @@ model PageView {
   path      String
   referrer  String?
   createdAt DateTime @default(now())
+  session   Session? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String?
 
   @@index([createdAt])
   @@index([path, createdAt])
+  @@index([sessionId])
+}
+
+/* A visitor session — pageviews grouped by an ephemeral sessionStorage key
+   (no cookie, cleared when the tab closes, so no persistent visitor tracking).
+   Device/OS/browser are parsed from the UA and country from the CF edge
+   header; the IP is only ever stored hashed. */
+model Session {
+  id          String     @id @default(cuid())
+  key         String     @unique
+  startedAt   DateTime   @default(now())
+  lastSeenAt  DateTime   @default(now())
+  pageCount   Int        @default(1)
+  landingPath String
+  exitPath    String
+  referrer    String?
+  device      String?
+  browser     String?
+  os          String?
+  country     String?
+  ipHash      String?
+  views       PageView[]
+
+  @@index([startedAt])
+  @@index([country])
+  @@index([device])
 }
 
 model AiGeneration {

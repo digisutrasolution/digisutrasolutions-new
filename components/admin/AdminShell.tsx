@@ -9,6 +9,7 @@ import {
   ChartBar,
   ChevronDown,
   CircleHelp,
+  Footprints,
   ClipboardList,
   CornerUpRight,
   FileText,
@@ -74,6 +75,7 @@ const NAV_GROUPS = [
     items: [
       { label: "Subscribers", href: "/admin/subscribers", icon: Mail, permission: "newsletter.manage" },
       { label: "Analytics", href: "/admin/analytics", icon: ChartBar, permission: "analytics.view" },
+      { label: "Sessions", href: "/admin/sessions", icon: Footprints, permission: "analytics.view" },
     ],
   },
   {
