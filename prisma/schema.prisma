@@ -198,6 +198,9 @@ model Form {
   fields      Json             @default("[]")
   notifyEmail String?
   isActive    Boolean          @default(true)
+  /** Where a submission goes: "submission" = stored only; "lead" = also
+      creates a Lead so admin-built forms feed the leads pipeline. */
+  destination String           @default("submission")
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   submissions FormSubmission[]
@@ -532,6 +535,7 @@ enum LeadSource {
   AUDIT
   ESTIMATOR
   SUTRABOT
+  FORM
 }
 
 enum LeadStatus {

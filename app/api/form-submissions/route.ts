@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { parseFormFields, validateSubmission } from "@/lib/cms/forms";
+import { leadFromSubmission, parseFormFields, validateSubmission } from "@/lib/cms/forms";
 import { notifyRoles } from "@/lib/notify";
 import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl } from "@/lib/email-templates";
@@ -64,12 +64,40 @@ export async function POST(req: Request) {
   const summary = fields
     .map((f) => `${f.label}: ${result.clean[f.key] || "—"}`)
     .join("\n");
-  void notifyRoles(["SUPER_ADMIN"], {
-    type: "form",
-    title: `New "${form.name}" submission`,
-    body: summary.slice(0, 140),
-    link: "/admin/forms",
-  });
+
+  // "lead" forms also drop a real Lead into the pipeline so the leads desk
+  // works them like any contact enquiry; "submission" forms just notify.
+  if (form.destination === "lead") {
+    const lead = leadFromSubmission(result.clean);
+    await db.lead
+      .create({
+        data: {
+          name: lead.name,
+          whatsapp: lead.whatsapp,
+          email: lead.email || null,
+          message: lead.message || null,
+          budget: lead.budget || null,
+          timeline: lead.timeline || null,
+          heardFrom: lead.heardFrom || null,
+          source: "FORM",
+          notes: `Via form: ${form.name}`,
+        },
+      })
+      .catch(() => null);
+    void notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
+      type: "lead",
+      title: `New lead from "${form.name}"`,
+      body: `${lead.name}${lead.whatsapp ? ` · ${lead.whatsapp}` : ""}`.slice(0, 140),
+      link: "/admin/leads",
+    });
+  } else {
+    void notifyRoles(["SUPER_ADMIN"], {
+      type: "form",
+      title: `New "${form.name}" submission`,
+      body: summary.slice(0, 140),
+      link: "/admin/forms",
+    });
+  }
   if (form.notifyEmail) {
     const mail = alertEmail({
       badge: "New form submission",

@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
 import { SLUG_REGEX } from "@/lib/cms/pages";
-import { FormFieldsSchema } from "@/lib/cms/forms";
+import { FormDestinationSchema, FormFieldsSchema } from "@/lib/cms/forms";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
 
@@ -13,6 +13,7 @@ const CreateFormSchema = z.object({
   slug: z.string().trim().toLowerCase().min(2).max(80).regex(SLUG_REGEX),
   fields: FormFieldsSchema,
   notifyEmail: z.string().trim().email().nullable().optional(),
+  destination: FormDestinationSchema,
 });
 
 export async function GET() {
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
       slug: parsed.data.slug,
       fields: parsed.data.fields as unknown as Prisma.InputJsonValue,
       notifyEmail: parsed.data.notifyEmail ?? null,
+      destination: parsed.data.destination,
     },
   });
 

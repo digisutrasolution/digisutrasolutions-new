@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+export const FIELD_TYPES = [
+  "text",
+  "email",
+  "tel",
+  "textarea",
+  "select",
+  "checkbox",
+  "number",
+  "date",
+] as const;
+
 export const FormFieldSchema = z.object({
   key: z
     .string()
@@ -8,7 +19,7 @@ export const FormFieldSchema = z.object({
     .max(40)
     .regex(/^[a-z][a-z0-9_]*$/, "Field keys are lowercase snake_case."),
   label: z.string().trim().min(1).max(100),
-  type: z.enum(["text", "email", "tel", "textarea", "select"]),
+  type: z.enum(FIELD_TYPES),
   required: z.boolean().default(false),
   options: z.array(z.string().trim().min(1).max(100)).max(20).default([]),
 });
@@ -16,6 +27,14 @@ export const FormFieldSchema = z.object({
 export const FormFieldsSchema = z.array(FormFieldSchema).min(1).max(20);
 
 export type FormField = z.infer<typeof FormFieldSchema>;
+
+/* Where a form's submissions go. "submission" stores only; "lead" also
+   creates a Lead so admin-built forms feed the leads pipeline. */
+export const FORM_DESTINATIONS = ["submission", "lead"] as const;
+export type FormDestination = (typeof FORM_DESTINATIONS)[number];
+export const FormDestinationSchema = z
+  .enum(FORM_DESTINATIONS)
+  .default("submission");
 
 export function parseFormFields(value: unknown): FormField[] {
   const parsed = FormFieldsSchema.safeParse(value);
@@ -40,7 +59,43 @@ export function validateSubmission(
     if (value && field.type === "select" && !field.options.includes(value)) {
       return { ok: false, error: `${field.label} has an invalid option.` };
     }
+    if (value && field.type === "number" && !/^-?\d+(\.\d+)?$/.test(value)) {
+      return { ok: false, error: `${field.label} must be a number.` };
+    }
+    if (value && field.type === "date" && Number.isNaN(Date.parse(value))) {
+      return { ok: false, error: `${field.label} must be a valid date.` };
+    }
     clean[field.key] = value;
   }
   return { ok: true, clean };
+}
+
+/* Best-effort map of a generic submission onto Lead fields, by matching field
+   keys against common aliases. Used when a form's destination is "lead" so an
+   admin-built form can create a real Lead without a fixed field contract. */
+export function leadFromSubmission(clean: Record<string, string>): {
+  name: string;
+  whatsapp: string;
+  email: string;
+  message: string;
+  budget: string;
+  timeline: string;
+  heardFrom: string;
+} {
+  const find = (aliases: string[]): string => {
+    for (const key of Object.keys(clean)) {
+      const norm = key.replace(/_/g, "");
+      if (clean[key] && aliases.some((a) => norm.includes(a))) return clean[key];
+    }
+    return "";
+  };
+  return {
+    name: find(["name", "fullname"]) || "Website form enquiry",
+    whatsapp: find(["whatsapp", "phone", "mobile", "tel", "contactnumber", "number"]),
+    email: find(["email"]),
+    message: find(["message", "comment", "detail", "enquiry", "requirement", "query", "note"]),
+    budget: find(["budget"]),
+    timeline: find(["timeline", "deadline"]),
+    heardFrom: find(["heardfrom", "howdidyou", "referral", "source"]),
+  };
 }

@@ -5,7 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Inbox, Plus, Trash2 } from "lucide-react";
-import type { FormField } from "@/lib/cms/forms";
+import type { FormDestination, FormField } from "@/lib/cms/forms";
 
 type FormRow = {
   id: string;
@@ -14,6 +14,7 @@ type FormRow = {
   fields: FormField[];
   notifyEmail: string | null;
   isActive: boolean;
+  destination: FormDestination;
   submissionCount: number;
 };
 
@@ -63,8 +64,11 @@ function FieldRows({
             <option value="text">Text</option>
             <option value="email">Email</option>
             <option value="tel">Phone</option>
+            <option value="number">Number</option>
+            <option value="date">Date</option>
             <option value="textarea">Textarea</option>
             <option value="select">Select</option>
+            <option value="checkbox">Checkbox</option>
           </select>
           <input type="checkbox" checked={f.required} aria-label={`Field ${i + 1} required`} onChange={(e) => update(i, { required: e.target.checked })} className="h-4 w-4 justify-self-center accent-orange-600" />
           <input
@@ -100,6 +104,7 @@ export default function FormsManager({ forms }: { forms: FormRow[] }) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [notifyEmail, setNotifyEmail] = useState("");
+  const [destination, setDestination] = useState<FormDestination>("submission");
   const [newFields, setNewFields] = useState<FormField[]>([
     { key: "name", label: "Name", type: "text", required: true, options: [] },
     { key: "email", label: "Email", type: "email", required: true, options: [] },
@@ -142,6 +147,7 @@ export default function FormsManager({ forms }: { forms: FormRow[] }) {
         slug,
         fields: newFields,
         notifyEmail: notifyEmail || null,
+        destination,
       }),
     });
     if (ok) {
@@ -149,6 +155,7 @@ export default function FormsManager({ forms }: { forms: FormRow[] }) {
       setName("");
       setSlug("");
       setNotifyEmail("");
+      setDestination("submission");
     }
   }
 
@@ -198,6 +205,22 @@ export default function FormsManager({ forms }: { forms: FormRow[] }) {
               <input id="nf-email" type="email" value={notifyEmail} onChange={(e) => setNotifyEmail(e.target.value)} className={inputCls} placeholder="sales@digisutra.com" />
             </div>
           </div>
+          <div>
+            <label htmlFor="nf-dest" className="mb-1 block text-xs font-semibold">On submit</label>
+            <select
+              id="nf-dest"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value as FormDestination)}
+              className={`${inputCls} sm:max-w-xs`}
+            >
+              <option value="submission">Store submission only</option>
+              <option value="lead">Store + create a Lead (feeds the Leads desk)</option>
+            </select>
+            <p className="mt-1 text-[11px] text-stone-400">
+              “Create a Lead” maps name / phone / email / message fields into a real
+              lead — use it for contact and enquiry forms.
+            </p>
+          </div>
           <FieldRows fields={newFields} onChange={setNewFields} />
           <button
             onClick={() => void create()}
@@ -225,6 +248,20 @@ export default function FormsManager({ forms }: { forms: FormRow[] }) {
                   {form.submissionCount} submission{form.submissionCount === 1 ? "" : "s"}
                   {form.notifyEmail ? ` · notifies ${form.notifyEmail}` : ""}
                 </p>
+                <select
+                  value={form.destination}
+                  aria-label={`${form.name} — on submit`}
+                  onChange={(e) =>
+                    void api(`/api/forms/${form.id}`, {
+                      method: "PATCH",
+                      body: JSON.stringify({ destination: e.target.value }),
+                    })
+                  }
+                  className="mt-1.5 rounded-lg border border-stone-300 bg-white px-2 py-1 text-[11px] font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300"
+                >
+                  <option value="submission">On submit: store only</option>
+                  <option value="lead">On submit: store + create a Lead</option>
+                </select>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <button

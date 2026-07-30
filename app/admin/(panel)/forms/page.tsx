@@ -34,6 +34,7 @@ export default async function AdminFormsPage() {
             fields: parseFormFields(f.fields),
             notifyEmail: f.notifyEmail,
             isActive: f.isActive,
+            destination: f.destination === "lead" ? "lead" : "submission",
             submissionCount: f._count.submissions,
           }))}
         />

@@ -110,6 +110,26 @@ export default function FormEmbed({ slug }: { slug: string }) {
               </div>
             );
           }
+          if (field.type === "checkbox") {
+            return (
+              <div key={field.key} className="sm:col-span-2">
+                <label htmlFor={id} className="flex items-start gap-2.5 text-sm text-stone-700">
+                  <input
+                    id={id}
+                    name={field.key}
+                    type="checkbox"
+                    value="Yes"
+                    required={field.required}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-orange-600"
+                  />
+                  <span>
+                    {field.label}
+                    {field.required && " *"}
+                  </span>
+                </label>
+              </div>
+            );
+          }
           return (
             <div key={field.key}>
               {label}

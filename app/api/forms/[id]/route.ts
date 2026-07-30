@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
-import { FormFieldsSchema } from "@/lib/cms/forms";
+import { FORM_DESTINATIONS, FormFieldsSchema } from "@/lib/cms/forms";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
 
@@ -15,6 +15,7 @@ const UpdateFormSchema = z
     fields: FormFieldsSchema.optional(),
     notifyEmail: z.string().trim().email().nullable().optional(),
     isActive: z.boolean().optional(),
+    destination: z.enum(FORM_DESTINATIONS).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: "Nothing to update." });
 
