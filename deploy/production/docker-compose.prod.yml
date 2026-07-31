@@ -54,6 +54,9 @@ services:
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # Shared secret for the follow-up reminder cron. A scheduler POSTs to
+      # /api/cron/followups with "Authorization: Bearer $CRON_SECRET".
+      CRON_SECRET: ${CRON_SECRET:-}
       # Web push (desktop notifications). Generate a keypair once with:
       #   docker compose ... exec app node -e "console.log(require('web-push').generateVAPIDKeys())"
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}

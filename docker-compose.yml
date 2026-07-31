@@ -38,6 +38,7 @@ services:
       CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-}
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CRON_SECRET: ${CRON_SECRET:-}
     ports:
       # Loopback only — Apache reverse-proxies the public side.
       - "127.0.0.1:${APP_PORT:-3105}:3000"
