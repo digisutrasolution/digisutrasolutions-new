@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import FollowUpsBoard from "@/components/admin/FollowUpsBoard";
@@ -8,7 +8,7 @@ export const metadata = { title: "Follow-ups" };
 
 export default async function FollowUpsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.manage")) redirect("/admin");
+  if (!user || !userCan(user, "leads.manage")) redirect("/admin");
 
   const assignees = await db.user.findMany({
     where: { isActive: true },
@@ -29,7 +29,7 @@ export default async function FollowUpsPage() {
         <FollowUpsBoard
           assignees={assignees}
           currentUserId={user.id}
-          canRunCron={can(user.role, "users.manage")}
+          canRunCron={userCan(user, "users.manage")}
         />
       </div>
     </div>

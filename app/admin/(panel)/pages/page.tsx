@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import PagesList from "@/components/admin/PagesList";
 
 export const metadata = { title: "Pages" };
 
 export default async function AdminPagesPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "pages.view")) redirect("/admin");
+  if (!user || !userCan(user, "pages.view")) redirect("/admin");
 
   const pages = await db.page.findMany({
     orderBy: { updatedAt: "desc" },
@@ -40,8 +40,8 @@ export default async function AdminPagesPage() {
             updatedAt: p.updatedAt.toISOString(),
             updatedByName: p.updatedBy?.name ?? null,
           }))}
-          canCreate={can(user.role, "pages.create")}
-          canPublish={can(user.role, "pages.publish")}
+          canCreate={userCan(user, "pages.create")}
+          canPublish={userCan(user, "pages.publish")}
         />
       </div>
     </div>

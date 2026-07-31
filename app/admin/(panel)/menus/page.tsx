@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import MenusManager from "@/components/admin/MenusManager";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Menus" };
 
 export default async function AdminMenusPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "menus.manage")) redirect("/admin");
+  if (!user || !userCan(user, "menus.manage")) redirect("/admin");
 
   return (
     <div>

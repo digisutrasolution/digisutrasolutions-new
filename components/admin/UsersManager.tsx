@@ -17,7 +17,9 @@ type UserRow = {
   role: Role;
   isActive: boolean;
   lastLoginAt: string | null;
+  customRoleId: string | null;
 };
+type CustomRole = { id: string; name: string };
 
 const ROLES = Object.keys(ROLE_LABELS) as Role[];
 
@@ -26,9 +28,11 @@ const inputCls =
 
 export default function UsersManager({
   users,
+  customRoles = [],
   currentUserId,
 }: {
   users: UserRow[];
+  customRoles?: CustomRole[];
   currentUserId: string;
 }) {
   const router = useRouter();
@@ -180,20 +184,30 @@ export default function UsersManager({
                 </td>
                 <td className="px-5 py-3">
                   <select
-                    value={u.role}
+                    value={u.customRoleId ? `custom:${u.customRoleId}` : u.role}
                     disabled={busy}
                     aria-label={`Role for ${u.email}`}
-                    onChange={(e) =>
-                      void call(`/api/users/${u.id}`, {
-                        method: "PATCH",
-                        body: JSON.stringify({ role: e.target.value }),
-                      })
-                    }
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      const body = v.startsWith("custom:")
+                        ? { customRoleId: v.slice(7) }
+                        : { role: v, customRoleId: null };
+                      void call(`/api/users/${u.id}`, { method: "PATCH", body: JSON.stringify(body) });
+                    }}
                     className="cursor-pointer rounded-lg border border-stone-200 bg-transparent px-2 py-1 text-xs dark:border-stone-700"
                   >
-                    {ROLES.map((r) => (
-                      <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                    ))}
+                    <optgroup label="System roles">
+                      {ROLES.map((r) => (
+                        <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                      ))}
+                    </optgroup>
+                    {customRoles.length > 0 && (
+                      <optgroup label="Custom roles">
+                        {customRoles.map((c) => (
+                          <option key={c.id} value={`custom:${c.id}`}>{c.name}</option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </td>
                 <td className="px-5 py-3">

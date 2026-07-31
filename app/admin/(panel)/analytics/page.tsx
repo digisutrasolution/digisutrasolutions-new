@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 
 export const metadata = { title: "Analytics" };
 
@@ -23,7 +23,7 @@ function flag(code: string | null): string {
 
 export default async function AdminAnalyticsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "analytics.view")) redirect("/admin");
+  if (!user || !userCan(user, "analytics.view")) redirect("/admin");
 
   const [today, last7, last30, topPages, topReferrers, daily, topCountries, devices, topSearches, content] =
     await Promise.all([

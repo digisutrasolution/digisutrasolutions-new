@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { notifyUsers } from "@/lib/notify";
 
 /* Sweep of pending follow-ups:
@@ -23,7 +23,7 @@ async function authorize(req: Request): Promise<boolean> {
   if (secret && auth === `Bearer ${secret}`) return true;
   // Fallback: a signed-in super admin may run it on demand.
   const user = await getCurrentUser();
-  return !!user && can(user.role, "users.manage");
+  return !!user && userCan(user, "users.manage");
 }
 
 async function run() {

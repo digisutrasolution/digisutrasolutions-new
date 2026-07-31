@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import QuotationEditor from "@/components/admin/QuotationEditor";
@@ -12,7 +12,7 @@ export default async function NewQuotationPage({
   searchParams: Promise<{ leadId?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "quotes.manage")) redirect("/admin");
+  if (!user || !userCan(user, "quotes.manage")) redirect("/admin");
 
   const { leadId } = await searchParams;
   const lead = leadId

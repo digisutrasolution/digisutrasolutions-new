@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import SettingsTabs from "@/components/admin/SettingsTabs";
@@ -16,7 +16,7 @@ type SocialLink = { key: string; label: string; followers?: string; url: string 
 
 export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "settings.manage")) redirect("/admin");
+  if (!user || !userCan(user, "settings.manage")) redirect("/admin");
 
   const [social, footer, botNudge, payments, analytics, smtp, contact] = await Promise.all([
     db.siteSetting.findUnique({ where: { key: "socialLinks" } }),

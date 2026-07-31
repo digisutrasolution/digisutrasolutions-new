@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import FaqManager from "@/components/admin/FaqManager";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "FAQ" };
 
 export default async function AdminFaqPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "faq.manage")) redirect("/admin");
+  if (!user || !userCan(user, "faq.manage")) redirect("/admin");
 
   return (
     <div>

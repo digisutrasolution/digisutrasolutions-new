@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import RedirectsManager from "@/components/admin/RedirectsManager";
 
 export const metadata = { title: "Redirects" };
 
 export default async function AdminRedirectsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "redirects.manage")) redirect("/admin");
+  if (!user || !userCan(user, "redirects.manage")) redirect("/admin");
 
   const redirects = await db.redirect.findMany({ orderBy: { createdAt: "desc" } });
 

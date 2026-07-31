@@ -14,6 +14,9 @@ const UpdateUserSchema = z
       .enum(["SUPER_ADMIN", "DEVELOPER", "TESTER", "SEO_MANAGER"])
       .optional(),
     isActive: z.boolean().optional(),
+    /** Assign (or clear, with null) a custom role. Overrides the enum role's
+        permissions for non-Super-Admin users. */
+    customRoleId: z.string().nullable().optional(),
     password: z.string().min(10).max(200).optional(),
     /* Only meaningful when changing your OWN password — an admin resetting
        someone else's cannot know it. Verified below. */
@@ -80,10 +83,25 @@ export async function PATCH(req: Request, { params }: Params) {
     }
   }
 
+  // A custom role can't sit on a Super Admin (they're always all-powerful, so
+  // it would be silently ignored) — change the system role away first.
+  if (parsed.data.customRoleId) {
+    const roleAfter = parsed.data.role ?? target.role;
+    if (roleAfter === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { ok: false, error: "Change the system role away from Super Admin before assigning a custom role." },
+        { status: 409 },
+      );
+    }
+    const cr = await db.customRole.findUnique({ where: { id: parsed.data.customRoleId }, select: { id: true } });
+    if (!cr) return NextResponse.json({ ok: false, error: "Custom role not found." }, { status: 400 });
+  }
+
   const data: Record<string, unknown> = {};
   if (parsed.data.name !== undefined) data.name = parsed.data.name;
   if (parsed.data.email !== undefined) data.email = parsed.data.email;
   if (parsed.data.role !== undefined) data.role = parsed.data.role;
+  if (parsed.data.customRoleId !== undefined) data.customRoleId = parsed.data.customRoleId;
   if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive;
   if (parsed.data.password !== undefined) {
     data.passwordHash = await hashPassword(parsed.data.password);
@@ -94,7 +112,7 @@ export async function PATCH(req: Request, { params }: Params) {
     updated = await db.user.update({
       where: { id },
       data,
-      select: { id: true, name: true, email: true, role: true, isActive: true },
+      select: { id: true, name: true, email: true, role: true, isActive: true, customRoleId: true },
     });
   } catch {
     // The only unique column here is email.

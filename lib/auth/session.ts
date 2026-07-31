@@ -6,7 +6,7 @@ import {
   REFRESH_TOKEN_TTL_SEC,
   verifyAccessToken,
 } from "@/lib/auth/tokens";
-import { effectivePermissions, type Permission } from "@/lib/auth/rbac";
+import { effectivePermissions, sanitizePermissions, type Permission } from "@/lib/auth/rbac";
 import { ensureRbacLoaded } from "@/lib/auth/rbac-server";
 import type { Role } from "@prisma/client";
 
@@ -70,18 +70,29 @@ export const getCurrentUser = cache(
     const [user] = await Promise.all([
       db.user.findUnique({
         where: { id: payload.sub },
-        select: { id: true, name: true, email: true, role: true, isActive: true },
+        select: {
+          id: true, name: true, email: true, role: true, isActive: true,
+          customRole: { select: { permissions: true } },
+        },
       }),
       // Refresh the override matrix before resolving permissions.
       ensureRbacLoaded(),
     ]);
     if (!user || !user.isActive) return null;
+    // Super Admin is always all-powerful; otherwise a custom role's permission
+    // set wins over the enum role, falling back to the enum + matrix.
+    const permissions =
+      user.role === "SUPER_ADMIN"
+        ? effectivePermissions("SUPER_ADMIN")
+        : user.customRole
+          ? sanitizePermissions(user.customRole.permissions)
+          : effectivePermissions(user.role);
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      permissions: effectivePermissions(user.role),
+      permissions,
     };
   },
 );

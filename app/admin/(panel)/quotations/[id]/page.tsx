@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import QuotationEditor from "@/components/admin/QuotationEditor";
@@ -14,7 +14,7 @@ export default async function QuotationPage({
 }) {
   const { id } = await params;
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "quotes.manage")) redirect("/admin");
+  if (!user || !userCan(user, "quotes.manage")) redirect("/admin");
 
   const quote = await db.quotation.findUnique({ where: { id } });
   if (!quote) notFound();
@@ -41,5 +41,5 @@ export default async function QuotationPage({
     validUntil: quote.validUntil ? quote.validUntil.toISOString().slice(0, 10) : "",
   };
 
-  return <QuotationEditor initial={initial} canApprove={can(user.role, "quotes.approve")} />;
+  return <QuotationEditor initial={initial} canApprove={userCan(user, "quotes.approve")} />;
 }

@@ -60,6 +60,11 @@ export const EDITABLE_ROLES = ["DEVELOPER", "TESTER", "SEO_MANAGER"] as const;
 const isPermission = (p: string): p is Permission =>
   Object.prototype.hasOwnProperty.call(PERMISSIONS, p);
 
+/** Keep only known permission keys (unique) — for custom-role input/storage. */
+export function sanitizePermissions(list: readonly string[]): Permission[] {
+  return [...new Set(list.filter(isPermission))];
+}
+
 function defaultsFor(role: Role): Permission[] {
   return ALL_PERMISSIONS.filter((p) => (PERMISSIONS[p] as readonly Role[]).includes(role));
 }

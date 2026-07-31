@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Mail, MessageCircle, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Mail, MessageCircle, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import { CHANNEL_LABEL, COMM_CHANNELS, PLACEHOLDERS, type CommChannel } from "@/lib/comms";
 
@@ -49,12 +49,25 @@ export default function CommTemplates() {
     });
     await load();
   }
+  const [seeding, setSeeding] = useState(false);
+  async function loadStarters() {
+    setSeeding(true);
+    try {
+      await fetch(withBase("/api/comm-templates/seed"), { method: "POST" });
+      await load();
+    } finally { setSeeding(false); }
+  }
 
   return (
     <div className="space-y-4">
-      <button onClick={() => { setAdding(true); setEditing(null); }} className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-orange-500">
-        <Plus size={15} /> New template
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => { setAdding(true); setEditing(null); }} className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-orange-500">
+          <Plus size={15} /> New template
+        </button>
+        <button onClick={() => void loadStarters()} disabled={seeding} className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-3.5 py-2 text-sm font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300">
+          <Sparkles size={15} /> {seeding ? "Loading…" : "Load starter templates"}
+        </button>
+      </div>
 
       {(adding || editing) && (
         <TemplateEditor

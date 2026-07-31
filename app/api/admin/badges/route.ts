@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guards";
-import { can, leadScopeWhere } from "@/lib/auth/rbac";
+import { userCan, leadScopeWhere } from "@/lib/auth/rbac";
 import { db } from "@/lib/db";
 
 /** Sidebar badge counts — each figure only for users allowed to act on it. */
@@ -14,13 +14,13 @@ export async function GET() {
   endOfToday.setHours(23, 59, 59, 999);
 
   const [newLeads, pendingComments, dueFollowups] = await Promise.all([
-    can(user.role, "leads.manage")
+    userCan(user, "leads.manage")
       ? db.lead.count({ where: { status: "NEW", ...leadScopeWhere(user) } })
       : Promise.resolve(0),
-    can(user.role, "comments.moderate")
+    userCan(user, "comments.moderate")
       ? db.blogComment.count({ where: { status: "PENDING" } })
       : Promise.resolve(0),
-    can(user.role, "leads.manage")
+    userCan(user, "leads.manage")
       ? db.followUp.count({
           where: {
             ownerId: user.id,

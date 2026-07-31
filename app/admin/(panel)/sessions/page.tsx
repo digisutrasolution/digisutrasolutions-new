@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import SessionsExplorer from "@/components/admin/SessionsExplorer";
 
 export const metadata = { title: "Sessions" };
 
 export default async function AdminSessionsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "analytics.view")) redirect("/admin");
+  if (!user || !userCan(user, "analytics.view")) redirect("/admin");
 
   return (
     <div>

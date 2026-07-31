@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import CommentsModeration from "@/components/admin/CommentsModeration";
@@ -8,7 +8,7 @@ export const metadata = { title: "Comments" };
 
 export default async function AdminCommentsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "comments.moderate")) redirect("/admin");
+  if (!user || !userCan(user, "comments.moderate")) redirect("/admin");
 
   const [comments, counts] = await Promise.all([
     db.blogComment.findMany({

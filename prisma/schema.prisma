@@ -32,6 +32,21 @@ model User {
   pushSubs      PushSubscription[]
   assignedLeads Lead[]         @relation("LeadAssignee")
   followUps     FollowUp[]     @relation("FollowUpOwner")
+  /** Optional custom role — when set, its permission set overrides the enum
+      role's (except Super Admin, who is always all-powerful). */
+  customRole    CustomRole?    @relation("UserCustomRole", fields: [customRoleId], references: [id], onDelete: SetNull)
+  customRoleId  String?
+}
+
+/* An admin-defined role: a named permission set assigned to users on top of
+   the fixed enum roles. Super Admin is never a custom role. */
+model CustomRole {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]   @relation("UserCustomRole")
 }
 
 model PushSubscription {

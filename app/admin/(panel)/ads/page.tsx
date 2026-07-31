@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import AdsManager from "@/components/admin/AdsManager";
@@ -8,7 +8,7 @@ export const metadata = { title: "Ads" };
 
 export default async function AdminAdsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "ads.manage")) redirect("/admin");
+  if (!user || !userCan(user, "ads.manage")) redirect("/admin");
 
   const ads = await db.adBanner.findMany({ orderBy: { createdAt: "desc" } });
 

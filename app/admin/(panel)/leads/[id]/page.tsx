@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { can, canSeeAllLeads } from "@/lib/auth/rbac";
+import { userCan, canSeeAllLeads } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { getScoringConfig } from "@/lib/scoring-server";
@@ -14,7 +14,7 @@ export default async function LeadDetailPage({
 }) {
   const { id } = await params;
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.manage")) redirect("/admin");
+  if (!user || !userCan(user, "leads.manage")) redirect("/admin");
 
   const [lead, assignees, scoringConfig] = await Promise.all([
     db.lead.findFirst({
@@ -69,7 +69,7 @@ export default async function LeadDetailPage({
       lead={serialized}
       assignees={assignees}
       scoringConfig={scoringConfig}
-      canQuote={can(user.role, "quotes.manage")}
+      canQuote={userCan(user, "quotes.manage")}
       senderName={user.name}
     />
   );

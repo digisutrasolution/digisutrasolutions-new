@@ -1,26 +1,30 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import UsersManager from "@/components/admin/UsersManager";
 
 export const metadata = { title: "Users" };
 
 export default async function AdminUsersPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "users.manage")) redirect("/admin");
+  if (!user || !userCan(user, "users.manage")) redirect("/admin");
 
-  const users = await db.user.findMany({
-    orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      lastLoginAt: true,
-    },
-  });
+  const [users, customRoles] = await Promise.all([
+    db.user.findMany({
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        lastLoginAt: true,
+        customRoleId: true,
+      },
+    }),
+    db.customRole.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+  ]);
 
   return (
     <div>
@@ -36,6 +40,7 @@ export default async function AdminUsersPage() {
             ...u,
             lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
           }))}
+          customRoles={customRoles}
           currentUserId={user.id}
         />
       </div>

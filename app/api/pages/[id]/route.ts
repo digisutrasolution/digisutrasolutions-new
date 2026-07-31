@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/guards";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { PAGE_SLUG_REGEX, isReservedSlug } from "@/lib/cms/pages";
 import { SectionsSchema } from "@/lib/cms/sections";
 import { audit } from "@/lib/audit";
@@ -51,7 +51,7 @@ const UpdatePageSchema = z
 export async function GET(_req: Request, { params }: Params) {
   const { user, error } = await requireUser();
   if (error) return error;
-  if (!can(user.role, "pages.view")) {
+  if (!userCan(user, "pages.view")) {
     return NextResponse.json(
       { ok: false, error: "You don't have permission for this action." },
       { status: 403 },
@@ -95,13 +95,13 @@ export async function PATCH(req: Request, { params }: Params) {
   const touchesSeo = keys.some((k) =>
     (SEO_KEYS as readonly string[]).includes(k),
   );
-  if (touchesContent && !can(user.role, "pages.edit")) {
+  if (touchesContent && !userCan(user, "pages.edit")) {
     return NextResponse.json(
       { ok: false, error: "Your role cannot edit page content." },
       { status: 403 },
     );
   }
-  if (touchesSeo && !can(user.role, "seo.manage")) {
+  if (touchesSeo && !userCan(user, "seo.manage")) {
     return NextResponse.json(
       { ok: false, error: "Your role cannot edit SEO settings." },
       { status: 403 },
@@ -215,7 +215,7 @@ export async function PATCH(req: Request, { params }: Params) {
 export async function DELETE(req: Request, { params }: Params) {
   const { user, error } = await requireUser();
   if (error) return error;
-  if (!can(user.role, "pages.edit")) {
+  if (!userCan(user, "pages.edit")) {
     return NextResponse.json(
       { ok: false, error: "Your role cannot delete pages." },
       { status: 403 },

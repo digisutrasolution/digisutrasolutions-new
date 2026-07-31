@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import AssignmentRules from "@/components/admin/AssignmentRules";
@@ -8,7 +8,7 @@ export const metadata = { title: "Assignment rules" };
 
 export default async function AssignmentRulesPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.rules")) redirect("/admin");
+  if (!user || !userCan(user, "leads.rules")) redirect("/admin");
 
   const [rules, assignees] = await Promise.all([
     db.assignmentRule.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] }),

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/guards";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { notifyUsers } from "@/lib/notify";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
@@ -16,7 +16,7 @@ const UpdateBugSchema = z.object({
 export async function PATCH(req: Request, { params }: Params) {
   const { user, error } = await requireUser();
   if (error) return error;
-  if (!can(user.role, "testing.review") && !can(user.role, "pages.edit")) {
+  if (!userCan(user, "testing.review") && !userCan(user, "pages.edit")) {
     return NextResponse.json(
       { ok: false, error: "Your role cannot update bug reports." },
       { status: 403 },

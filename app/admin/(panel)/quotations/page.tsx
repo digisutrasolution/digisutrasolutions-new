@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import QuotationsList from "@/components/admin/QuotationsList";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Quotations" };
 
 export default async function QuotationsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "quotes.manage")) redirect("/admin");
+  if (!user || !userCan(user, "quotes.manage")) redirect("/admin");
 
   return (
     <div>

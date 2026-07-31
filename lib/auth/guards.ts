@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, type SessionUser } from "@/lib/auth/session";
-import { can, type Permission } from "@/lib/auth/rbac";
+import { type Permission } from "@/lib/auth/rbac";
 
 type GuardResult =
   | { user: SessionUser; error: null }
@@ -27,7 +27,7 @@ export async function requirePermission(
 ): Promise<GuardResult> {
   const result = await requireUser();
   if (result.error) return result;
-  if (!can(result.user.role, permission)) {
+  if (!result.user.permissions.includes(permission)) {
     return {
       user: null,
       error: NextResponse.json(

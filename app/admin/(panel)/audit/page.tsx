@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import AuditTable from "@/components/admin/AuditTable";
 
 export const metadata = { title: "Audit log" };
 
 export default async function AdminAuditPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "audit.read")) redirect("/admin");
+  if (!user || !userCan(user, "audit.read")) redirect("/admin");
 
   const entries = await db.auditLog.findMany({
     orderBy: { createdAt: "desc" },

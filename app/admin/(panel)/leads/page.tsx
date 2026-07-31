@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { getScoringConfig } from "@/lib/scoring-server";
@@ -9,7 +9,7 @@ export const metadata = { title: "Leads" };
 
 export default async function AdminLeadsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.manage")) redirect("/admin");
+  if (!user || !userCan(user, "leads.manage")) redirect("/admin");
 
   const [assignees, scoringConfig] = await Promise.all([
     db.user.findMany({
@@ -19,7 +19,7 @@ export default async function AdminLeadsPage() {
     }),
     getScoringConfig(),
   ]);
-  const canManageRules = can(user.role, "leads.rules");
+  const canManageRules = userCan(user, "leads.rules");
 
   return (
     <div>
@@ -34,7 +34,7 @@ export default async function AdminLeadsPage() {
         <LeadsWorkspace
           assignees={assignees}
           canManageRules={canManageRules}
-          canViewAll={can(user.role, "leads.viewAll")}
+          canViewAll={userCan(user, "leads.viewAll")}
           scoringConfig={scoringConfig}
         />
       </div>

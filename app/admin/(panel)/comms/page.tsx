@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import CommTemplates from "@/components/admin/CommTemplates";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Message templates" };
 
 export default async function CommsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "comms.manage")) redirect("/admin");
+  if (!user || !userCan(user, "comms.manage")) redirect("/admin");
 
   return (
     <div>

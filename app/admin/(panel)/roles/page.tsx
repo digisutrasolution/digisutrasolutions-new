@@ -1,15 +1,16 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { currentMatrix } from "@/lib/auth/rbac";
 import { ensureRbacLoaded } from "@/lib/auth/rbac-server";
 import RolesMatrix from "@/components/admin/RolesMatrix";
+import CustomRolesManager from "@/components/admin/CustomRolesManager";
 
 export const metadata = { title: "Roles & permissions" };
 
 export default async function RolesPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "roles.manage")) redirect("/admin");
+  if (!user || !userCan(user, "roles.manage")) redirect("/admin");
 
   await ensureRbacLoaded(true);
   const matrix = currentMatrix();
@@ -26,6 +27,7 @@ export default async function RolesPage() {
       </p>
       <div className="mt-6">
         <RolesMatrix initialMatrix={matrix} />
+        <CustomRolesManager />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { parseSections } from "@/lib/cms/sections";
 import PageEditor from "@/components/admin/PageEditor";
 
@@ -13,7 +13,7 @@ export default async function AdminPageEditorPage({
   params: Promise<{ id: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "pages.view")) redirect("/admin");
+  if (!user || !userCan(user, "pages.view")) redirect("/admin");
 
   const { id } = await params;
   const page = await db.page.findUnique({ where: { id } });
@@ -37,9 +37,9 @@ export default async function AdminPageEditorPage({
         publishedAt: page.publishedAt?.toISOString() ?? null,
       }}
       permissions={{
-        edit: can(user.role, "pages.edit"),
-        seo: can(user.role, "seo.manage"),
-        publish: can(user.role, "pages.publish"),
+        edit: userCan(user, "pages.edit"),
+        seo: userCan(user, "seo.manage"),
+        publish: userCan(user, "pages.publish"),
       }}
     />
   );

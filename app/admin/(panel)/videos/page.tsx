@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import VideosManager from "@/components/admin/VideosManager";
 
 export const metadata = { title: "Videos" };
 
 export default async function AdminVideosPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "pages.view")) redirect("/admin");
+  if (!user || !userCan(user, "pages.view")) redirect("/admin");
 
   const videos = await db.video.findMany({ orderBy: { createdAt: "desc" } });
 
@@ -35,7 +35,7 @@ export default async function AdminVideosPage() {
             featured: v.featured,
             createdAt: v.createdAt.toISOString(),
           }))}
-          canManage={can(user.role, "videos.manage")}
+          canManage={userCan(user, "videos.manage")}
         />
       </div>
     </div>

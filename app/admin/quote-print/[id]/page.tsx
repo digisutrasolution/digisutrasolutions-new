@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { getContactConfig } from "@/lib/contact-config-server";
@@ -22,7 +22,7 @@ export default async function QuotationPrintPage({
 }) {
   const { id } = await params;
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "quotes.manage")) redirect("/admin/login");
+  if (!user || !userCan(user, "quotes.manage")) redirect("/admin/login");
 
   const [quote, contact] = await Promise.all([
     db.quotation.findUnique({ where: { id } }),

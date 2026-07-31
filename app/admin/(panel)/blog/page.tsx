@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import BlogList from "@/components/admin/BlogList";
 
 export const metadata = { title: "Blog" };
 
 export default async function AdminBlogPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "blog.manage")) redirect("/admin");
+  if (!user || !userCan(user, "blog.manage")) redirect("/admin");
 
   const posts = await db.blogPost.findMany({
     orderBy: { updatedAt: "desc" },
@@ -39,7 +39,7 @@ export default async function AdminBlogPage() {
             publishedAt: p.publishedAt?.toISOString() ?? null,
             updatedAt: p.updatedAt.toISOString(),
           }))}
-          canPublish={can(user.role, "blog.publish")}
+          canPublish={userCan(user, "blog.publish")}
         />
       </div>
     </div>

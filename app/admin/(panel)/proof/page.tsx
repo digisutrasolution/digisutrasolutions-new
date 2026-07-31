@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import ProofManager from "@/components/admin/ProofManager";
@@ -8,7 +8,7 @@ export const metadata = { title: "Proof" };
 
 export default async function AdminProofPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "proof.manage")) redirect("/admin");
+  if (!user || !userCan(user, "proof.manage")) redirect("/admin");
 
   const [testimonials, clients, cases] = await Promise.all([
     db.testimonial.findMany({ orderBy: { order: "asc" } }),

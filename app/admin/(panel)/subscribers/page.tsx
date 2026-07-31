@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import SubscribersManager from "@/components/admin/SubscribersManager";
@@ -8,7 +8,7 @@ export const metadata = { title: "Subscribers" };
 
 export default async function AdminSubscribersPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "newsletter.manage")) redirect("/admin");
+  if (!user || !userCan(user, "newsletter.manage")) redirect("/admin");
 
   const subscribers = await db.newsletterSubscriber.findMany({
     orderBy: { createdAt: "desc" },

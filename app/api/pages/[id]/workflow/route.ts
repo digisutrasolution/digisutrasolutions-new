@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/guards";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import {
   WORKFLOW_RULES,
   availableActions,
@@ -17,7 +17,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function GET(_req: Request, { params }: Params) {
   const { user, error } = await requireUser();
   if (error) return error;
-  if (!can(user.role, "pages.view")) {
+  if (!userCan(user, "pages.view")) {
     return NextResponse.json(
       { ok: false, error: "You don't have permission for this action." },
       { status: 403 },
@@ -63,9 +63,9 @@ export async function GET(_req: Request, { params }: Params) {
       requiresNote: WORKFLOW_RULES[action].requiresNote,
     })),
     canComment: true,
-    canReportBug: can(user.role, "testing.review"),
+    canReportBug: userCan(user, "testing.review"),
     canResolveBug:
-      can(user.role, "testing.review") || can(user.role, "pages.edit"),
+      userCan(user, "testing.review") || userCan(user, "pages.edit"),
     transitions,
     comments,
     bugs,
@@ -92,7 +92,7 @@ export async function POST(req: Request, { params }: Params) {
   }
 
   const rule = WORKFLOW_RULES[parsed.data.action];
-  if (!can(user.role, rule.permission)) {
+  if (!userCan(user, rule.permission)) {
     return NextResponse.json(
       { ok: false, error: "Your role cannot perform this transition." },
       { status: 403 },

@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import BlogEditor from "@/components/admin/BlogEditor";
 
 export const metadata = { title: "Edit article" };
@@ -12,7 +12,7 @@ export default async function AdminBlogEditorPage({
   params: Promise<{ id: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "blog.manage")) redirect("/admin");
+  if (!user || !userCan(user, "blog.manage")) redirect("/admin");
 
   const { id } = await params;
   const post = await db.blogPost.findUnique({ where: { id } });
@@ -35,7 +35,7 @@ export default async function AdminBlogEditorPage({
         noIndex: post.noIndex,
         readingMinutes: post.readingMinutes,
       }}
-      canPublish={can(user.role, "blog.publish")}
+      canPublish={userCan(user, "blog.publish")}
     />
   );
 }

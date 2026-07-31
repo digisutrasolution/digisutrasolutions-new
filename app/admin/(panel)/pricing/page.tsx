@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import PricingManager from "@/components/admin/PricingManager";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Pricing" };
 
 export default async function AdminPricingPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "pricing.manage")) redirect("/admin");
+  if (!user || !userCan(user, "pricing.manage")) redirect("/admin");
 
   return (
     <div>

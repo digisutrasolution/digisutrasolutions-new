@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { parseFormFields } from "@/lib/cms/forms";
 import FormsManager from "@/components/admin/FormsManager";
 
@@ -9,7 +9,7 @@ export const metadata = { title: "Forms" };
 
 export default async function AdminFormsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "forms.manage")) redirect("/admin");
+  if (!user || !userCan(user, "forms.manage")) redirect("/admin");
 
   const forms = await db.form.findMany({
     orderBy: { createdAt: "desc" },

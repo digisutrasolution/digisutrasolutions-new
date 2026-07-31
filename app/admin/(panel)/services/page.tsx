@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import ServicesManager from "@/components/admin/ServicesManager";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Services" };
 
 export default async function AdminServicesPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "services.manage")) redirect("/admin");
+  if (!user || !userCan(user, "services.manage")) redirect("/admin");
 
   return (
     <div>

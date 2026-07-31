@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import LeadImport from "@/components/admin/LeadImport";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "Import leads" };
 
 export default async function ImportLeadsPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.manage")) redirect("/admin");
+  if (!user || !userCan(user, "leads.manage")) redirect("/admin");
 
   return (
     <div>

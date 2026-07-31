@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getLeadReports, REPORT_RANGES } from "@/lib/crm-reports";
 import { formatMoney } from "@/lib/quotations";
@@ -14,7 +14,7 @@ export default async function LeadReportsPage({
   searchParams: Promise<{ range?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.viewAll")) redirect("/admin");
+  if (!user || !userCan(user, "leads.viewAll")) redirect("/admin");
 
   const { range } = await searchParams;
   const days = REPORT_RANGES.includes(Number(range) as never) ? Number(range) : 30;

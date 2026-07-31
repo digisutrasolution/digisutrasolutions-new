@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getScoringConfig } from "@/lib/scoring-server";
 import LeadScoring from "@/components/admin/LeadScoring";
@@ -8,7 +8,7 @@ export const metadata = { title: "Lead scoring" };
 
 export default async function LeadScoringPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "leads.rules")) redirect("/admin");
+  if (!user || !userCan(user, "leads.rules")) redirect("/admin");
 
   const config = await getScoringConfig(true);
 

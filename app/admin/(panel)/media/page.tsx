@@ -1,14 +1,14 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { can } from "@/lib/auth/rbac";
+import { userCan } from "@/lib/auth/rbac";
 import MediaManager from "@/components/admin/MediaManager";
 
 export const metadata = { title: "Media" };
 
 export default async function AdminMediaPage() {
   const user = await getCurrentUser();
-  if (!user || !can(user.role, "pages.view")) redirect("/admin");
+  if (!user || !userCan(user, "pages.view")) redirect("/admin");
 
   const assets = await db.mediaAsset.findMany({
     orderBy: { createdAt: "desc" },
@@ -37,7 +37,7 @@ export default async function AdminMediaPage() {
             uploadedByName: a.uploadedByName,
             createdAt: a.createdAt.toISOString(),
           }))}
-          canUpload={can(user.role, "media.upload")}
+          canUpload={userCan(user, "media.upload")}
         />
       </div>
     </div>
