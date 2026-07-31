@@ -24,6 +24,7 @@ import {
   MenuSquare,
   MessageSquare,
   Newspaper,
+  ReceiptText,
   ScrollText,
   Settings,
   ShieldCheck,
@@ -47,6 +48,7 @@ const PINNED = [
   { label: "Dashboard", href: "/admin", icon: Gauge, permission: null },
   { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage", badge: "newLeads" },
   { label: "Follow-ups", href: "/admin/followups", icon: CalendarClock, permission: "leads.manage", badge: "dueFollowups" },
+  { label: "Quotations", href: "/admin/quotations", icon: ReceiptText, permission: "quotes.manage" },
 ] as const;
 
 const NAV_GROUPS = [

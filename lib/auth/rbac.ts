@@ -42,6 +42,8 @@ export const PERMISSIONS = {
   "leads.viewAll": ["SUPER_ADMIN", "SEO_MANAGER"],
   // Configure lead-routing rules (a manager capability, above working leads).
   "leads.rules": ["SUPER_ADMIN", "SEO_MANAGER"],
+  "quotes.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
+  "quotes.approve": ["SUPER_ADMIN"],
   "faq.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "proof.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
 } as const satisfies Record<string, readonly Role[]>;
@@ -139,7 +141,9 @@ export type PermissionGroup = (typeof PERMISSION_GROUPS)[number];
 export const PERMISSION_META: Record<Permission, { label: string; group: PermissionGroup }> = {
   "leads.manage": { label: "Work leads (view & edit)", group: "Leads" },
   "leads.viewAll": { label: "See all leads (not just assigned)", group: "Leads" },
-  "leads.rules": { label: "Configure assignment rules", group: "Leads" },
+  "leads.rules": { label: "Configure assignment & scoring", group: "Leads" },
+  "quotes.manage": { label: "Create & edit quotations", group: "Leads" },
+  "quotes.approve": { label: "Approve quotations", group: "Leads" },
   "pages.view": { label: "View pages", group: "Content" },
   "pages.create": { label: "Create pages", group: "Content" },
   "pages.edit": { label: "Edit pages", group: "Content" },

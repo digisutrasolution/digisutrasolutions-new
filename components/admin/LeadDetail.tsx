@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MessageCircle, Pencil, Trash2 } from "lucide-react";
-import { Sparkles } from "lucide-react";
+import { FileText, Sparkles } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
 import {
@@ -74,10 +74,12 @@ export default function LeadDetail({
   lead: initial,
   assignees,
   scoringConfig,
+  canQuote = false,
 }: {
   lead: Lead;
   assignees: { id: string; name: string }[];
   scoringConfig: ScoringConfig;
+  canQuote?: boolean;
 }) {
   const router = useRouter();
   const [lead, setLead] = useState<Lead>(initial);
@@ -128,6 +130,14 @@ export default function LeadDetail({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {canQuote && (
+            <Link
+              href={`/admin/quotations/new?leadId=${initial.id}`}
+              className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 dark:border-stone-700 dark:text-stone-300"
+            >
+              <FileText size={14} /> Quote
+            </Link>
+          )}
           <a
             href={`https://wa.me/${lead.whatsapp.replace(/[^\d]/g, "")}`}
             target="_blank"

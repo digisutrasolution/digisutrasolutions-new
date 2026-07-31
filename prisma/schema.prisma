@@ -679,6 +679,7 @@ model Lead {
   deletedAt       DateTime?
   activities      LeadActivity[]
   followUps       FollowUp[]
+  quotations      Quotation[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -721,6 +722,70 @@ enum FollowUpStatus {
   PENDING
   DONE
   CANCELLED
+}
+
+enum QuotationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SENT
+  ACCEPTED
+  REJECTED
+  SUPERSEDED
+  EXPIRED
+}
+
+/* A sales quotation. Client details are snapshotted so the document stays
+   correct even if the linked lead later changes. Line items + pricing knobs
+   live as JSON/scalars; the money totals are recomputed and stored on every
+   save so lists and the PDF never re-derive them. Revisions clone the row with
+   the same `number`, an incremented `version`, and parentId set. */
+model Quotation {
+  id       String @id @default(cuid())
+  number   String
+  version  Int    @default(1)
+  parentId String?
+
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId String?
+
+  clientName    String
+  clientCompany String?
+  clientEmail   String?
+  clientPhone   String?
+  clientAddress String?
+  clientGstin   String?
+
+  title    String @default("")
+  notes    String @default("")
+  currency String @default("INR")
+  items    Json   @default("[]")
+
+  discountPct Float  @default(0)
+  taxRatePct  Float  @default(18)
+  /** CGST_SGST (intra-state split) | IGST (inter-state) | NONE */
+  taxMode     String @default("CGST_SGST")
+
+  subtotal       Float @default(0)
+  discountAmount Float @default(0)
+  taxAmount      Float @default(0)
+  total          Float @default(0)
+
+  status     QuotationStatus @default(DRAFT)
+  validUntil DateTime?
+
+  approvedById   String?
+  approvedByName String?
+  approvedAt     DateTime?
+
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([number, version])
+  @@index([status, createdAt])
+  @@index([leadId])
 }
 
 /* A scheduled next-touch on a lead — a call/email/meeting reminder owned by

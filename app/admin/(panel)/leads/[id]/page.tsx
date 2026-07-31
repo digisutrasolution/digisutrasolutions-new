@@ -64,5 +64,12 @@ export default async function LeadDetailPage({
     })),
   };
 
-  return <LeadDetail lead={serialized} assignees={assignees} scoringConfig={scoringConfig} />;
+  return (
+    <LeadDetail
+      lead={serialized}
+      assignees={assignees}
+      scoringConfig={scoringConfig}
+      canQuote={can(user.role, "quotes.manage")}
+    />
+  );
 }
