@@ -187,6 +187,7 @@ export async function POST(req: Request) {
 }
 
 const PAGE_SIZE = 25;
+const PAGE_SIZES = [25, 50, 100];
 
 /** Admin: list/filter/search leads (paginated); ?format=csv exports the match. */
 export async function GET(req: Request) {
@@ -201,6 +202,8 @@ export async function GET(req: Request) {
   const assignedTo = p.get("assignedTo"); // user id, or "unassigned"
   const q = (p.get("q") ?? "").trim().slice(0, 100);
   const page = Math.max(1, parseInt(p.get("page") ?? "1", 10) || 1);
+  const reqSize = parseInt(p.get("pageSize") ?? "", 10);
+  const pageSize = PAGE_SIZES.includes(reqSize) ? reqSize : PAGE_SIZE;
 
   const where: Prisma.LeadWhereInput = { deletedAt: null };
   if (status && status !== "ALL") where.status = status as Prisma.LeadWhereInput["status"];
@@ -238,8 +241,8 @@ export async function GET(req: Request) {
     db.lead.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip: isCsv || board ? 0 : (page - 1) * PAGE_SIZE,
-      take: isCsv ? 5000 : board ? 300 : PAGE_SIZE,
+      skip: isCsv || board ? 0 : (page - 1) * pageSize,
+      take: isCsv ? 5000 : board ? 300 : pageSize,
       include: { assignedTo: { select: { id: true, name: true } } },
     }),
   ]);
@@ -270,6 +273,7 @@ export async function GET(req: Request) {
     leads,
     total,
     page,
-    pages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    pageSize,
+    pages: Math.max(1, Math.ceil(total / pageSize)),
   });
 }

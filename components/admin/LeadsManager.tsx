@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Plus, ShieldCheck } from "lucide-react";
+import { Download, Eye, MessageCircle, Plus, ShieldCheck } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import AdminPagination from "@/components/admin/AdminPagination";
 import {
   LEAD_PRIORITIES,
   LEAD_SOURCES,
@@ -58,6 +59,7 @@ export default function LeadsManager({
   const [assignee, setAssignee] = useState("ALL");
   const [band, setBand] = useState("ALL");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [total, setTotal] = useState(0);
@@ -69,7 +71,7 @@ export default function LeadsManager({
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const params = useCallback(() => {
-    const sp = new URLSearchParams({ page: String(page) });
+    const sp = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (q) sp.set("q", q);
     if (status !== "ALL") sp.set("status", status);
     if (source !== "ALL") sp.set("source", source);
@@ -77,7 +79,7 @@ export default function LeadsManager({
     if (assignee !== "ALL") sp.set("assignedTo", assignee);
     if (band !== "ALL") sp.set("band", band);
     return sp;
-  }, [page, q, status, source, priority, assignee, band]);
+  }, [page, pageSize, q, status, source, priority, assignee, band]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -250,7 +252,7 @@ export default function LeadsManager({
       )}
 
       <div className="mt-2 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-        <table className="w-full min-w-[860px] text-sm">
+        <table className="w-full min-w-[980px] text-sm">
           <thead>
             <tr className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-400 dark:border-stone-800">
               <th className="w-9 px-3 py-2.5">
@@ -263,12 +265,13 @@ export default function LeadsManager({
               <th className="px-4 py-2.5">Score</th>
               <th className="px-4 py-2.5">Assigned</th>
               <th className="px-4 py-2.5">Created</th>
+              <th className="px-4 py-2.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {leads.length === 0 && !loading && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-sm text-stone-500">
+                <td colSpan={9} className="px-4 py-10 text-center text-sm text-stone-500">
                   No leads match these filters.
                 </td>
               </tr>
@@ -313,8 +316,19 @@ export default function LeadsManager({
                   )}
                 </td>
                 <td className="px-4 py-3 text-xs text-stone-600 dark:text-stone-300">{l.assignedTo?.name ?? <span className="text-stone-400">Unassigned</span>}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-xs text-stone-400">
-                  {new Date(l.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-stone-500 dark:text-stone-400">
+                  <div>{new Date(l.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+                  <div className="text-[11px] text-stone-400">{new Date(l.createdAt).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}</div>
+                </td>
+                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button onClick={() => router.push(`/admin/leads/${l.id}`)} title="View / edit" className="flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-[11px] font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 dark:border-stone-700 dark:text-stone-300">
+                      <Eye size={13} /> View
+                    </button>
+                    <a href={`https://wa.me/${l.whatsapp.replace(/[^\d]/g, "")}`} target="_blank" rel="noopener noreferrer" title="WhatsApp" className="rounded-lg border border-stone-200 p-1.5 text-[#25D366] hover:border-[#25D366] dark:border-stone-700">
+                      <MessageCircle size={13} />
+                    </a>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -322,13 +336,15 @@ export default function LeadsManager({
         </table>
       </div>
 
-      {pages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-xs">
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-lg border border-stone-300 px-3 py-1.5 font-semibold text-stone-600 disabled:opacity-40 dark:border-stone-700 dark:text-stone-300">← Prev</button>
-          <span className="text-stone-500">Page {page} of {pages}</span>
-          <button onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={page >= pages} className="rounded-lg border border-stone-300 px-3 py-1.5 font-semibold text-stone-600 disabled:opacity-40 dark:border-stone-700 dark:text-stone-300">Next →</button>
-        </div>
-      )}
+      <AdminPagination
+        page={page}
+        pages={pages}
+        total={total}
+        pageSize={pageSize}
+        label="leads"
+        onPage={setPage}
+        onPageSize={(n) => { setPageSize(n); setPage(1); }}
+      />
 
       {showAdd && (
         <AddLeadModal

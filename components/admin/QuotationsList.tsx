@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import AdminPagination from "@/components/admin/AdminPagination";
 import {
   QUOTATION_STATUSES,
   QUOTE_STATUS_STYLE,
@@ -37,6 +38,8 @@ export default function QuotationsList() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("ALL");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,7 +49,7 @@ export default function QuotationsList() {
     try {
       const res = await fetch(withBase(`/api/quotations?${sp.toString()}`));
       const json = await res.json();
-      if (json.ok) setRows(json.quotations);
+      if (json.ok) { setRows(json.quotations); setPage(1); }
     } catch {
       /* transient */
     } finally {
@@ -79,7 +82,7 @@ export default function QuotationsList() {
       </p>
 
       <div className="mt-2 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-        <table className="w-full min-w-[760px] text-sm">
+        <table className="w-full min-w-[860px] text-sm">
           <thead>
             <tr className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-400 dark:border-stone-800">
               <th className="px-4 py-2.5">Number</th>
@@ -88,13 +91,14 @@ export default function QuotationsList() {
               <th className="px-4 py-2.5 text-right">Total</th>
               <th className="px-4 py-2.5">Status</th>
               <th className="px-4 py-2.5">Created</th>
+              <th className="px-4 py-2.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && !loading && (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-stone-500">No quotations yet.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-stone-500">No quotations yet.</td></tr>
             )}
-            {rows.map((r) => (
+            {rows.slice((page - 1) * pageSize, page * pageSize).map((r) => (
               <tr key={r.id} onClick={() => router.push(`/admin/quotations/${r.id}`)} className="cursor-pointer border-b border-stone-50 transition-colors last:border-0 hover:bg-orange-50/40 dark:border-stone-800/60 dark:hover:bg-stone-800/40">
                 <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold">{quoteRef(r.number, r.version)}</td>
                 <td className="px-4 py-3">
@@ -106,12 +110,30 @@ export default function QuotationsList() {
                 <td className="px-4 py-3">
                   <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold ${QUOTE_STATUS_STYLE[r.status as keyof typeof QUOTE_STATUS_STYLE]}`}>{quoteStatusLabel(r.status)}</span>
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-xs text-stone-400">{new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-stone-500 dark:text-stone-400">
+                  <div>{new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</div>
+                  <div className="text-[11px] text-stone-400">{new Date(r.createdAt).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}</div>
+                </td>
+                <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => router.push(`/admin/quotations/${r.id}`)} title="View / edit" className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-2 py-1 text-[11px] font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 dark:border-stone-700 dark:text-stone-300">
+                    <Eye size={13} /> View
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <AdminPagination
+        page={page}
+        pages={Math.max(1, Math.ceil(rows.length / pageSize))}
+        total={rows.length}
+        pageSize={pageSize}
+        label="quotations"
+        onPage={setPage}
+        onPageSize={(n) => { setPageSize(n); setPage(1); }}
+      />
     </div>
   );
 }
