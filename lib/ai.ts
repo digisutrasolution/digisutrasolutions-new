@@ -1,14 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { AI_KINDS, type AiKind } from "@/lib/ai-kinds";
+import { AI_PROVIDER_META, type AiProviderId } from "@/lib/ai-config";
+import { getAiConfig, providerAvailability } from "@/lib/ai-config-server";
 
 export { AI_KINDS, type AiKind };
 
 /**
- * AI layer with a provider fallback chain. Each request tries providers in
- * order until one succeeds, so the features degrade instead of breaking:
- *   Anthropic (best quality) → Ollama (self-hosted, free, private) → Gemini.
- * Which providers are in the chain is decided purely by which keys/URLs are
- * set, so ops can turn any of them on/off from .env with no code change.
+ * AI layer with a provider fallback chain. Each request tries providers in the
+ * admin-configured order until one succeeds, so the features degrade instead of
+ * breaking. Order / enable / model live in the DB (admin); the API keys stay in
+ * env. A provider runs only when enabled AND its credential is present.
  */
 export const AI_MODEL = "claude-opus-4-8";
 
@@ -20,11 +21,12 @@ Voice: confident, direct, measurable-results-focused, warm but not fluffy.
 Avoid buzzwords like "leverage", "seamless", "unlock", "empower".`;
 
 type Msg = { system: string; prompt: string; maxTokens: number };
+type RunOpts = { model: string; baseUrl?: string };
 
-async function viaAnthropic({ system, prompt, maxTokens }: Msg): Promise<string> {
+async function viaAnthropic({ system, prompt, maxTokens }: Msg, { model }: RunOpts): Promise<string> {
   const client = new Anthropic();
   const res = await client.messages.create({
-    model: AI_MODEL,
+    model: model || AI_MODEL,
     max_tokens: maxTokens,
     thinking: { type: "adaptive" },
     system,
@@ -36,14 +38,14 @@ async function viaAnthropic({ system, prompt, maxTokens }: Msg): Promise<string>
   return text;
 }
 
-async function viaOllama({ system, prompt, maxTokens }: Msg): Promise<string> {
-  const base = (process.env.OLLAMA_URL ?? "").replace(/\/+$/, "");
-  const model = process.env.OLLAMA_MODEL || "llama3.1";
+async function viaOllama({ system, prompt, maxTokens }: Msg, { model, baseUrl }: RunOpts): Promise<string> {
+  const base = (baseUrl ?? "").replace(/\/+$/, "");
+  if (!base) throw new Error("No Ollama URL set.");
   const res = await fetch(`${base}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model,
+      model: model || "llama3.1",
       stream: false,
       options: { num_predict: maxTokens },
       messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
@@ -57,11 +59,10 @@ async function viaOllama({ system, prompt, maxTokens }: Msg): Promise<string> {
   return text;
 }
 
-async function viaGemini({ system, prompt, maxTokens }: Msg): Promise<string> {
+async function viaGemini({ system, prompt, maxTokens }: Msg, { model }: RunOpts): Promise<string> {
   const key = process.env.GEMINI_API_KEY ?? "";
-  const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model || "gemini-2.0-flash"}:generateContent?key=${key}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -80,33 +81,55 @@ async function viaGemini({ system, prompt, maxTokens }: Msg): Promise<string> {
   return text;
 }
 
-type Provider = { name: string; label: string; enabled: () => boolean; run: (m: Msg) => Promise<string> };
-const PROVIDERS: Provider[] = [
-  { name: "claude", label: "Claude", enabled: () => !!process.env.ANTHROPIC_API_KEY, run: viaAnthropic },
-  { name: "ollama", label: "Ollama", enabled: () => !!process.env.OLLAMA_URL, run: viaOllama },
-  { name: "gemini", label: "Gemini", enabled: () => !!process.env.GEMINI_API_KEY, run: viaGemini },
-];
+const RUNNERS: Record<AiProviderId, (m: Msg, o: RunOpts) => Promise<string>> = {
+  claude: viaAnthropic,
+  ollama: viaOllama,
+  gemini: viaGemini,
+};
 
+/** Best-effort sync check: is any provider credential present in the
+    environment? The real per-request filtering (admin order/enable/model) runs
+    inside complete(); this only gates the "AI not configured" 503. */
 export function isConfigured(): boolean {
-  return PROVIDERS.some((p) => p.enabled());
+  return !!(process.env.ANTHROPIC_API_KEY || process.env.OLLAMA_URL || process.env.GEMINI_API_KEY);
 }
 
-/** Run a completion through the fallback chain. Returns the text + which
-    provider actually answered. Throws only if every enabled provider fails. */
+/** Run a completion through the admin-configured fallback chain. Returns the
+    text + which provider answered. Throws only if every provider in the chain
+    fails or none is usable. */
 export async function complete(m: Msg): Promise<{ text: string; provider: string }> {
-  const chain = PROVIDERS.filter((p) => p.enabled());
+  const config = await getAiConfig();
+  const avail = providerAvailability(config);
+  const ollamaUrl = config.ollamaUrl || process.env.OLLAMA_URL || "";
+  const chain = config.providers.filter((p) => p.enabled && avail[p.id]);
   if (chain.length === 0) throw new Error("AI is not configured.");
   let lastErr: unknown = null;
   for (const p of chain) {
     try {
-      const text = await p.run(m);
-      return { text, provider: p.label };
+      const text = await RUNNERS[p.id](m, { model: p.model, baseUrl: ollamaUrl });
+      return { text, provider: AI_PROVIDER_META[p.id].label };
     } catch (err) {
       lastErr = err;
-      console.error(`AI provider ${p.name} failed:`, err instanceof Error ? err.message : err);
+      console.error(`AI provider ${p.id} failed:`, err instanceof Error ? err.message : err);
     }
   }
   throw new Error(lastErr instanceof Error ? lastErr.message : "All AI providers failed.");
+}
+
+/** Run a single provider (for the admin "Test" button). */
+export async function testProvider(id: AiProviderId): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+  const config = await getAiConfig();
+  const avail = providerAvailability(config);
+  if (!avail[id]) return { ok: false, latencyMs: 0, error: AI_PROVIDER_META[id].cred === "url" ? "No Ollama URL set." : "No API key in env." };
+  const model = config.providers.find((p) => p.id === id)?.model ?? "";
+  const ollamaUrl = config.ollamaUrl || process.env.OLLAMA_URL || "";
+  const t0 = Date.now();
+  try {
+    await RUNNERS[id]({ system: "You are a connection test.", prompt: "Reply with the single word: ok", maxTokens: 16 }, { model, baseUrl: ollamaUrl });
+    return { ok: true, latencyMs: Date.now() - t0 };
+  } catch (err) {
+    return { ok: false, latencyMs: Date.now() - t0, error: err instanceof Error ? err.message : "failed" };
+  }
 }
 
 /** Content generation (blog/SEO/etc.) — now resilient via the chain. */

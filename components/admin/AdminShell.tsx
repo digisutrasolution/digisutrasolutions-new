@@ -30,6 +30,7 @@ import {
   Send,
   Settings,
   ShieldCheck,
+  Sparkles,
   Users,
   Video,
   Webhook,
@@ -97,6 +98,7 @@ const NAV_GROUPS = [
     items: [
       { label: "Templates", href: "/admin/comms", icon: Send, permission: "comms.manage" },
       { label: "Developers", href: "/admin/developers", icon: Webhook, permission: "api.manage" },
+      { label: "AI providers", href: "/admin/ai", icon: Sparkles, permission: "settings.manage" },
       { label: "Users", href: "/admin/users", icon: Users, permission: "users.manage" },
       { label: "Roles", href: "/admin/roles", icon: ShieldCheck, permission: "roles.manage" },
       { label: "Settings", href: "/admin/settings", icon: Settings, permission: "settings.manage" },

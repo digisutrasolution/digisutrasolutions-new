@@ -15,7 +15,7 @@ export async function POST(_req: Request, { params }: Params) {
   if (!user.permissions.includes("ai.use")) {
     return NextResponse.json({ ok: false, error: "You don't have permission to use AI." }, { status: 403 });
   }
-  if (!isConfigured()) {
+  if (!(await isConfigured())) {
     return NextResponse.json({ ok: false, error: "AI is not configured." }, { status: 503 });
   }
 
