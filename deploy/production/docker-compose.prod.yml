@@ -53,7 +53,13 @@ services:
       CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-}
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # AI fallback chain: Claude → Ollama (self-hosted, free) → Gemini.
+      # OLLAMA_URL points at the ollama container on the shared network, e.g.
+      # http://ollama:11434 ; pull a model first (ollama pull llama3.1).
+      OLLAMA_URL: ${OLLAMA_URL:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
       # Shared secret for the follow-up reminder cron. A scheduler POSTs to
       # /api/cron/followups with "Authorization: Bearer $CRON_SECRET".
       CRON_SECRET: ${CRON_SECRET:-}

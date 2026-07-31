@@ -38,6 +38,11 @@ services:
       CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-}
       CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # AI fallback chain: Claude → Ollama (self-hosted) → Gemini.
+      OLLAMA_URL: ${OLLAMA_URL:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
       CRON_SECRET: ${CRON_SECRET:-}
     ports:
       # Loopback only — Apache reverse-proxies the public side.

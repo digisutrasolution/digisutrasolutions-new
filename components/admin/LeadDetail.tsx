@@ -9,6 +9,7 @@ import { withBase } from "@/lib/base-path";
 import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
 import LeadComms from "@/components/admin/LeadComms";
 import Attachments from "@/components/admin/Attachments";
+import LeadInsights from "@/components/admin/LeadInsights";
 import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
@@ -245,6 +246,9 @@ export default function LeadDetail({
 
           {/* Score */}
           <ScoreCard leadId={initial.id} lead={lead} config={scoringConfig} />
+
+          {/* AI brief + duplicates */}
+          <LeadInsights leadId={initial.id} />
 
           {/* Follow-ups */}
           <LeadFollowUps
