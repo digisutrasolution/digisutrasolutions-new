@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Gauge, LayoutGrid, List, Route } from "lucide-react";
+import { BarChart3, Gauge, LayoutGrid, List, Route, Upload } from "lucide-react";
 import LeadsKanban from "@/components/admin/LeadsKanban";
 import LeadsManager from "@/components/admin/LeadsManager";
 import type { ScoringConfig } from "@/lib/scoring";
@@ -12,10 +12,12 @@ type Assignee = { id: string; name: string };
 export default function LeadsWorkspace({
   assignees,
   canManageRules = false,
+  canViewAll = false,
   scoringConfig,
 }: {
   assignees: Assignee[];
   canManageRules?: boolean;
+  canViewAll?: boolean;
   scoringConfig: ScoringConfig;
 }) {
   const [view, setView] = useState<"table" | "board">("table");
@@ -41,16 +43,26 @@ export default function LeadsWorkspace({
             <LayoutGrid size={13} /> Board
           </button>
         </div>
-        {canManageRules && (
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href="/admin/leads/scoring" className={chip}>
-              <Gauge size={13} /> Scoring
+        <div className="flex flex-wrap items-center gap-2">
+          {canViewAll && (
+            <Link href="/admin/leads/reports" className={chip}>
+              <BarChart3 size={13} /> Reports
             </Link>
-            <Link href="/admin/leads/assignment" className={chip}>
-              <Route size={13} /> Assignment rules
-            </Link>
-          </div>
-        )}
+          )}
+          <Link href="/admin/leads/import" className={chip}>
+            <Upload size={13} /> Import
+          </Link>
+          {canManageRules && (
+            <>
+              <Link href="/admin/leads/scoring" className={chip}>
+                <Gauge size={13} /> Scoring
+              </Link>
+              <Link href="/admin/leads/assignment" className={chip}>
+                <Route size={13} /> Assignment rules
+              </Link>
+            </>
+          )}
+        </div>
       </div>
       {view === "table" ? (
         <LeadsManager assignees={assignees} scoringConfig={scoringConfig} />

@@ -31,7 +31,12 @@ export default async function AdminLeadsPage() {
         entries. Filter, assign and click a lead to open its full record.
       </p>
       <div className="mt-6">
-        <LeadsWorkspace assignees={assignees} canManageRules={canManageRules} scoringConfig={scoringConfig} />
+        <LeadsWorkspace
+          assignees={assignees}
+          canManageRules={canManageRules}
+          canViewAll={can(user.role, "leads.viewAll")}
+          scoringConfig={scoringConfig}
+        />
       </div>
     </div>
   );
