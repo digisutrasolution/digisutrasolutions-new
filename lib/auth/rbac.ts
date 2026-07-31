@@ -14,6 +14,7 @@ import type { Role } from "@prisma/client";
 export const PERMISSIONS = {
   "users.manage": ["SUPER_ADMIN"],
   "roles.manage": ["SUPER_ADMIN"],
+  "api.manage": ["SUPER_ADMIN"],
   "audit.read": ["SUPER_ADMIN"],
   "settings.manage": ["SUPER_ADMIN"],
   "pages.view": ["SUPER_ADMIN", "DEVELOPER", "TESTER", "SEO_MANAGER"],
@@ -175,6 +176,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "ai.use": { label: "Use AI tools", group: "System" },
   "users.manage": { label: "Manage users", group: "System" },
   "roles.manage": { label: "Manage roles & permissions", group: "System" },
+  "api.manage": { label: "Manage API keys & webhooks", group: "System" },
   "settings.manage": { label: "Manage settings", group: "System" },
   "audit.read": { label: "Read the audit log", group: "System" },
 };

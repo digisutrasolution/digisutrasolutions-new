@@ -756,6 +756,39 @@ enum CommChannel {
   WHATSAPP
 }
 
+/* A programmatic access token for the public REST API. Only the SHA-256 of the
+   key is stored (like refresh tokens); the plaintext is shown once at creation.
+   `prefix` is a short non-secret label for the UI. */
+model ApiKey {
+  id            String    @id @default(cuid())
+  name          String
+  prefix        String
+  keyHash       String    @unique
+  scopes        String[]  @default([])
+  lastUsedAt    DateTime?
+  revokedAt     DateTime?
+  createdById   String?
+  createdByName String?
+  createdAt     DateTime  @default(now())
+}
+
+/* An outbound webhook. On subscribed lead events we POST the payload to `url`
+   with an HMAC-SHA256 signature (keyed on `secret`) so the receiver can verify
+   authenticity. Last delivery result is kept for at-a-glance health. */
+model Webhook {
+  id              String    @id @default(cuid())
+  name            String
+  url             String
+  events          String[]  @default([])
+  secret          String
+  active          Boolean   @default(true)
+  lastStatus      Int?
+  lastError       String?
+  lastDeliveredAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
 /* Reusable message template. `body` (and email `subject`) may contain
    {{placeholders}} — name, company, etc. — filled in at send time. */
 model CommTemplate {

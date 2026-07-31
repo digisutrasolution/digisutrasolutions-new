@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 import { logLeadActivity } from "@/lib/crm-server";
 import { scoreAndSave } from "@/lib/scoring-server";
+import { dispatchWebhook, leadPayload } from "@/lib/webhooks";
 import { canSeeAllLeads } from "@/lib/auth/rbac";
 import {
   LEAD_PRIORITIES,
@@ -139,6 +140,15 @@ export async function PATCH(req: Request, { params }: Params) {
 
   // Keep the score fresh after edits — unless the caller set it explicitly.
   if (data.score === undefined) void scoreAndSave(id);
+
+  // Outbound webhooks for the meaningful transitions.
+  if (data.status && data.status !== existing.status) {
+    dispatchWebhook("lead.status_changed", { ...leadPayload(lead), previousStatus: existing.status });
+    if (data.status === "WON") dispatchWebhook("lead.won", leadPayload(lead));
+  }
+  if (data.assignedToId !== undefined && data.assignedToId !== existing.assignedToId) {
+    dispatchWebhook("lead.assigned", leadPayload(lead));
+  }
 
   audit({
     userId: user.id,
