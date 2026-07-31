@@ -7,6 +7,7 @@ import { ArrowLeft, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { FileText, Sparkles } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
+import LeadComms from "@/components/admin/LeadComms";
 import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
@@ -75,11 +76,13 @@ export default function LeadDetail({
   assignees,
   scoringConfig,
   canQuote = false,
+  senderName = "",
 }: {
   lead: Lead;
   assignees: { id: string; name: string }[];
   scoringConfig: ScoringConfig;
   canQuote?: boolean;
+  senderName?: string;
 }) {
   const router = useRouter();
   const [lead, setLead] = useState<Lead>(initial);
@@ -228,6 +231,16 @@ export default function LeadDetail({
               </dl>
             )}
           </div>
+
+          {/* Communications */}
+          <LeadComms
+            leadId={initial.id}
+            senderName={senderName}
+            lead={{
+              name: lead.name, company: lead.company, email: lead.email, whatsapp: lead.whatsapp,
+              city: lead.city, country: lead.country, services: lead.services, budget: lead.budget,
+            }}
+          />
 
           {/* Score */}
           <ScoreCard leadId={initial.id} lead={lead} config={scoringConfig} />

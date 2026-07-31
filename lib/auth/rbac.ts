@@ -44,6 +44,7 @@ export const PERMISSIONS = {
   "leads.rules": ["SUPER_ADMIN", "SEO_MANAGER"],
   "quotes.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "quotes.approve": ["SUPER_ADMIN"],
+  "comms.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "faq.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "proof.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
 } as const satisfies Record<string, readonly Role[]>;
@@ -144,6 +145,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "leads.rules": { label: "Configure assignment & scoring", group: "Leads" },
   "quotes.manage": { label: "Create & edit quotations", group: "Leads" },
   "quotes.approve": { label: "Approve quotations", group: "Leads" },
+  "comms.manage": { label: "Manage message templates", group: "Leads" },
   "pages.view": { label: "View pages", group: "Content" },
   "pages.create": { label: "Create pages", group: "Content" },
   "pages.edit": { label: "Edit pages", group: "Content" },

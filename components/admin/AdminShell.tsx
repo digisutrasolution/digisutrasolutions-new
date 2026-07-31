@@ -26,6 +26,7 @@ import {
   Newspaper,
   ReceiptText,
   ScrollText,
+  Send,
   Settings,
   ShieldCheck,
   Users,
@@ -86,6 +87,7 @@ const NAV_GROUPS = [
   {
     label: "System",
     items: [
+      { label: "Templates", href: "/admin/comms", icon: Send, permission: "comms.manage" },
       { label: "Users", href: "/admin/users", icon: Users, permission: "users.manage" },
       { label: "Roles", href: "/admin/roles", icon: ShieldCheck, permission: "roles.manage" },
       { label: "Settings", href: "/admin/settings", icon: Settings, permission: "settings.manage" },

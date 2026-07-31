@@ -680,6 +680,7 @@ model Lead {
   activities      LeadActivity[]
   followUps       FollowUp[]
   quotations      Quotation[]
+  comms           CommLog[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -733,6 +734,50 @@ enum QuotationStatus {
   REJECTED
   SUPERSEDED
   EXPIRED
+}
+
+enum CommChannel {
+  EMAIL
+  WHATSAPP
+}
+
+/* Reusable message template. `body` (and email `subject`) may contain
+   {{placeholders}} — name, company, etc. — filled in at send time. */
+model CommTemplate {
+  id        String      @id @default(cuid())
+  name      String
+  channel   CommChannel
+  subject   String      @default("")
+  body      String
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([channel, active])
+}
+
+/* One outbound message on a lead. Email is actually sent through sendEmail and
+   can be open-tracked via a 1x1 pixel keyed on `trackId`; WhatsApp is logged
+   when the agent opens the pre-filled wa.me link (delivery isn't confirmable
+   without the Business API). */
+model CommLog {
+  id         String      @id @default(cuid())
+  lead       Lead?       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId     String?
+  channel    CommChannel
+  templateId String?
+  toAddress  String
+  subject    String      @default("")
+  body       String
+  status     String      @default("SENT") // SENT | FAILED | OPENED
+  openedAt   DateTime?
+  trackId    String      @unique @default(cuid())
+  userId     String?
+  userName   String?
+  createdAt  DateTime    @default(now())
+
+  @@index([leadId, createdAt])
+  @@index([channel, createdAt])
 }
 
 /* A sales quotation. Client details are snapshotted so the document stays

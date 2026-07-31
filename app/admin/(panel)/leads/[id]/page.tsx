@@ -70,6 +70,7 @@ export default async function LeadDetailPage({
       assignees={assignees}
       scoringConfig={scoringConfig}
       canQuote={can(user.role, "quotes.manage")}
+      senderName={user.name}
     />
   );
 }
