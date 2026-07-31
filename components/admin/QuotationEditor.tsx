@@ -144,7 +144,7 @@ export default function QuotationEditor({
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/admin/quotations" className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-orange-600">
           <ArrowLeft size={15} /> All quotations

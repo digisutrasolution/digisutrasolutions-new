@@ -119,7 +119,7 @@ export default function LeadDetail({
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <Link href="/admin/leads" className="inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-orange-600">
         <ArrowLeft size={15} /> All leads
       </Link>
