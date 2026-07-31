@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, Pencil, Plus, Trash2, Users, X } from "lucide-react";
+import { Check, Pencil, Plus, Sparkles, Trash2, Users, X } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import {
   ALL_PERMISSIONS,
@@ -40,6 +40,14 @@ export default function CustomRolesManager() {
     await fetch(withBase(`/api/roles/${r.id}`), { method: "DELETE" });
     await load();
   }
+  const [seeding, setSeeding] = useState(false);
+  async function loadStarter() {
+    setSeeding(true);
+    try {
+      await fetch(withBase("/api/roles/seed"), { method: "POST" });
+      await load();
+    } finally { setSeeding(false); }
+  }
 
   return (
     <div className="mt-8">
@@ -48,9 +56,14 @@ export default function CustomRolesManager() {
           <h2 className="font-display text-lg font-bold">Custom roles</h2>
           <p className="text-sm text-stone-500 dark:text-stone-400">Build your own roles (e.g. Sales Member) and assign them to users on the Users page.</p>
         </div>
-        <button onClick={() => { setAdding(true); setEditing(null); }} className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-orange-500">
-          <Plus size={15} /> New role
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => void loadStarter()} disabled={seeding} className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-3.5 py-2 text-sm font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300">
+            <Sparkles size={15} /> {seeding ? "Adding…" : "Add Sales Member"}
+          </button>
+          <button onClick={() => { setAdding(true); setEditing(null); }} className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-orange-500">
+            <Plus size={15} /> New role
+          </button>
+        </div>
       </div>
 
       {(adding || editing) && (
