@@ -18,6 +18,7 @@ import {
   Image as ImageIcon,
   Inbox,
   IndianRupee,
+  LayoutDashboard,
   LayoutGrid,
   Mail,
   Megaphone,
@@ -54,6 +55,7 @@ const NAV_GROUPS = [
   {
     label: "Lead Management",
     items: [
+      { label: "Overview", href: "/admin/crm", icon: LayoutDashboard, permission: "leads.manage" },
       { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage", badge: "newLeads" },
       { label: "Follow-ups", href: "/admin/followups", icon: CalendarClock, permission: "leads.manage", badge: "dueFollowups" },
       { label: "Quotations", href: "/admin/quotations", icon: ReceiptText, permission: "quotes.manage" },
