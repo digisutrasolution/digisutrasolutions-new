@@ -7,7 +7,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExternalLink, FilePlus2, Pencil } from "lucide-react";
 import type { PageStatus } from "@prisma/client";
-import { useAdminList, AdminSearch, AdminPager } from "@/components/admin/useAdminList";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type PostRow = {
   id: string;
@@ -48,7 +49,7 @@ export default function BlogList({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize } =
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
     useAdminList(
       posts,
       (p) => `${p.title} ${p.slug} ${p.category} ${p.status} ${p.authorName ?? ""}`,
@@ -248,12 +249,13 @@ export default function BlogList({
         </table>
       </div>
 
-      <AdminPager
+      <AdminPagination
         page={page}
-        totalPages={totalPages}
+        pages={totalPages}
         total={total}
         pageSize={pageSize}
         onPage={setPage}
+        onPageSize={setPageSize}
         label="posts"
       />
     </div>

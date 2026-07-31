@@ -5,6 +5,8 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2 } from "lucide-react";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type AdRow = {
   id: string;
@@ -35,6 +37,8 @@ export default function AdsManager({ ads }: { ads: AdRow[] }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
+    useAdminList(ads, (a) => `${a.title} ${a.placement} ${a.targetUrl}`);
 
   async function api(path: string, init: RequestInit): Promise<boolean> {
     setError(null);
@@ -134,7 +138,11 @@ export default function AdsManager({ ads }: { ads: AdRow[] }) {
         <p role="alert" className="mt-3 text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+      <div className="mt-4">
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search banner, placement or URL…" count={total} grandTotal={grandTotal} />
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-stone-200 text-xs uppercase tracking-wide text-stone-500 dark:border-stone-800 dark:text-stone-400">
@@ -149,14 +157,14 @@ export default function AdsManager({ ads }: { ads: AdRow[] }) {
             </tr>
           </thead>
           <tbody>
-            {ads.length === 0 && (
+            {total === 0 && (
               <tr>
                 <td colSpan={8} className="px-5 py-10 text-center text-sm text-stone-500">
-                  No banners yet — the public slots render nothing until one is live.
+                  {query ? "No banners match." : "No banners yet — the public slots render nothing until one is live."}
                 </td>
               </tr>
             )}
-            {ads.map((a) => (
+            {pageItems.map((a) => (
               <tr key={a.id} className="border-b border-stone-100 last:border-0 dark:border-stone-800">
                 <td className="px-5 py-3">
                   <p className="font-semibold">{a.title}</p>
@@ -209,6 +217,8 @@ export default function AdsManager({ ads }: { ads: AdRow[] }) {
           </tbody>
         </table>
       </div>
+
+      <AdminPagination page={page} pages={totalPages} total={total} pageSize={pageSize} label="banners" onPage={setPage} onPageSize={setPageSize} />
     </div>
   );
 }

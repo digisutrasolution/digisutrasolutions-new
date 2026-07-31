@@ -9,6 +9,8 @@ import { ROLE_LABELS } from "@/lib/auth/rbac";
 import type { Role } from "@prisma/client";
 import EditUserDialog from "@/components/admin/EditUserDialog";
 import PasswordDialog from "@/components/admin/PasswordDialog";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type UserRow = {
   id: string;
@@ -41,6 +43,8 @@ export default function UsersManager({
   const [busy, setBusy] = useState(false);
   const [pwUser, setPwUser] = useState<UserRow | null>(null);
   const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
+    useAdminList(users, (u) => `${u.name} ${u.email} ${u.role}`);
 
   async function call(path: string, init: RequestInit): Promise<boolean> {
     setError(null);
@@ -154,7 +158,11 @@ export default function UsersManager({
         </form>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+      <div className="mt-4">
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search name, email or role…" count={total} grandTotal={grandTotal} />
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-stone-200 text-xs uppercase tracking-wide text-stone-500 dark:border-stone-800 dark:text-stone-400">
@@ -166,7 +174,10 @@ export default function UsersManager({
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {total === 0 && (
+              <tr><td colSpan={5} className="px-5 py-10 text-center text-sm text-stone-500">No users match.</td></tr>
+            )}
+            {pageItems.map((u) => (
               <tr
                 key={u.id}
                 className="border-b border-stone-100 last:border-0 dark:border-stone-800"
@@ -291,6 +302,8 @@ export default function UsersManager({
           </tbody>
         </table>
       </div>
+
+      <AdminPagination page={page} pages={totalPages} total={total} pageSize={pageSize} label="users" onPage={setPage} onPageSize={setPageSize} />
 
       {pwUser && (
         <PasswordDialog

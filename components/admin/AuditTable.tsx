@@ -1,6 +1,7 @@
 "use client";
 
-import { useAdminList, AdminSearch, AdminPager } from "@/components/admin/useAdminList";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type AuditEntry = {
   id: string;
@@ -13,7 +14,7 @@ type AuditEntry = {
 };
 
 export default function AuditTable({ entries }: { entries: AuditEntry[] }) {
-  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize } =
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
     useAdminList(
       entries,
       (e) =>
@@ -97,12 +98,13 @@ export default function AuditTable({ entries }: { entries: AuditEntry[] }) {
         </table>
       </div>
 
-      <AdminPager
+      <AdminPagination
         page={page}
-        totalPages={totalPages}
+        pages={totalPages}
         total={total}
         pageSize={pageSize}
         onPage={setPage}
+        onPageSize={setPageSize}
         label="events"
       />
     </div>

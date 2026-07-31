@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 /**
  * Client-side search + pagination for admin lists. The managers already
@@ -15,9 +15,10 @@ export function useAdminList<T>(
   toText: (item: T) => string,
   opts?: { pageSize?: number },
 ) {
-  const pageSize = opts?.pageSize ?? 15;
+  const [pageSize, setPageSizeState] = useState(opts?.pageSize ?? 25);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const setPageSize = (n: number) => { setPageSizeState(n); setPage(1); };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -50,6 +51,7 @@ export function useAdminList<T>(
     grandTotal: items.length,
     totalPages,
     pageSize,
+    setPageSize,
   };
 }
 
@@ -101,72 +103,3 @@ export function AdminSearch({
   );
 }
 
-const pageBtn =
-  "flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-stone-300 px-2 text-xs font-semibold text-stone-600 transition-colors hover:border-orange-400 hover:text-orange-700 disabled:cursor-default disabled:opacity-40 disabled:hover:border-stone-300 disabled:hover:text-stone-600 dark:border-stone-700 dark:text-stone-300";
-
-function pageWindow(current: number, total: number): (number | "gap")[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  const out: (number | "gap")[] = [1];
-  const from = Math.max(2, current - 1);
-  const to = Math.min(total - 1, current + 1);
-  if (from > 2) out.push("gap");
-  for (let p = from; p <= to; p += 1) out.push(p);
-  if (to < total - 1) out.push("gap");
-  out.push(total);
-  return out;
-}
-
-export function AdminPager({
-  page,
-  totalPages,
-  total,
-  pageSize,
-  onPage,
-  label = "items",
-}: {
-  page: number;
-  totalPages: number;
-  total: number;
-  pageSize: number;
-  onPage: (p: number) => void;
-  label?: string;
-}) {
-  if (totalPages <= 1) return null;
-  const first = (page - 1) * pageSize + 1;
-  const last = Math.min(page * pageSize, total);
-  return (
-    <div className="mt-3 flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
-      <span className="text-xs text-stone-500 dark:text-stone-400">
-        {first}–{last} of {total} {label}
-      </span>
-      <div className="flex items-center gap-1">
-        <button onClick={() => onPage(page - 1)} disabled={page <= 1} aria-label="Previous page" className={pageBtn}>
-          <ChevronLeft size={14} />
-        </button>
-        {pageWindow(page, totalPages).map((p, i) =>
-          p === "gap" ? (
-            <span key={`gap-${i}`} className="px-1 text-xs text-stone-400">
-              …
-            </span>
-          ) : (
-            <button
-              key={p}
-              onClick={() => onPage(p)}
-              aria-current={p === page ? "page" : undefined}
-              className={
-                p === page
-                  ? "flex h-8 min-w-8 items-center justify-center rounded-lg bg-stone-900 px-2 text-xs font-semibold text-white dark:bg-stone-100 dark:text-stone-900"
-                  : pageBtn
-              }
-            >
-              {p}
-            </button>
-          ),
-        )}
-        <button onClick={() => onPage(page + 1)} disabled={page >= totalPages} aria-label="Next page" className={pageBtn}>
-          <ChevronRight size={14} />
-        </button>
-      </div>
-    </div>
-  );
-}

@@ -5,6 +5,8 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Trash2 } from "lucide-react";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type SubscriberRow = {
   id: string;
@@ -21,6 +23,8 @@ export default function SubscribersManager({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
+    useAdminList(subscribers, (s) => `${s.email} ${s.source}`);
 
   async function remove(id: string, email: string) {
     if (!window.confirm(`Remove ${email} from the list?`)) return;
@@ -62,7 +66,11 @@ export default function SubscribersManager({
         <p role="alert" className="mt-3 text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+      <div className="mt-4">
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search email or source…" count={total} grandTotal={grandTotal} />
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-stone-200 text-xs uppercase tracking-wide text-stone-500 dark:border-stone-800 dark:text-stone-400">
@@ -73,14 +81,14 @@ export default function SubscribersManager({
             </tr>
           </thead>
           <tbody>
-            {subscribers.length === 0 && (
+            {total === 0 && (
               <tr>
                 <td colSpan={4} className="px-5 py-10 text-center text-sm text-stone-500">
-                  No subscribers yet.
+                  {query ? "No subscribers match." : "No subscribers yet."}
                 </td>
               </tr>
             )}
-            {subscribers.map((s) => (
+            {pageItems.map((s) => (
               <tr key={s.id} className="border-b border-stone-100 last:border-0 dark:border-stone-800">
                 <td className="px-5 py-3 font-medium">{s.email}</td>
                 <td className="px-5 py-3 text-xs">{s.source}</td>
@@ -108,6 +116,8 @@ export default function SubscribersManager({
           </tbody>
         </table>
       </div>
+
+      <AdminPagination page={page} pages={totalPages} total={total} pageSize={pageSize} label="subscribers" onPage={setPage} onPageSize={setPageSize} />
     </div>
   );
 }

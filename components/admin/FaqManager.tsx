@@ -5,7 +5,8 @@ import { withBase } from "@/lib/base-path";
 import { createElement, useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, Home, Pencil, Plus, Trash2, X } from "lucide-react";
 import { NAV_ICONS, navIcon } from "@/components/nav-icons";
-import { useAdminList, AdminSearch, AdminPager } from "@/components/admin/useAdminList";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type Faq = {
   id: string;
@@ -141,7 +142,7 @@ export default function FaqManager() {
   );
   const featuredCount = sorted.filter((f) => f.featured && f.visible).length;
 
-  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize } =
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
     useAdminList(sorted, (f) => `${f.question} ${f.lead} ${f.rest} ${f.category}`);
 
   const patch = async (id: string, body: object) => {
@@ -213,12 +214,13 @@ export default function FaqManager() {
         );
       })}
       <div className="px-2">
-        <AdminPager
+        <AdminPagination
           page={page}
-          totalPages={totalPages}
+          pages={totalPages}
           total={total}
           pageSize={pageSize}
           onPage={setPage}
+        onPageSize={setPageSize}
           label="questions"
         />
       </div>

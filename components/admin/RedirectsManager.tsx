@@ -5,6 +5,8 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Plus, Trash2 } from "lucide-react";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type RedirectRow = {
   id: string;
@@ -22,6 +24,8 @@ export default function RedirectsManager({ redirects }: { redirects: RedirectRow
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
+    useAdminList(redirects, (r) => `${r.fromPath} ${r.toPath}`);
 
   async function api(path: string, init: RequestInit): Promise<boolean> {
     setError(null);
@@ -91,7 +95,11 @@ export default function RedirectsManager({ redirects }: { redirects: RedirectRow
         <p role="alert" className="mt-3 text-sm font-medium text-red-700 dark:text-red-400">{error}</p>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+      <div className="mt-4">
+        <AdminSearch value={query} onChange={setQuery} placeholder="Search from or to path…" count={total} grandTotal={grandTotal} />
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-stone-200 text-xs uppercase tracking-wide text-stone-500 dark:border-stone-800 dark:text-stone-400">
@@ -103,14 +111,14 @@ export default function RedirectsManager({ redirects }: { redirects: RedirectRow
             </tr>
           </thead>
           <tbody>
-            {redirects.length === 0 && (
+            {total === 0 && (
               <tr>
                 <td colSpan={5} className="px-5 py-10 text-center text-sm text-stone-500">
-                  No redirects yet.
+                  {query ? "No redirects match." : "No redirects yet."}
                 </td>
               </tr>
             )}
-            {redirects.map((r) => (
+            {pageItems.map((r) => (
               <tr key={r.id} className="border-b border-stone-100 last:border-0 dark:border-stone-800">
                 <td className="px-5 py-3">
                   <span className="inline-flex items-center gap-2 font-mono text-xs">
@@ -155,6 +163,8 @@ export default function RedirectsManager({ redirects }: { redirects: RedirectRow
           </tbody>
         </table>
       </div>
+
+      <AdminPagination page={page} pages={totalPages} total={total} pageSize={pageSize} label="redirects" onPage={setPage} onPageSize={setPageSize} />
     </div>
   );
 }

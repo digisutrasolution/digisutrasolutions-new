@@ -5,7 +5,8 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ExternalLink, MessageSquareReply, Star, Trash2, X } from "lucide-react";
-import { useAdminList, AdminSearch, AdminPager } from "@/components/admin/useAdminList";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type CommentRow = {
   id: string;
@@ -43,7 +44,7 @@ export default function CommentsModeration({
 
   const visible = comments.filter((c) => c.status === tab);
 
-  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize } =
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
     useAdminList(visible, (c) => `${c.name} ${c.email} ${c.body} ${c.postTitle} ${c.postSlug ?? ""}`);
 
   const switchTab = (key: string) => {
@@ -272,12 +273,13 @@ export default function CommentsModeration({
         ))}
       </div>
 
-      <AdminPager
+      <AdminPagination
         page={page}
-        totalPages={totalPages}
+        pages={totalPages}
         total={total}
         pageSize={pageSize}
         onPage={setPage}
+        onPageSize={setPageSize}
         label="reviews"
       />
     </div>

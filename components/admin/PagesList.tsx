@@ -8,7 +8,8 @@ import { useRouter } from "next/navigation";
 import { Copy, ExternalLink, FilePlus2, Pencil } from "lucide-react";
 import type { PageStatus, WorkflowStage } from "@prisma/client";
 import { STAGE_LABELS } from "@/lib/cms/workflow";
-import { useAdminList, AdminSearch, AdminPager } from "@/components/admin/useAdminList";
+import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 type PageRow = {
   id: string;
@@ -54,7 +55,7 @@ export default function PagesList({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize } =
+  const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
     useAdminList(pages, (p) => `${p.title} ${p.slug} ${p.status}`);
 
   async function call(path: string, init: RequestInit): Promise<Response | null> {
@@ -298,12 +299,13 @@ export default function PagesList({
         </table>
       </div>
 
-      <AdminPager
+      <AdminPagination
         page={page}
-        totalPages={totalPages}
+        pages={totalPages}
         total={total}
         pageSize={pageSize}
         onPage={setPage}
+        onPageSize={setPageSize}
         label="pages"
       />
     </div>
