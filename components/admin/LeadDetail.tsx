@@ -8,6 +8,7 @@ import { FileText, Sparkles } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
 import LeadComms from "@/components/admin/LeadComms";
+import Attachments from "@/components/admin/Attachments";
 import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
@@ -252,6 +253,9 @@ export default function LeadDetail({
             assignees={assignees}
             onChanged={reload}
           />
+
+          {/* Files */}
+          <Attachments leadId={initial.id} />
 
           {/* Notes */}
           <NotesCard notes={lead.notes} onSave={(v) => patch({ notes: v || null })} />

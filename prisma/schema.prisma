@@ -696,6 +696,7 @@ model Lead {
   followUps       FollowUp[]
   quotations      Quotation[]
   comms           CommLog[]
+  attachments     Attachment[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -875,10 +876,33 @@ model Quotation {
   createdByName String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  attachments   Attachment[]
 
   @@unique([number, version])
   @@index([status, createdAt])
   @@index([leadId])
+}
+
+/* A file attached to a lead or a quotation. Bytes live in the same storage as
+   media (Vercel Blob in prod, public/uploads in dev); this row keeps the
+   original name + metadata and links it to exactly one owner. */
+model Attachment {
+  id           String     @id @default(cuid())
+  lead         Lead?      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId       String?
+  quotation    Quotation? @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  quotationId  String?
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  uploadedById   String?
+  uploadedByName String?
+  createdAt    DateTime   @default(now())
+
+  @@index([leadId, createdAt])
+  @@index([quotationId, createdAt])
 }
 
 /* A scheduled next-touch on a lead — a call/email/meeting reminder owned by

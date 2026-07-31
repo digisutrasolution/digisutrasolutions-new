@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Copy, FileText, Plus, Printer, Trash2 } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import Attachments from "@/components/admin/Attachments";
 import {
   QUOTE_STATUS_STYLE,
   TAX_MODES,
@@ -263,6 +264,13 @@ export default function QuotationEditor({
           </div>
         </div>
       </Card>
+
+      {/* Files */}
+      {!isNew && (
+        <div className="mt-4">
+          <Attachments quotationId={initial.id} canEdit={!locked} />
+        </div>
+      )}
 
       {/* Save */}
       {!locked && (
