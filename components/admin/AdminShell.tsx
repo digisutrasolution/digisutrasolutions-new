@@ -45,6 +45,7 @@ import {
 import { ROLE_LABELS } from "@/lib/auth/rbac";
 import type { SessionUser } from "@/lib/auth/session";
 import NotificationsBell from "@/components/admin/NotificationsBell";
+import HelpDrawer from "@/components/admin/HelpDrawer";
 
 /* Sidebar structure: Dashboard + Leads stay pinned; everything else lives
    in collapsible groups. The group holding the current page auto-opens and
@@ -401,6 +402,7 @@ export default function AdminShell({
           </p>
           <div className="flex items-center gap-2">
             <NotificationsBell />
+            <HelpDrawer />
             <button
               onClick={toggleTheme}
               aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
