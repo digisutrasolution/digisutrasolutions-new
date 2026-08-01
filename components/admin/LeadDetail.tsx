@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, BadgeCheck, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { FileText, Sparkles } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
@@ -64,6 +64,8 @@ type Lead = {
   services: string[];
   tags: string[];
   verified: boolean;
+  emailVerified: boolean;
+  phoneVerified: boolean;
   createdAt: string;
   assignedToId: string | null;
   assignedTo: { id: string; name: string } | null;
@@ -207,8 +209,8 @@ export default function LeadDetail({
               <EditForm lead={lead} onSave={async (body) => { await patch(body); setEditing(false); }} />
             ) : (
               <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-                <Row label="Email" value={lead.email} />
-                <Row label="WhatsApp" value={lead.whatsapp} />
+                <Row label="Email" value={lead.email} verified={lead.emailVerified} />
+                <Row label="WhatsApp" value={lead.whatsapp} verified={lead.phoneVerified} />
                 <Row label="Website" value={lead.website} />
                 <Row label="Industry" value={lead.industry} />
                 <Row label="City" value={lead.city} />
@@ -290,12 +292,26 @@ export default function LeadDetail({
   );
 }
 
-function Row({ label, value }: { label: string; value: string | null }) {
+function VerifiedChip() {
+  return (
+    <span
+      title="Confirmed by the lead via one-time code"
+      className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+    >
+      <BadgeCheck size={11} aria-hidden /> Verified
+    </span>
+  );
+}
+
+function Row({ label, value, verified }: { label: string; value: string | null; verified?: boolean }) {
   if (!value) return null;
   return (
     <div>
       <dt className="text-xs font-semibold uppercase tracking-wide text-stone-400">{label}</dt>
-      <dd className="text-stone-700 dark:text-stone-200">{value}</dd>
+      <dd className="flex flex-wrap items-center gap-1.5 text-stone-700 dark:text-stone-200">
+        {value}
+        {verified && <VerifiedChip />}
+      </dd>
     </div>
   );
 }
