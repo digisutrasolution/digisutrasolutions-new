@@ -3,12 +3,11 @@
    wants to reuse the same copy. Keep entries short and task-focused — the full
    walk-through lives in the published Team Guide (GUIDE_URL). */
 
-/** Published team handbook (Artifact). Update here if it is ever re-published
-    to a new URL. */
-export const GUIDE_URL =
-  "https://claude.ai/code/artifact/098538db-2f30-4c8f-bfa3-4d9803b194a6";
+/** The Team Guide now lives on-domain at /admin/guide (CMS-editable). Callers
+    wrap this in withBase() so it resolves on subpath deployments. */
+export const GUIDE_URL = "/admin/guide";
 
-/** Best-effort deep link — the anchor is appended when supplied. */
+/** Optional in-page anchor appended when supplied. */
 export const guideUrl = (anchor?: string) =>
   anchor ? `${GUIDE_URL}#${anchor}` : GUIDE_URL;
 

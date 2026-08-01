@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { CircleHelp, X, BookOpen, ExternalLink } from "lucide-react";
+import { withBase } from "@/lib/base-path";
 import { GUIDE_URL, guideUrl, helpForPath } from "@/lib/admin-help";
 
 /* Header Help button + slide-over. It reads the current route and shows help
@@ -87,7 +88,7 @@ export default function HelpDrawer() {
               </ul>
 
               <a
-                href={guideUrl(topic.guideAnchor)}
+                href={withBase(guideUrl(topic.guideAnchor))}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-800 transition-colors hover:bg-orange-100 dark:border-orange-900/50 dark:bg-orange-950/40 dark:text-orange-300 dark:hover:bg-orange-950/70"
@@ -105,8 +106,8 @@ export default function HelpDrawer() {
             <footer className="border-t border-stone-200 px-5 py-3 dark:border-stone-800">
               <p className="truncate text-[11px] text-stone-400">
                 Need more?{" "}
-                <a href={GUIDE_URL} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">
-                  digisutrasolutions.com team guide
+                <a href={withBase(GUIDE_URL)} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">
+                  open the Team Guide
                 </a>
               </p>
             </footer>

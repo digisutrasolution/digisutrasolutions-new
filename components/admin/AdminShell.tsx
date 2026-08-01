@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BadgeCheck,
+  BookOpen,
   CalendarClock,
   ChartBar,
   ChevronDown,
@@ -109,6 +110,7 @@ const NAV_GROUPS = [
       { label: "Users", href: "/admin/users", icon: Users, permission: "users.manage" },
       { label: "Roles", href: "/admin/roles", icon: ShieldCheck, permission: "roles.manage" },
       { label: "Settings", href: "/admin/settings", icon: Settings, permission: "settings.manage" },
+      { label: "Team Guide", href: "/admin/guide", icon: BookOpen, permission: null },
       { label: "Audit log", href: "/admin/audit", icon: ScrollText, permission: "audit.read" },
     ],
   },
