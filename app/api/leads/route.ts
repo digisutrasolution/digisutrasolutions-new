@@ -12,6 +12,7 @@ import { getContactConfig } from "@/lib/contact-config-server";
 import { deskEmail } from "@/lib/contact-config";
 import { logLeadActivity } from "@/lib/crm-server";
 import { onLeadCreated } from "@/lib/lead-intake";
+import { issueChallenge } from "@/lib/otp";
 import { getScoringConfig } from "@/lib/scoring-server";
 import { leadScopeWhere } from "@/lib/auth/rbac";
 import { sourceLabel } from "@/lib/crm";
@@ -113,6 +114,26 @@ export async function POST(req: Request) {
   // Auto-route to an owner and score the lead (best-effort, never blocks).
   onLeadCreated(lead);
 
+  /* Soft verification (Phase 1): if OTP is enabled, issue a code and hand the
+     client a masked challenge. The lead is already captured — this only lets
+     the visitor prove the contact, so a delivery failure never loses a lead.
+     Skipped silently when verification is off or no channel can deliver. */
+  let verify:
+    | { id: string; channel: "email" | "sms"; target: string; length: number; resendSeconds: number; ttlMinutes: number }
+    | null = null;
+  if (flags.length === 0) {
+    try {
+      const otp = await issueChallenge({
+        leadId: lead.id,
+        email: d.email ?? "",
+        phone: whatsapp && whatsapp !== "—" ? whatsapp : "",
+      });
+      if (otp.sent) verify = otp.challenge;
+    } catch {
+      /* best-effort */
+    }
+  }
+
   /* Route the enquiry to the desk the visitor picked. Best-effort: the lead
      is already stored, so a mail failure never loses it.
 
@@ -183,7 +204,7 @@ export async function POST(req: Request) {
     }).catch(() => {});
   }
 
-  return NextResponse.json({ ok: true, id: lead.id }, { status: 201 });
+  return NextResponse.json({ ok: true, id: lead.id, ...(verify ? { verify } : {}) }, { status: 201 });
 }
 
 const PAGE_SIZE = 25;

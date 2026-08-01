@@ -475,6 +475,30 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 }
 
+/* A one-time verification code issued to a lead's email or phone. The code is
+   never stored in the clear — only an HMAC. Rows are short-lived (expiresAt)
+   and single-use (consumedAt); leadId is a loose reference (no FK) so cleanup
+   never cascades into leads. */
+model OtpChallenge {
+  id          String    @id @default(cuid())
+  channel     String    // "email" | "sms"
+  target      String    // the email address or phone number the code went to
+  codeHash    String
+  leadId      String?   // loose link — stamped verified on success
+  purpose     String    @default("lead")
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  resendCount Int       @default(0)
+  consumedAt  DateTime?
+  expiresAt   DateTime
+  lastSentAt  DateTime  @default(now())
+  ipHash      String?
+  createdAt   DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([leadId])
+}
+
 /* Dynamic navigation. MenuItem rows are the DRAFT tree the admin edits;
    the public site renders the last published snapshot (SiteSetting key
    "menu:<location>:live"), so half-finished edits never leak. */
@@ -669,6 +693,12 @@ model Lead {
   source    LeadSource @default(CONTACT)
   status    LeadStatus @default(NEW)
   verified  Boolean    @default(false)
+  /** Channel-specific verification stamps set when a lead completes an OTP. */
+  emailVerified Boolean  @default(false)
+  phoneVerified Boolean  @default(false)
+  verifiedAt    DateTime?
+  /** "email" | "sms" — which channel confirmed the lead. */
+  verifiedVia   String?
   notes     String?
   ipHash    String?
 

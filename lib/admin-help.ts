@@ -147,6 +147,18 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
   },
   {
+    match: "/admin/verification",
+    title: "Lead verification",
+    summary: "Confirm a lead's email or phone with a one-time code.",
+    points: [
+      "Turn it on to ask visitors for a 6-digit code on the public forms; leave it off and forms behave exactly as before.",
+      "Auto picks SMS when a phone is given, else email. Verification is soft — the lead is always saved, verified or not.",
+      "SMS goes through your own platform (HTTP now, SMPP coming) — passwords live in .env, endpoint details here.",
+      "Use “Send a test code” to confirm delivery before switching it on.",
+      "Verified leads get a green badge and a score boost so real enquiries rise to the top.",
+    ],
+  },
+  {
     match: "/admin/roles",
     title: "Roles & permissions",
     summary: "Control what each person can see and do.",

@@ -15,6 +15,7 @@ import { ArrowRight, Briefcase, Check, Clock, FileSearch, Headphones, LifeBuoy, 
 import type { LucideIcon } from "lucide-react";
 import CountrySelect from "@/components/contact/CountrySelect";
 import ServicePicker, { type ServiceOption } from "@/components/contact/ServicePicker";
+import OtpVerify, { type Challenge } from "@/components/OtpVerify";
 import { HEARD_FROM } from "@/lib/contact-channels";
 import type { ContactConfig, DeskIcon } from "@/lib/contact-config";
 
@@ -106,9 +107,11 @@ export default function LeadForm({
 }) {
   const [f, setF] = useState<Fields>(EMPTY);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "verify" | "done" | "error">("idle");
   const [errMsg, setErrMsg] = useState("");
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
   const startedAt = useRef<number>(0);
+  const leadIdRef = useRef<string | null>(null);
   const router = useRouter();
 
   // Restore autosaved draft + arm the time-trap (deferred past first paint).
@@ -193,6 +196,14 @@ export default function LeadForm({
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* best-effort */ }
+      leadIdRef.current = data.id ?? null;
+      /* If verification is on, prove the contact before finishing — the lead
+         is already captured, so this is a soft, skippable step. */
+      if (data.verify) {
+        setChallenge(data.verify as Challenge);
+        setStatus("verify");
+        return;
+      }
       /* A distinct URL is what makes the completion measurable — an inline
          success state produces no pageview, so no analytics tool can count
          it as a conversion. */
@@ -303,7 +314,30 @@ export default function LeadForm({
 
       {/* Form */}
       <div className="flex flex-col bg-white p-6 sm:p-10">
-        {status === "done" ? (
+        {status === "verify" && challenge ? (
+          <OtpVerify
+            challenge={challenge}
+            resend={async () => {
+              try {
+                const res = await fetch(withBase("/api/otp/send"), {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    leadId: leadIdRef.current,
+                    email: f.email.trim(),
+                    phone: parsedPhone?.number ?? f.phone.trim(),
+                  }),
+                });
+                const d = await res.json();
+                return d.ok && d.challenge ? { id: d.challenge.id } : null;
+              } catch {
+                return null;
+              }
+            }}
+            onVerified={() => router.push("/thank-you?verified=1")}
+            onSkip={() => router.push("/thank-you")}
+          />
+        ) : status === "done" ? (
           <div className="flex h-full flex-col items-center justify-center py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
               <Check size={26} aria-hidden />

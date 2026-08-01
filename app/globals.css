@@ -813,3 +813,20 @@ body {
     grid-template-columns: var(--footer-cols, 1.5fr 1fr 1fr 1fr);
   }
 }
+
+/* OTP verification step (components/OtpVerify.tsx) */
+@keyframes otpShake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-5px); }
+  40%, 60% { transform: translateX(5px); }
+}
+@keyframes otpPop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.otp-shake { animation: otpShake 0.4s; }
+.otp-pop { animation: otpPop 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .otp-shake, .otp-pop { animation: none; }
+}

@@ -162,13 +162,14 @@ export const ACTIVITY_TYPE_META: Record<string, { label: string; style: string }
   "ai-score": { label: "AI score", style: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300" },
   file: { label: "File", style: "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300" },
   quotation: { label: "Quotation", style: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300" },
+  verified: { label: "Verified", style: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" },
 };
 
 /** Filterable activity types, in a sensible display order. */
 export const ACTIVITY_TYPES = [
   "created", "status", "priority", "assigned", "updated",
   "note", "call", "email", "whatsapp", "meeting",
-  "followup", "score", "ai-score", "file", "quotation",
+  "followup", "score", "ai-score", "file", "quotation", "verified",
 ] as const;
 
 export const activityLabel = (t: string) => ACTIVITY_TYPE_META[t]?.label ?? t;
