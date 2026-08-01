@@ -11,8 +11,8 @@ export default function SettingsLayout({
   rail?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <div className="w-full space-y-4 lg:max-w-2xl lg:flex-1">{children}</div>
+    <div className="flex w-full flex-col gap-6 lg:flex-row lg:items-start">
+      <div className="w-full space-y-4 lg:flex-1">{children}</div>
       {rail && (
         <aside className="w-full space-y-3 lg:w-80 lg:shrink-0 lg:sticky lg:top-24">{rail}</aside>
       )}
