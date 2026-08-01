@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
+import { categoryByDb } from "@/lib/blog";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -58,6 +59,24 @@ export async function POST(req: Request, { params }: Params) {
               };
 
   const updated = await db.blogPost.update({ where: { id }, data });
+
+  /* Keep old links + SEO alive across the publish lifecycle. Taking a
+     previously-live post down leaves a permanent redirect from its URL to the
+     category hub (or /blog); re-publishing removes it so the URL works again. */
+  const fromPath = `/blog/${post.slug}`;
+  if ((input.action === "unpublish" || input.action === "archive") && post.status === "PUBLISHED") {
+    const cat = categoryByDb(post.category);
+    const toPath = cat ? `/blog/category/${cat.slug}` : "/blog";
+    await db.redirect
+      .upsert({
+        where: { fromPath },
+        create: { fromPath, toPath, permanent: true, isActive: true },
+        update: { toPath, permanent: true, isActive: true },
+      })
+      .catch(() => {});
+  } else if (input.action === "publish") {
+    await db.redirect.deleteMany({ where: { fromPath } }).catch(() => {});
+  }
 
   audit({
     userId: user.id,

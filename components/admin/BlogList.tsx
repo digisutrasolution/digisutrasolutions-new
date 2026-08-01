@@ -5,7 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, FilePlus2, Pencil } from "lucide-react";
+import { Archive, ExternalLink, FilePlus2, Pencil } from "lucide-react";
 import type { PageStatus } from "@prisma/client";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -78,9 +78,8 @@ export default function BlogList({
     }
   }
 
-  async function publishToggle(post: PostRow) {
+  async function act(post: PostRow, action: "publish" | "unpublish" | "archive" | "restore") {
     setBusy(true);
-    const action = post.status === "PUBLISHED" ? "unpublish" : "publish";
     const res = await fetch(withBase(`/api/posts/${post.id}/publish`), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -228,9 +227,9 @@ export default function BlogList({
                         <ExternalLink size={15} aria-hidden />
                       </a>
                     )}
-                    {canPublish && (
+                    {canPublish && p.status !== "ARCHIVED" && (
                       <button
-                        onClick={() => void publishToggle(p)}
+                        onClick={() => void act(p, p.status === "PUBLISHED" ? "unpublish" : "publish")}
                         disabled={busy}
                         className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                           p.status === "PUBLISHED"
@@ -239,6 +238,27 @@ export default function BlogList({
                         }`}
                       >
                         {p.status === "PUBLISHED" ? "Unpublish" : "Publish"}
+                      </button>
+                    )}
+                    {canPublish && p.status !== "ARCHIVED" && (
+                      <button
+                        onClick={() => void act(p, "archive")}
+                        disabled={busy}
+                        aria-label={`Archive ${p.title}`}
+                        title="Archive — retires the post and 301-redirects its URL to the category hub"
+                        className="cursor-pointer rounded-lg p-2 text-stone-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:hover:bg-stone-800"
+                      >
+                        <Archive size={15} aria-hidden />
+                      </button>
+                    )}
+                    {canPublish && p.status === "ARCHIVED" && (
+                      <button
+                        onClick={() => void act(p, "restore")}
+                        disabled={busy}
+                        title="Restore to draft"
+                        className="cursor-pointer rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 transition-colors hover:border-orange-500 dark:border-stone-700 dark:text-stone-300"
+                      >
+                        Restore
                       </button>
                     )}
                   </div>

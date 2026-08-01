@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { cache } from "react";
 import { ArrowRight, Lightbulb, Newspaper } from "lucide-react";
 import AdSlot from "@/components/blog/AdSlot";
@@ -57,7 +57,18 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
   const post = await getPost(slug);
-  if (!post || post.status !== "PUBLISHED") notFound();
+  if (!post || post.status !== "PUBLISHED") {
+    // A post that was live and then unpublished/archived leaves a 301 to its
+    // category hub (see /api/posts/[id]/publish) so old links + Google don't
+    // hit a dead 404.
+    const rule = await db.redirect.findUnique({ where: { fromPath: `/blog/${slug}` } });
+    if (rule?.isActive) {
+      void db.redirect.update({ where: { id: rule.id }, data: { hits: { increment: 1 } } }).catch(() => {});
+      if (rule.permanent) permanentRedirect(rule.toPath);
+      redirect(rule.toPath);
+    }
+    notFound();
+  }
 
   const [related, reviews] = await Promise.all([
     db.blogPost.findMany({
