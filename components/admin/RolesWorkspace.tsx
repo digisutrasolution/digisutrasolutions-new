@@ -203,17 +203,19 @@ export default function RolesWorkspace({ initialMatrix, systemCounts }: { initia
 
       {/* Right: editor */}
       <div className="min-w-0 flex-1 rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold ${sel.kind === "super" ? "bg-stone-100 text-stone-400 dark:bg-stone-800" : AVATAR[0]}`}>{sel.kind === "super" ? <ShieldCheck size={18} /> : initials(roleName || "N")}</span>
+        <div className="flex items-start gap-3">
+          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold ${sel.kind === "super" ? "bg-stone-100 text-stone-400 dark:bg-stone-800" : AVATAR[0]}`}>{sel.kind === "super" ? <ShieldCheck size={18} /> : initials(roleName || "N")}</span>
           <div className="min-w-0 flex-1">
-            {sel.kind === "custom" || sel.kind === "new" ? (
-              <input value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} placeholder="Role name (e.g. Sales Member)" className="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-lg font-bold outline-none focus:border-orange-500 dark:border-stone-700 dark:bg-stone-900" />
-            ) : (
-              <div className="flex items-center gap-2 text-lg font-bold">{roleName}{sel.kind === "super" && <Lock size={14} className="text-stone-400" />}</div>
-            )}
-            <p className="mt-0.5 text-xs text-stone-500">{activePerms.size} of {ALL_PERMISSIONS.length} permissions{sel.kind === "super" && " · always all"}</p>
+            <div className="flex items-center gap-2">
+              {sel.kind === "custom" || sel.kind === "new" ? (
+                <input value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} placeholder="Role name (e.g. Sales Member)" className="min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-lg font-bold outline-none focus:border-orange-500 dark:border-stone-700 dark:bg-stone-900" />
+              ) : (
+                <div className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">{roleName}{sel.kind === "super" && <Lock size={14} className="shrink-0 text-stone-400" />}</div>
+              )}
+              {sel.kind === "custom" && <button onClick={() => void remove()} className="shrink-0 rounded-lg border border-stone-300 p-2.5 text-stone-400 transition-colors hover:border-red-400 hover:text-red-600 dark:border-stone-700" aria-label="Delete role" title="Delete role"><Trash2 size={15} /></button>}
+            </div>
+            <p className="mt-1.5 text-xs text-stone-500">{activePerms.size} of {ALL_PERMISSIONS.length} permissions{sel.kind === "super" && " · always all"}</p>
           </div>
-          {sel.kind === "custom" && <button onClick={() => void remove()} className="rounded-lg border border-stone-300 p-2 text-stone-400 hover:border-red-400 hover:text-red-600 dark:border-stone-700" aria-label="Delete role"><Trash2 size={15} /></button>}
         </div>
 
         {readOnly && <p className="mt-3 rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs text-stone-500 dark:border-stone-800 dark:bg-stone-950/40">Super Admin always holds every permission and can&apos;t be limited — this keeps you from locking yourself out.</p>}

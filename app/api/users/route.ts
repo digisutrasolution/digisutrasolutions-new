@@ -14,6 +14,7 @@ const CreateUserSchema = z.object({
     .min(10, "Password must be at least 10 characters.")
     .max(200),
   role: z.enum(["SUPER_ADMIN", "DEVELOPER", "TESTER", "SEO_MANAGER"]),
+  customRoleId: z.string().trim().min(1).optional().nullable(),
 });
 
 export async function GET() {
@@ -60,11 +61,23 @@ export async function POST(req: Request) {
     );
   }
 
+  // If a custom role was chosen, make sure it exists before creating.
+  if (parsed.data.customRoleId) {
+    const role = await db.customRole.findUnique({
+      where: { id: parsed.data.customRoleId },
+      select: { id: true },
+    });
+    if (!role) {
+      return NextResponse.json({ ok: false, error: "That role no longer exists." }, { status: 400 });
+    }
+  }
+
   const created = await db.user.create({
     data: {
       name: parsed.data.name,
       email: parsed.data.email,
       role: parsed.data.role,
+      customRoleId: parsed.data.customRoleId ?? null,
       passwordHash: await hashPassword(parsed.data.password),
     },
     select: { id: true, name: true, email: true, role: true, isActive: true },

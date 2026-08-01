@@ -72,7 +72,13 @@ export default function UsersManager({
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
+    const data = Object.fromEntries(new FormData(form).entries()) as Record<string, string>;
+    // A custom role is submitted as "custom:<id>" — split it out. The base
+    // role is a placeholder (permissions come from the custom role).
+    if (typeof data.role === "string" && data.role.startsWith("custom:")) {
+      data.customRoleId = data.role.slice(7);
+      data.role = "DEVELOPER";
+    }
     const ok = await call("/api/users", {
       method: "POST",
       body: JSON.stringify(data),
@@ -142,9 +148,18 @@ export default function UsersManager({
             <label htmlFor="new-role" className="mb-1 block text-xs font-semibold">Role</label>
             <div className="flex gap-2">
               <select id="new-role" name="role" defaultValue="DEVELOPER" className={inputCls}>
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                ))}
+                <optgroup label="System roles">
+                  {ROLES.map((r) => (
+                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                  ))}
+                </optgroup>
+                {customRoles.length > 0 && (
+                  <optgroup label="Custom roles">
+                    {customRoles.map((c) => (
+                      <option key={c.id} value={`custom:${c.id}`}>{c.name}</option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
               <button
                 type="submit"
