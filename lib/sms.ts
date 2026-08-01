@@ -3,6 +3,13 @@ import type { OtpConfig } from "@/lib/otp-config";
 
 export type SmsResult = { ok: true; via: "http" } | { ok: false; error: string };
 
+/** Whether the HTTP gateway is configured enough to send (the OTP toggle is a
+    separate concern — outbound messaging only needs the endpoint). SMPP is
+    Phase 2, so it never reports ready. */
+export function smsGatewayReady(cfg: OtpConfig): boolean {
+  return cfg.sms.transport === "http" && !!cfg.sms.http.url;
+}
+
 /** Fill an SMS-platform URL template. Secrets (user/password) come from env,
     everything else from the admin config. Values are URL-encoded. */
 function buildUrl(template: string, vars: Record<string, string>): string {
@@ -21,8 +28,8 @@ export async function sendSms(
   input: { to: string; text: string; otp?: string },
   cfg: OtpConfig,
 ): Promise<SmsResult> {
-  if (!cfg.sms.enabled) return { ok: false, error: "SMS channel is disabled." };
-
+  // Note: no `sms.enabled` gate here — that toggle is OTP-specific. Callers
+  // (OTP availability, the messaging route) decide whether to send.
   if (cfg.sms.transport === "smpp") {
     return { ok: false, error: "SMPP transport is not enabled yet (Phase 2). Switch to HTTP." };
   }

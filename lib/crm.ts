@@ -156,6 +156,8 @@ export const ACTIVITY_TYPE_META: Record<string, { label: string; style: string }
   call: { label: "Call", style: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" },
   email: { label: "Email", style: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
   whatsapp: { label: "WhatsApp", style: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" },
+  sms: { label: "SMS", style: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300" },
+  telegram: { label: "Telegram", style: "bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300" },
   meeting: { label: "Meeting", style: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300" },
   followup: { label: "Follow-up", style: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
   score: { label: "Score", style: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300" },
@@ -168,7 +170,7 @@ export const ACTIVITY_TYPE_META: Record<string, { label: string; style: string }
 /** Filterable activity types, in a sensible display order. */
 export const ACTIVITY_TYPES = [
   "created", "status", "priority", "assigned", "updated",
-  "note", "call", "email", "whatsapp", "meeting",
+  "note", "call", "email", "whatsapp", "sms", "telegram", "meeting",
   "followup", "score", "ai-score", "file", "quotation", "verified",
 ] as const;
 

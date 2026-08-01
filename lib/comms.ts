@@ -2,12 +2,14 @@
    engine shared by the template editor, the lead composer and the server
    sender. No db/server imports. */
 
-export const COMM_CHANNELS = ["EMAIL", "WHATSAPP"] as const;
+export const COMM_CHANNELS = ["EMAIL", "WHATSAPP", "SMS", "TELEGRAM"] as const;
 export type CommChannel = (typeof COMM_CHANNELS)[number];
 
 export const CHANNEL_LABEL: Record<CommChannel, string> = {
   EMAIL: "Email",
   WHATSAPP: "WhatsApp",
+  SMS: "SMS",
+  TELEGRAM: "Telegram",
 };
 
 /** Placeholders offered in the editor, filled from the lead + sender at send. */
@@ -69,4 +71,17 @@ export function renderTemplate(text: string, vars: CommVars): string {
 export function waLink(phone: string, text: string): string {
   const num = (phone ?? "").replace(/[^\d]/g, "");
   return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
+}
+
+/** Normalise a Telegram handle to a bare username (no @, no url). */
+export function tgHandle(raw: string): string {
+  return (raw ?? "").trim().replace(/^@/, "").replace(/^https?:\/\/t\.me\//i, "").replace(/[^A-Za-z0-9_]/g, "");
+}
+
+/** Deep link that opens a chat with a Telegram @username. Telegram DM links
+    can't carry a prefilled message (unlike wa.me), so the composer copies the
+    text to the clipboard instead. Returns "" when no valid handle is given. */
+export function tgLink(handle: string): string {
+  const h = tgHandle(handle);
+  return h ? `https://t.me/${h}` : "";
 }

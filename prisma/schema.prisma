@@ -682,6 +682,8 @@ model Lead {
   whatsapp  String
   email     String?
   website   String?
+  /** Optional Telegram @username for lead-facing deep-link outreach. */
+  telegram  String?
   services  String[]   @default([])
   budget    String?
   timeline  String?
@@ -785,6 +787,8 @@ enum QuotationStatus {
 enum CommChannel {
   EMAIL
   WHATSAPP
+  SMS
+  TELEGRAM
 }
 
 /* A programmatic access token for the public REST API. Only the SHA-256 of the

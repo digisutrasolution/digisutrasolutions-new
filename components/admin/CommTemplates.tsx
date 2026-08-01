@@ -1,9 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Mail, MessageCircle, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Mail, MessageCircle, MessageSquare, Pencil, Plus, Send, Sparkles, Trash2, X } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import { CHANNEL_LABEL, COMM_CHANNELS, PLACEHOLDERS, type CommChannel } from "@/lib/comms";
+
+const CHANNEL_GLYPH: Record<CommChannel, typeof Mail> = {
+  EMAIL: Mail,
+  WHATSAPP: MessageCircle,
+  SMS: MessageSquare,
+  TELEGRAM: Send,
+};
+const CHANNEL_TONE: Record<CommChannel, string> = {
+  EMAIL: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  WHATSAPP: "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+  SMS: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+  TELEGRAM: "bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300",
+};
 
 type Template = {
   id: string;
@@ -85,8 +98,8 @@ export default function CommTemplates() {
       <ul className="space-y-2">
         {rows.map((t) => (
           <li key={t.id} className="flex items-start gap-3 rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${t.channel === "EMAIL" ? "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300" : "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"}`}>
-              {t.channel === "EMAIL" ? <Mail size={15} /> : <MessageCircle size={15} />}
+            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${CHANNEL_TONE[t.channel] ?? CHANNEL_TONE.WHATSAPP}`}>
+              {(() => { const I = CHANNEL_GLYPH[t.channel] ?? MessageCircle; return <I size={15} />; })()}
             </span>
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-2 font-semibold text-stone-900 dark:text-stone-100">

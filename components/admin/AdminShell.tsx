@@ -27,6 +27,7 @@ import {
   MenuSquare,
   MessageSquare,
   Newspaper,
+  Radio,
   ReceiptText,
   ScrollText,
   Send,
@@ -101,6 +102,7 @@ const NAV_GROUPS = [
     label: "System",
     items: [
       { label: "Templates", href: "/admin/comms", icon: Send, permission: "comms.manage" },
+      { label: "Channels", href: "/admin/channels", icon: Radio, permission: "settings.manage" },
       { label: "Developers", href: "/admin/developers", icon: Webhook, permission: "api.manage" },
       { label: "AI providers", href: "/admin/ai", icon: Sparkles, permission: "settings.manage" },
       { label: "Verification", href: "/admin/verification", icon: BadgeCheck, permission: "settings.manage" },

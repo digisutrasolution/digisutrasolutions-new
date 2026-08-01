@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   const p = new URL(req.url).searchParams;
   const where: Prisma.CommTemplateWhereInput = {};
   const channel = p.get("channel");
-  if (channel === "EMAIL" || channel === "WHATSAPP") where.channel = channel;
+  if (channel && (COMM_CHANNELS as readonly string[]).includes(channel)) where.channel = channel as Prisma.CommTemplateWhereInput["channel"];
   if (p.get("active") === "1") where.active = true;
   const templates = await db.commTemplate.findMany({ where, orderBy: { name: "asc" } });
   return NextResponse.json({ ok: true, templates });

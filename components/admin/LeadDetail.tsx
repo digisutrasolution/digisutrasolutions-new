@@ -42,6 +42,7 @@ type Lead = {
   whatsapp: string;
   email: string | null;
   website: string | null;
+  telegram: string | null;
   country: string | null;
   state: string | null;
   city: string | null;
@@ -240,6 +241,7 @@ export default function LeadDetail({
             senderName={senderName}
             lead={{
               name: lead.name, company: lead.company, email: lead.email, whatsapp: lead.whatsapp,
+              telegram: lead.telegram,
               city: lead.city, country: lead.country, services: lead.services, budget: lead.budget,
             }}
           />

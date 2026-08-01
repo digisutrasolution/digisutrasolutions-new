@@ -126,6 +126,17 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
   },
   {
+    match: "/admin/channels",
+    title: "Contact channels",
+    summary: "Reach leads by SMS and Telegram, not just email/WhatsApp.",
+    points: [
+      "SMS uses your own gateway — the same one set up for OTP under Verification. Turn on “SMS messaging” to send from the lead composer.",
+      "Telegram “lead outreach” shows a composer that opens t.me/@username and copies your message to paste (Telegram links can't prefill text).",
+      "Telegram “team alerts” posts every new lead to your team chat via a bot — set TELEGRAM_BOT_TOKEN in .env and the chat id here, then Send test.",
+      "All sends are logged on the lead's message history and Activity.",
+    ],
+  },
+  {
     match: "/admin/developers",
     title: "Developers (API & webhooks)",
     summary: "Connect other tools to the CRM.",

@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { canSeeAllLeads } from "@/lib/auth/rbac";
+import { getChannelsConfig, channelsAvailability } from "@/lib/channels-config-server";
 
 type Params = { params: Promise<{ id: string }> };
 
-/** Sent-message history for a lead (email + WhatsApp). */
+/** Sent-message history for a lead (all channels) + which channels are live. */
 export async function GET(_req: Request, { params }: Params) {
   const { user, error } = await requirePermission("leads.manage");
   if (error) return error;
@@ -16,11 +17,18 @@ export async function GET(_req: Request, { params }: Params) {
     return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
   }
 
-  const comms = await db.commLog.findMany({
-    where: { leadId: id },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-    select: { id: true, channel: true, subject: true, body: true, status: true, openedAt: true, toAddress: true, userName: true, createdAt: true },
+  const [comms, avail] = await Promise.all([
+    db.commLog.findMany({
+      where: { leadId: id },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      select: { id: true, channel: true, subject: true, body: true, status: true, openedAt: true, toAddress: true, userName: true, createdAt: true },
+    }),
+    channelsAvailability(await getChannelsConfig()),
+  ]);
+  return NextResponse.json({
+    ok: true,
+    comms,
+    channels: { sms: avail.smsSend, telegram: avail.telegramDeepLink },
   });
-  return NextResponse.json({ ok: true, comms });
 }

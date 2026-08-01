@@ -13,6 +13,8 @@ import { deskEmail } from "@/lib/contact-config";
 import { logLeadActivity } from "@/lib/crm-server";
 import { onLeadCreated } from "@/lib/lead-intake";
 import { issueChallenge } from "@/lib/otp";
+import { getChannelsConfig } from "@/lib/channels-config-server";
+import { sendTelegram } from "@/lib/telegram";
 import { getScoringConfig } from "@/lib/scoring-server";
 import { leadScopeWhere } from "@/lib/auth/rbac";
 import { sourceLabel } from "@/lib/crm";
@@ -202,6 +204,25 @@ export async function POST(req: Request) {
     body: `${lead.services.join(", ") || "No service selected"}${lead.budget ? ` · ${lead.budget}` : ""}`,
       link: "/admin/leads",
     }).catch(() => {});
+
+    // Team alert to Telegram (best-effort, off unless configured in Channels).
+    void (async () => {
+      try {
+        const ch = await getChannelsConfig();
+        if (ch.telegram.alerts && ch.telegram.chatId) {
+          const lines = [
+            `🔔 <b>New lead:</b> ${lead.name}`,
+            lead.services.length ? `Services: ${lead.services.join(", ")}` : "",
+            lead.budget ? `Budget: ${lead.budget}` : "",
+            lead.whatsapp && lead.whatsapp !== "—" ? `Phone: ${lead.whatsapp}` : "",
+            lead.email ? `Email: ${lead.email}` : "",
+          ].filter(Boolean);
+          await sendTelegram(ch.telegram.chatId, lines.join("\n"));
+        }
+      } catch {
+        /* best-effort */
+      }
+    })();
   }
 
   return NextResponse.json({ ok: true, id: lead.id, ...(verify ? { verify } : {}) }, { status: 201 });
