@@ -144,6 +144,37 @@ export const statusLabel = (s: string) => STATUS_LABEL[s as LeadStatusKey] ?? s;
 export const sourceLabel = (s: string) => SOURCE_LABEL[s as LeadSourceKey] ?? s;
 export const priorityLabel = (p: string) => PRIORITY_LABEL[p as LeadPriorityKey] ?? p;
 
+/* ---- Activity timeline types (for the global Activity History) ---- */
+
+export const ACTIVITY_TYPE_META: Record<string, { label: string; style: string }> = {
+  created: { label: "Created", style: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
+  status: { label: "Status", style: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300" },
+  priority: { label: "Priority", style: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
+  assigned: { label: "Assigned", style: "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300" },
+  updated: { label: "Updated", style: "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300" },
+  note: { label: "Note", style: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300" },
+  call: { label: "Call", style: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" },
+  email: { label: "Email", style: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" },
+  whatsapp: { label: "WhatsApp", style: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" },
+  meeting: { label: "Meeting", style: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300" },
+  followup: { label: "Follow-up", style: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
+  score: { label: "Score", style: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300" },
+  "ai-score": { label: "AI score", style: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300" },
+  file: { label: "File", style: "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300" },
+  quotation: { label: "Quotation", style: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300" },
+};
+
+/** Filterable activity types, in a sensible display order. */
+export const ACTIVITY_TYPES = [
+  "created", "status", "priority", "assigned", "updated",
+  "note", "call", "email", "whatsapp", "meeting",
+  "followup", "score", "ai-score", "file", "quotation",
+] as const;
+
+export const activityLabel = (t: string) => ACTIVITY_TYPE_META[t]?.label ?? t;
+export const activityStyle = (t: string) =>
+  ACTIVITY_TYPE_META[t]?.style ?? "bg-stone-200 text-stone-600 dark:bg-stone-800 dark:text-stone-300";
+
 /* ---- Follow-ups (Phase 3) ---- */
 
 export const FOLLOWUP_TYPES = [
