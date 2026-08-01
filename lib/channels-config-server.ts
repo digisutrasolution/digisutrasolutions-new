@@ -4,6 +4,7 @@ import { mergeChannelsConfig, type ChannelsConfig } from "@/lib/channels-config"
 import { getOtpConfig } from "@/lib/otp-config-server";
 import { smsGatewayReady } from "@/lib/sms";
 import { telegramBotReady } from "@/lib/telegram";
+import { getSmtp, smtpReady } from "@/lib/smtp";
 
 const KEY = "channels";
 const TTL_MS = 15_000;
@@ -30,18 +31,29 @@ export async function saveChannelsConfig(raw: unknown): Promise<ChannelsConfig> 
   return clean;
 }
 
-/** What each channel can actually do right now: SMS needs the shared gateway
-    (from Verification) configured; Telegram alerts need a bot token in .env. */
+/** What each channel can actually do right now. Email needs a provider (the
+    same SMTP/Resend used everywhere); SMS needs the shared gateway (from
+    Verification); Telegram alerts need a bot token in .env. */
 export async function channelsAvailability(cfg: ChannelsConfig): Promise<{
+  emailProvider: boolean;
+  emailSend: boolean;
+  whatsappSend: boolean;
   smsGateway: boolean;
   smsSend: boolean;
   telegramBot: boolean;
   telegramAlerts: boolean;
   telegramDeepLink: boolean;
 }> {
-  const gateway = smsGatewayReady(await getOtpConfig());
+  const [gateway, emailProvider] = await Promise.all([
+    getOtpConfig().then(smsGatewayReady),
+    getSmtp().then(smtpReady),
+  ]);
+  const hasEmail = emailProvider || !!process.env.RESEND_API_KEY;
   const bot = telegramBotReady();
   return {
+    emailProvider: hasEmail,
+    emailSend: cfg.email.enabled && hasEmail,
+    whatsappSend: cfg.whatsapp.enabled, // wa.me deep link — no provider needed
     smsGateway: gateway,
     smsSend: cfg.sms.enabled && gateway,
     telegramBot: bot,

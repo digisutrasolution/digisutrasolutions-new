@@ -29,6 +29,11 @@ export async function GET(_req: Request, { params }: Params) {
   return NextResponse.json({
     ok: true,
     comms,
-    channels: { sms: avail.smsSend, telegram: avail.telegramDeepLink },
+    channels: {
+      email: avail.emailSend,
+      whatsapp: avail.whatsappSend,
+      sms: avail.smsSend,
+      telegram: avail.telegramDeepLink,
+    },
   });
 }

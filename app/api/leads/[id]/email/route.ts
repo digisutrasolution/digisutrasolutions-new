@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { canSeeAllLeads } from "@/lib/auth/rbac";
 import { logLeadActivity } from "@/lib/crm-server";
 import { sendEmail } from "@/lib/email";
+import { getChannelsConfig } from "@/lib/channels-config-server";
 import { absUrl } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
@@ -39,6 +40,11 @@ export async function POST(req: Request, { params }: Params) {
   const to = d.toAddress ?? lead.email ?? "";
   if (!to) {
     return NextResponse.json({ ok: false, error: "This lead has no email address." }, { status: 400 });
+  }
+  // Composer-only gate — transactional email (OTP, notifications, auto-replies)
+  // goes through sendEmail directly and is unaffected by this toggle.
+  if (!(await getChannelsConfig()).email.enabled) {
+    return NextResponse.json({ ok: false, error: "Email messaging is turned off in Channels." }, { status: 400 });
   }
 
   // Log first so the tracking pixel can key on the row's trackId.

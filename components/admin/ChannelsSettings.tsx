@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, CircleAlert, MessageSquare, PlayCircle, Save, Send } from "lucide-react";
+import { Check, CircleAlert, Mail, MessageCircle, MessageSquare, PlayCircle, Save, Send } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import type { ChannelsConfig } from "@/lib/channels-config";
 
 type Availability = {
+  emailProvider: boolean;
+  emailSend: boolean;
+  whatsappSend: boolean;
   smsGateway: boolean;
   smsSend: boolean;
   telegramBot: boolean;
@@ -36,7 +39,7 @@ function Chip({ ok, okText, badText }: { ok: boolean; okText: string; badText: s
 export default function ChannelsSettings() {
   const [config, setConfig] = useState<ChannelsConfig | null>(null);
   const [saved, setSaved] = useState("");
-  const [avail, setAvail] = useState<Availability>({ smsGateway: false, smsSend: false, telegramBot: false, telegramAlerts: false, telegramDeepLink: false });
+  const [avail, setAvail] = useState<Availability>({ emailProvider: false, emailSend: false, whatsappSend: false, smsGateway: false, smsSend: false, telegramBot: false, telegramAlerts: false, telegramDeepLink: false });
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState("");
   const [test, setTest] = useState<{ busy?: boolean; ok?: boolean; msg?: string }>({});
@@ -51,6 +54,8 @@ export default function ChannelsSettings() {
   if (!config) return <p className="text-xs text-stone-400">Loading…</p>;
   const c = config;
   const dirty = JSON.stringify(config) !== saved;
+  const setEmail = (patch: Partial<ChannelsConfig["email"]>) => setConfig((p) => (p ? { ...p, email: { ...p.email, ...patch } } : p));
+  const setWa = (patch: Partial<ChannelsConfig["whatsapp"]>) => setConfig((p) => (p ? { ...p, whatsapp: { ...p.whatsapp, ...patch } } : p));
   const setSms = (patch: Partial<ChannelsConfig["sms"]>) => setConfig((p) => (p ? { ...p, sms: { ...p.sms, ...patch } } : p));
   const setTg = (patch: Partial<ChannelsConfig["telegram"]>) => setConfig((p) => (p ? { ...p, telegram: { ...p.telegram, ...patch } } : p));
 
@@ -75,6 +80,35 @@ export default function ChannelsSettings() {
 
   return (
     <div className="max-w-2xl space-y-4">
+      {/* Email */}
+      <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-2 text-sm font-bold"><Mail size={16} className="text-blue-600" /> Email messaging</p>
+          <Toggle on={c.email.enabled} onClick={() => setEmail({ enabled: !c.email.enabled })} />
+        </div>
+        <p className="mt-0.5 text-[11px] text-stone-400">Show the Email tab in the lead composer.</p>
+        <div className="mt-2 flex items-center gap-2">
+          <Chip ok={avail.emailProvider} okText="provider ready" badText="configure SMTP in Settings" />
+        </div>
+        <p className="mt-2 text-[11px] text-stone-400">
+          Only affects the lead composer — OTP codes, form auto-replies and new-lead notifications always send. Set up the
+          sender under <Link href="/admin/settings" className="text-orange-600 hover:underline">Settings → email</Link>.
+        </p>
+      </div>
+
+      {/* WhatsApp */}
+      <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-2 text-sm font-bold"><MessageCircle size={16} className="text-green-600" /> WhatsApp</p>
+          <Toggle on={c.whatsapp.enabled} onClick={() => setWa({ enabled: !c.whatsapp.enabled })} />
+        </div>
+        <p className="mt-0.5 text-[11px] text-stone-400">Show the WhatsApp tab — opens wa.me with your message pre-filled.</p>
+        <div className="mt-2 flex items-center gap-2">
+          <Chip ok={avail.whatsappSend} okText="ready" badText="turned off" />
+        </div>
+        <p className="mt-2 text-[11px] text-stone-400">No gateway or secret needed — works whenever the lead has a phone number.</p>
+      </div>
+
       {/* SMS */}
       <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <div className="flex items-center justify-between">

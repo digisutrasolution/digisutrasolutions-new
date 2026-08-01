@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import { canSeeAllLeads } from "@/lib/auth/rbac";
 import { logLeadActivity } from "@/lib/crm-server";
+import { getChannelsConfig } from "@/lib/channels-config-server";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -28,6 +29,10 @@ export async function POST(req: Request, { params }: Params) {
   const parsed = Schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "Invalid input." }, { status: 400 });
+  }
+
+  if (!(await getChannelsConfig()).whatsapp.enabled) {
+    return NextResponse.json({ ok: false, error: "WhatsApp messaging is turned off in Channels." }, { status: 400 });
   }
 
   await db.commLog.create({

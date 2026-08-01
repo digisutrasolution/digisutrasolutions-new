@@ -39,7 +39,11 @@ export default function LeadComms({ leadId, lead, senderName }: { leadId: string
   const [body, setBody] = useState("");
   const [tgUser, setTgUser] = useState(tgHandle(lead.telegram ?? ""));
   const [comms, setComms] = useState<Comm[]>([]);
-  const [avail, setAvail] = useState<{ sms: boolean; telegram: boolean }>({ sms: false, telegram: false });
+  // Email + WhatsApp default on (matches config defaults) so tabs don't flash
+  // out before availability loads.
+  const [avail, setAvail] = useState<{ email: boolean; whatsapp: boolean; sms: boolean; telegram: boolean }>({
+    email: true, whatsapp: true, sms: false, telegram: false,
+  });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -63,6 +67,17 @@ export default function LeadComms({ leadId, lead, senderName }: { leadId: string
     }, 0);
     return () => clearTimeout(t);
   }, [loadComms]);
+
+  // If the selected channel becomes unavailable (admin turned it off), fall
+  // back to the first live one. Deferred per repo convention.
+  useEffect(() => {
+    const on: Record<CommChannel, boolean> = { EMAIL: avail.email, WHATSAPP: avail.whatsapp, SMS: avail.sms, TELEGRAM: avail.telegram };
+    if (on[channel]) return;
+    const first = (["EMAIL", "WHATSAPP", "SMS", "TELEGRAM"] as CommChannel[]).find((c) => on[c]);
+    if (!first) return;
+    const t = setTimeout(() => setChannel(first), 0);
+    return () => clearTimeout(t);
+  }, [avail, channel]);
 
   function pick(id: string) {
     setTemplateId(id);
@@ -146,8 +161,8 @@ export default function LeadComms({ leadId, lead, senderName }: { leadId: string
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-sm font-bold">Send a message</h2>
         <div className="inline-flex flex-wrap rounded-full border border-stone-200 p-0.5 dark:border-stone-800">
-          <button onClick={() => switchTo("EMAIL")} className={tab("EMAIL", channel === "EMAIL")}><Mail size={12} /> Email</button>
-          <button onClick={() => switchTo("WHATSAPP")} className={tab("WHATSAPP", channel === "WHATSAPP")}><MessageCircle size={12} /> WhatsApp</button>
+          {avail.email && <button onClick={() => switchTo("EMAIL")} className={tab("EMAIL", channel === "EMAIL")}><Mail size={12} /> Email</button>}
+          {avail.whatsapp && <button onClick={() => switchTo("WHATSAPP")} className={tab("WHATSAPP", channel === "WHATSAPP")}><MessageCircle size={12} /> WhatsApp</button>}
           {avail.sms && <button onClick={() => switchTo("SMS")} className={tab("SMS", channel === "SMS")}><MessageSquare size={12} /> SMS</button>}
           {avail.telegram && <button onClick={() => switchTo("TELEGRAM")} className={tab("TELEGRAM", channel === "TELEGRAM")}><Send size={12} /> Telegram</button>}
         </div>
