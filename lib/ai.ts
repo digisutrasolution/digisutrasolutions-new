@@ -74,11 +74,31 @@ async function viaGemini({ system, prompt, maxTokens }: Msg, { model }: RunOpts)
       signal: AbortSignal.timeout(45_000),
     },
   );
-  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+  if (!res.ok) {
+    const reason = await geminiError(res);
+    // 429 = free-tier quota/rate limit, not a bad key (that would be 400/403).
+    if (res.status === 429) throw new Error(`Gemini rate-limited (free-tier quota). ${reason}`.trim());
+    throw new Error(`Gemini HTTP ${res.status}${reason ? ` — ${reason}` : ""}`);
+  }
   const j = await res.json();
   const text = (j?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? "").trim();
   if (!text) throw new Error("Empty response.");
   return text;
+}
+
+/** Pull Google's human-readable reason (and any retry delay) out of an error
+    response so the admin Test button shows why, not just a status code. */
+async function geminiError(res: Response): Promise<string> {
+  try {
+    const body = await res.json();
+    const msg: string = body?.error?.message ?? "";
+    const retry = body?.error?.details?.find(
+      (d: { retryDelay?: string }) => d?.retryDelay,
+    )?.retryDelay;
+    return [msg, retry ? `Retry in ${retry}.` : ""].filter(Boolean).join(" ").slice(0, 300);
+  } catch {
+    return "";
+  }
 }
 
 const RUNNERS: Record<AiProviderId, (m: Msg, o: RunOpts) => Promise<string>> = {
