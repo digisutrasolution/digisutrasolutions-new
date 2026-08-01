@@ -44,6 +44,11 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
       CRON_SECRET: ${CRON_SECRET:-}
+      # Desktop/browser push (web-push). Generate once:
+      #   docker compose exec app node -e "console.log(require('web-push').generateVAPIDKeys())"
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:info@digisutrasolutions.com}
     ports:
       # Loopback only — Apache reverse-proxies the public side.
       - "127.0.0.1:${APP_PORT:-3105}:3000"

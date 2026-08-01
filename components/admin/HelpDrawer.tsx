@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { CircleHelp, X, BookOpen, ExternalLink } from "lucide-react";
 import { GUIDE_URL, guideUrl, helpForPath } from "@/lib/admin-help";
@@ -43,7 +44,7 @@ export default function HelpDrawer() {
         <CircleHelp size={15} aria-hidden />
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-50">
           <div
             className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm"
@@ -110,7 +111,8 @@ export default function HelpDrawer() {
               </p>
             </footer>
           </aside>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
