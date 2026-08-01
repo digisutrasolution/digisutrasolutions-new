@@ -4,7 +4,6 @@
    behaviour + non-secret endpoint details. */
 
 export type OtpChannelPolicy = "auto" | "email" | "sms" | "choose";
-export type SmsTransport = "http" | "smpp";
 
 export type OtpConfig = {
   /** Master switch. Off = forms behave exactly as before (no verification). */
@@ -15,32 +14,17 @@ export type OtpConfig = {
   ttlMinutes: number;
   maxAttempts: number;
   resendSeconds: number;
-  /** {otp} and {mins} are substituted at send time. */
+  /** OTP SMS body — {otp} and {mins} are substituted at send time. The gateway
+      that actually delivers it lives in Settings → SMS (lib/sms-config). */
   smsTemplate: string;
   email: {
     enabled: boolean;
     fromName: string;
   };
+  /** Whether OTP codes may be sent by SMS. The gateway itself is shared config
+      in Settings → SMS, not here. */
   sms: {
     enabled: boolean;
-    transport: SmsTransport;
-    /** HTTP send. URL may contain {to} {text} {otp} {sender} {dlt} {user}
-        {password}. user/password come from env, never stored here. */
-    http: {
-      url: string;
-      method: "GET" | "POST";
-      senderId: string;
-      dltTemplateId: string;
-    };
-    /** SMPP — Phase 2. Fields captured now so admins can pre-configure. */
-    smpp: {
-      host: string;
-      port: number;
-      systemId: string;
-      bindType: "transceiver" | "transmitter";
-      senderId: string;
-      dltTemplateId: string;
-    };
   };
 };
 
@@ -60,12 +44,7 @@ export const DEFAULT_OTP_CONFIG: OtpConfig = {
   resendSeconds: 45,
   smsTemplate: "Your DigiSutra verification code is {otp}. It is valid for {mins} minutes.",
   email: { enabled: true, fromName: "DigiSutra Solutions" },
-  sms: {
-    enabled: false,
-    transport: "http",
-    http: { url: "", method: "GET", senderId: "", dltTemplateId: "" },
-    smpp: { host: "", port: 2775, systemId: "", bindType: "transceiver", senderId: "", dltTemplateId: "" },
-  },
+  sms: { enabled: false },
 };
 
 const clampInt = (v: unknown, lo: number, hi: number, fallback: number) => {
@@ -82,8 +61,6 @@ export function mergeOtpConfig(raw: unknown): OtpConfig {
   const r = (raw ?? {}) as Record<string, unknown>;
   const e = (r.email ?? {}) as Record<string, unknown>;
   const s = (r.sms ?? {}) as Record<string, unknown>;
-  const http = (s.http ?? {}) as Record<string, unknown>;
-  const smpp = (s.smpp ?? {}) as Record<string, unknown>;
   const policy = str(r.channelPolicy, d.channelPolicy);
 
   return {
@@ -98,24 +75,7 @@ export function mergeOtpConfig(raw: unknown): OtpConfig {
       enabled: bool(e.enabled, d.email.enabled),
       fromName: str(e.fromName, d.email.fromName).slice(0, 80),
     },
-    sms: {
-      enabled: bool(s.enabled, d.sms.enabled),
-      transport: (str(s.transport, d.sms.transport) === "smpp" ? "smpp" : "http") as SmsTransport,
-      http: {
-        url: str(http.url, "").slice(0, 1000),
-        method: str(http.method, "GET").toUpperCase() === "POST" ? "POST" : "GET",
-        senderId: str(http.senderId, "").slice(0, 40),
-        dltTemplateId: str(http.dltTemplateId, "").slice(0, 60),
-      },
-      smpp: {
-        host: str(smpp.host, "").slice(0, 200),
-        port: clampInt(smpp.port, 1, 65535, d.sms.smpp.port),
-        systemId: str(smpp.systemId, "").slice(0, 80),
-        bindType: str(smpp.bindType, "transceiver") === "transmitter" ? "transmitter" : "transceiver",
-        senderId: str(smpp.senderId, "").slice(0, 40),
-        dltTemplateId: str(smpp.dltTemplateId, "").slice(0, 60),
-      },
-    },
+    sms: { enabled: bool(s.enabled, d.sms.enabled) },
   };
 }
 

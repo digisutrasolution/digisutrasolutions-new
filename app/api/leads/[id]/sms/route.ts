@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { canSeeAllLeads } from "@/lib/auth/rbac";
 import { logLeadActivity } from "@/lib/crm-server";
 import { getChannelsConfig } from "@/lib/channels-config-server";
-import { getOtpConfig } from "@/lib/otp-config-server";
+import { getSmsGateway } from "@/lib/sms-config-server";
 import { sendSms, smsGatewayReady } from "@/lib/sms";
 
 type Params = { params: Promise<{ id: string }> };
@@ -31,13 +31,13 @@ export async function POST(req: Request, { params }: Params) {
   if (!parsed.success) return NextResponse.json({ ok: false, error: "Invalid input." }, { status: 400 });
 
   const channels = await getChannelsConfig();
-  const otpCfg = await getOtpConfig();
+  const gateway = await getSmsGateway();
   if (!channels.sms.enabled) return NextResponse.json({ ok: false, error: "SMS messaging is turned off in Channels." }, { status: 400 });
-  if (!smsGatewayReady(otpCfg)) return NextResponse.json({ ok: false, error: "SMS gateway isn't configured (Verification → SMS)." }, { status: 400 });
+  if (!smsGatewayReady(gateway)) return NextResponse.json({ ok: false, error: "SMS gateway isn't configured (Settings → SMS)." }, { status: 400 });
   const to = (lead.whatsapp ?? "").replace(/[\s-]/g, "");
   if (!to || to === "—") return NextResponse.json({ ok: false, error: "This lead has no phone number." }, { status: 400 });
 
-  const res = await sendSms({ to, text: parsed.data.body }, otpCfg);
+  const res = await sendSms({ to, text: parsed.data.body }, gateway);
 
   await db.commLog.create({
     data: {

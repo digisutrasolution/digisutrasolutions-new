@@ -22,7 +22,7 @@ export async function PUT(req: Request) {
     action: "otp.config.update",
     entity: "settings",
     entityId: "otp",
-    meta: { enabled: config.enabled, policy: config.channelPolicy, sms: config.sms.enabled ? config.sms.transport : "off" },
+    meta: { enabled: config.enabled, policy: config.channelPolicy, sms: config.sms.enabled },
     ip: clientIp(req),
   });
   return NextResponse.json({ ok: true, config, availability: await otpAvailability(config) });

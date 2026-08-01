@@ -103,7 +103,7 @@ export default function ChannelsSettings() {
       <RailCard title="Setup checklist">
         <ChecklistItem done={avail.emailProvider} label="Email" hint={avail.emailProvider ? "provider ready" : "configure SMTP in Settings"} />
         <ChecklistItem done={c.whatsapp.enabled} label="WhatsApp" hint={c.whatsapp.enabled ? "no setup needed" : "turned off"} />
-        <ChecklistItem done={avail.smsGateway} label="SMS" hint={avail.smsGateway ? "gateway ready" : "add gateway URL in Verification"} />
+        <ChecklistItem done={avail.smsGateway} label="SMS" hint={avail.smsGateway ? "gateway ready" : "add gateway URL in Settings → SMS"} />
         <ChecklistItem done={avail.telegramBot} label="Telegram" hint={avail.telegramBot ? "bot token detected" : "set TELEGRAM_BOT_TOKEN"} />
       </RailCard>
       <RailCard title="Status">
@@ -155,8 +155,8 @@ export default function ChannelsSettings() {
           <Chip ok={avail.smsGateway} okText="gateway ready" badText="gateway not configured" />
         </div>
         <p className="mt-2 text-[11px] text-stone-400">
-          Uses the same HTTP gateway as OTP — configure the send URL, sender ID and DLT template under{" "}
-          <Link href="/admin/verification" className="text-orange-600 hover:underline">Verification → SMS</Link>. Credentials
+          Uses your shared SMS gateway — configure the send URL, sender ID and DLT template under{" "}
+          <Link href="/admin/settings" className="text-orange-600 hover:underline">Settings → SMS</Link>. Credentials
           stay in <code>.env</code> (<code>SMS_HTTP_USER</code> / <code>SMS_HTTP_PASSWORD</code>).
         </p>
       </div>

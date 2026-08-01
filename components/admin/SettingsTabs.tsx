@@ -7,6 +7,7 @@ import ContactManager from "@/components/admin/ContactManager";
 import FooterInfoManager from "@/components/admin/FooterInfoManager";
 import PaymentGatewayManager, { type PaymentsView } from "@/components/admin/PaymentGatewayManager";
 import SmtpManager, { type MaskedSmtp } from "@/components/admin/SmtpManager";
+import SmsGatewayManager from "@/components/admin/SmsGatewayManager";
 import SocialLinksManager from "@/components/admin/SocialLinksManager";
 import type { AnalyticsSettings } from "@/lib/analytics";
 import type { BotNudge } from "@/lib/bot-nudge";
@@ -15,7 +16,7 @@ import type { FooterInfo } from "@/lib/footer";
 
 type SocialLink = { key: string; label: string; followers?: string; url: string };
 
-type TabKey = "analytics" | "bot" | "email" | "contact" | "footer" | "social" | "payments";
+type TabKey = "analytics" | "bot" | "email" | "sms" | "contact" | "footer" | "social" | "payments";
 
 export default function SettingsTabs({
   analytics,
@@ -78,6 +79,12 @@ export default function SettingsTabs({
       hint: "Outgoing mail for password resets, form notifications and workflow alerts. Test the connection before saving — without working email a password reset silently sends nothing.",
     },
     {
+      key: "sms",
+      label: "SMS gateway",
+      chip: "",
+      hint: "Your own SMS platform — the shared gateway used by both lead verification (OTP codes) and lead messaging. Send URL + sender ID + DLT here; credentials in .env.",
+    },
+    {
       key: "contact",
       label: "Contact page",
       chip: `${contact.desks.length} desk${contact.desks.length === 1 ? "" : "s"}`,
@@ -131,6 +138,7 @@ export default function SettingsTabs({
       {tab === "analytics" && <AnalyticsManager settings={analytics} />}
       {tab === "bot" && <BotNudgeManager initial={botNudge} />}
       {tab === "email" && <SmtpManager initial={smtp} />}
+      {tab === "sms" && <SmsGatewayManager />}
       {tab === "contact" && <ContactManager contact={contact} />}
       {tab === "footer" && <FooterInfoManager initial={footerInfo} />}
       {tab === "social" && <SocialLinksManager initial={links} />}

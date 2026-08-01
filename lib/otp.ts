@@ -6,6 +6,7 @@ import { otpEmail } from "@/lib/email-templates";
 import { sendSms } from "@/lib/sms";
 import { logLeadActivity } from "@/lib/crm-server";
 import { getOtpConfig, otpAvailability } from "@/lib/otp-config-server";
+import { getSmsGateway } from "@/lib/sms-config-server";
 import { resolveChannel, type OtpConfig } from "@/lib/otp-config";
 
 const SECRET =
@@ -125,7 +126,7 @@ async function deliver(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (channel === "sms") {
     const text = cfg.smsTemplate.replace(/\{otp\}/g, code).replace(/\{mins\}/g, String(cfg.ttlMinutes));
-    const res = await sendSms({ to: target, text, otp: code }, cfg);
+    const res = await sendSms({ to: target, text, otp: code }, await getSmsGateway());
     return res.ok ? { ok: true } : { ok: false, error: res.error };
   }
   const mail = otpEmail(code, cfg.ttlMinutes);

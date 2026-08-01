@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { mergeChannelsConfig, type ChannelsConfig } from "@/lib/channels-config";
-import { getOtpConfig } from "@/lib/otp-config-server";
+import { getSmsGateway } from "@/lib/sms-config-server";
 import { smsGatewayReady } from "@/lib/sms";
 import { telegramBotReady } from "@/lib/telegram";
 import { getSmtp, smtpReady } from "@/lib/smtp";
@@ -45,7 +45,7 @@ export async function channelsAvailability(cfg: ChannelsConfig): Promise<{
   telegramDeepLink: boolean;
 }> {
   const [gateway, emailProvider] = await Promise.all([
-    getOtpConfig().then(smsGatewayReady),
+    getSmsGateway().then(smsGatewayReady),
     getSmtp().then(smtpReady),
   ]);
   const hasEmail = emailProvider || !!process.env.RESEND_API_KEY;

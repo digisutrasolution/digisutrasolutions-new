@@ -2,6 +2,8 @@ import "server-only";
 import { db } from "@/lib/db";
 import { mergeOtpConfig, type OtpConfig } from "@/lib/otp-config";
 import { getSmtp, smtpReady } from "@/lib/smtp";
+import { getSmsGateway } from "@/lib/sms-config-server";
+import { smsGatewayReady } from "@/lib/sms";
 
 const KEY = "otp";
 const TTL_MS = 15_000;
@@ -44,12 +46,10 @@ export async function otpAvailability(
   let smsReason: string | undefined;
   if (!cfg.sms.enabled) {
     smsReason = "SMS channel is turned off.";
-  } else if (cfg.sms.transport === "http") {
-    if (!cfg.sms.http.url) smsReason = "No SMS HTTP URL configured.";
-    else sms = true;
+  } else if (!smsGatewayReady(await getSmsGateway())) {
+    smsReason = "No SMS gateway configured (Settings → SMS).";
   } else {
-    // SMPP is captured but not yet wired (Phase 2).
-    smsReason = "SMPP transport is not enabled yet — switch to HTTP for now.";
+    sms = true;
   }
 
   return {

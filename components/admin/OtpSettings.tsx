@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Check, ChevronRight, CircleAlert, PlayCircle, Save, ShieldCheck } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import { OTP_CHANNEL_POLICIES, type OtpConfig } from "@/lib/otp-config";
@@ -67,10 +68,6 @@ export default function OtpSettings() {
   const set = (patch: Partial<OtpConfig>) => setConfig((p) => (p ? { ...p, ...patch } : p));
   const setEmail = (patch: Partial<OtpConfig["email"]>) => setConfig((p) => (p ? { ...p, email: { ...p.email, ...patch } } : p));
   const setSms = (patch: Partial<OtpConfig["sms"]>) => setConfig((p) => (p ? { ...p, sms: { ...p.sms, ...patch } } : p));
-  const setHttp = (patch: Partial<OtpConfig["sms"]["http"]>) =>
-    setConfig((p) => (p ? { ...p, sms: { ...p.sms, http: { ...p.sms.http, ...patch } } } : p));
-  const setSmpp = (patch: Partial<OtpConfig["sms"]["smpp"]>) =>
-    setConfig((p) => (p ? { ...p, sms: { ...p.sms, smpp: { ...p.sms.smpp, ...patch } } } : p));
   const num = (v: string, fallback: number) => (Number.isFinite(parseInt(v, 10)) ? parseInt(v, 10) : fallback);
 
   async function save() {
@@ -239,106 +236,19 @@ export default function OtpSettings() {
         </div>
 
         {!c.sms.enabled ? (
-          <p className="mt-3 text-[11px] text-stone-400">Turn on to configure the gateway, sender ID and message.</p>
+          <p className="mt-3 text-[11px] text-stone-400">Turn on to send verification codes by SMS.</p>
         ) : (
-        <div className="settings-reveal">
-        <div className="mt-3">
-          <p className={label}>Transport</p>
-          <div className="flex gap-2">
-            {(["http", "smpp"] as const).map((tr) => (
-              <button
-                key={tr}
-                onClick={() => setSms({ transport: tr })}
-                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  c.sms.transport === tr
-                    ? "border-transparent bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
-                    : "border-stone-300 text-stone-600 hover:border-orange-400 dark:border-stone-700 dark:text-stone-300"
-                }`}
-              >
-                {tr === "http" ? "HTTP API" : "SMPP"}
-              </button>
-            ))}
+          <div className="settings-reveal">
+            <div className="mt-3">
+              <label className={label}>OTP message</label>
+              <input value={c.smsTemplate} onChange={(e) => set({ smsTemplate: e.target.value })} className={`${inputCls} w-full`} />
+              <p className="mt-1 text-[11px] text-stone-400">Use <code>{"{otp}"}</code> for the code and <code>{"{mins}"}</code> for the expiry.</p>
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-stone-400">
+              Delivery uses your shared SMS gateway — set the send URL, sender ID and DLT under{" "}
+              <Link href="/admin/settings" className="text-orange-600 hover:underline">Settings → SMS</Link>. Credentials stay in .env.
+            </p>
           </div>
-        </div>
-
-        {c.sms.transport === "http" ? (
-          <div className="mt-3 space-y-3">
-            <div>
-              <label className={label}>Send URL template</label>
-              <input
-                value={c.sms.http.url}
-                onChange={(e) => setHttp({ url: e.target.value })}
-                placeholder="https://sms.yourgw.com/send?user={user}&pass={password}&to={to}&from={sender}&text={text}&dlt={dlt}"
-                className={`${inputCls} w-full`}
-              />
-              <p className="mt-1 text-[11px] text-stone-400">
-                Placeholders: <code>{"{to} {text} {otp} {sender} {dlt} {user} {password}"}</code>. Keep credentials out of
-                here — set <code>SMS_HTTP_USER</code> / <code>SMS_HTTP_PASSWORD</code> in .env and reference them as{" "}
-                <code>{"{user}"}</code> / <code>{"{password}"}</code>.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <div>
-                <label className={label}>Method</label>
-                <select value={c.sms.http.method} onChange={(e) => setHttp({ method: e.target.value === "POST" ? "POST" : "GET" })} className={inputCls}>
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                </select>
-              </div>
-              <div>
-                <label className={label}>Sender ID</label>
-                <input value={c.sms.http.senderId} onChange={(e) => setHttp({ senderId: e.target.value })} placeholder="DIGSUT" className={`${inputCls} w-32`} />
-              </div>
-              <div>
-                <label className={label}>DLT template id</label>
-                <input value={c.sms.http.dltTemplateId} onChange={(e) => setHttp({ dltTemplateId: e.target.value })} className={`${inputCls} w-44`} />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-3 space-y-3">
-            <div className="rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-              SMPP delivery isn&rsquo;t wired yet (Phase 2). You can pre-fill the bind here; use the HTTP transport to go live now.
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <div>
-                <label className={label}>Host</label>
-                <input value={c.sms.smpp.host} onChange={(e) => setSmpp({ host: e.target.value })} placeholder="smpp.yourgw.com" className={`${inputCls} w-48`} />
-              </div>
-              <div>
-                <label className={label}>Port</label>
-                <input type="number" value={c.sms.smpp.port} onChange={(e) => setSmpp({ port: num(e.target.value, 2775) })} className={`${inputCls} w-24`} />
-              </div>
-              <div>
-                <label className={label}>System ID</label>
-                <input value={c.sms.smpp.systemId} onChange={(e) => setSmpp({ systemId: e.target.value })} className={`${inputCls} w-40`} />
-              </div>
-              <div>
-                <label className={label}>Bind</label>
-                <select value={c.sms.smpp.bindType} onChange={(e) => setSmpp({ bindType: e.target.value === "transmitter" ? "transmitter" : "transceiver" })} className={inputCls}>
-                  <option value="transceiver">transceiver</option>
-                  <option value="transmitter">transmitter</option>
-                </select>
-              </div>
-              <div>
-                <label className={label}>Sender ID</label>
-                <input value={c.sms.smpp.senderId} onChange={(e) => setSmpp({ senderId: e.target.value })} className={`${inputCls} w-32`} />
-              </div>
-              <div>
-                <label className={label}>DLT template id</label>
-                <input value={c.sms.smpp.dltTemplateId} onChange={(e) => setSmpp({ dltTemplateId: e.target.value })} className={`${inputCls} w-44`} />
-              </div>
-            </div>
-            <p className="text-[11px] text-stone-400">SMPP password → <code>SMS_SMPP_PASSWORD</code> in .env.</p>
-          </div>
-        )}
-
-        <div className="mt-3">
-          <label className={label}>Message text</label>
-          <input value={c.smsTemplate} onChange={(e) => set({ smsTemplate: e.target.value })} className={`${inputCls} w-full`} />
-          <p className="mt-1 text-[11px] text-stone-400">Use <code>{"{otp}"}</code> for the code and <code>{"{mins}"}</code> for the expiry.</p>
-        </div>
-        </div>
         )}
       </div>
 
