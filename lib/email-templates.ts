@@ -57,24 +57,19 @@ ${footerHtml}
 </html>`;
 }
 
-/* Branded header: an orange gradient bar (solid fallback for Outlook) with a
-   logo mark + wordmark, and an optional badge chip on the right for internal
-   alerts. `tone` is kept for signature stability but the header is always the
-   branded orange bar now. */
+/* Branded header: a clean white band carrying the real DigiSutra logo, an
+   orange accent rule beneath, and an optional badge chip on the right for
+   internal alerts. `tone` is kept for signature stability. */
 function header(label: string, tone: "dark" | "orange"): string {
   void tone;
+  const logo = `${SITE_URL}/logo.png`;
   const badge = label
-    ? `<span style="display:inline-block;background:rgba(255,255,255,0.20);color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:0.4px;text-transform:uppercase;padding:4px 11px;border-radius:99px;">${escapeHtml(label)}</span>`
+    ? `<span style="display:inline-block;background:${ORANGE};color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:0.4px;text-transform:uppercase;padding:5px 11px;border-radius:99px;">${escapeHtml(label)}</span>`
     : "";
-  return `<tr><td style="background:${ORANGE};background-image:linear-gradient(135deg,#F26419,#E0510A);padding:20px 30px;">
+  return `<tr><td style="background:#ffffff;padding:22px 30px 18px;border-bottom:3px solid ${ORANGE};">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td style="vertical-align:middle;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td style="vertical-align:middle;padding-right:10px;">
-<div style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.22);text-align:center;line-height:30px;color:#ffffff;font-size:16px;font-weight:bold;">&#10022;</div>
-</td>
-<td style="vertical-align:middle;color:#ffffff;font-size:16px;font-weight:bold;letter-spacing:0.3px;">DigiSutra <span style="font-weight:normal;font-style:italic;">Solutions</span></td>
-</tr></table>
+<img src="${logo}" alt="DigiSutra Solutions" height="40" style="display:block;height:40px;width:auto;border:0;outline:none;text-decoration:none;">
 </td>
 <td align="right" style="vertical-align:middle;">${badge}</td>
 </tr></table>
