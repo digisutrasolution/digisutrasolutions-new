@@ -830,3 +830,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .otp-shake, .otp-pop { animation: none; }
 }
+
+/* Settings progressive-disclosure reveal (SettingsLayout channel cards) */
+@keyframes settingsReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+.settings-reveal { animation: settingsReveal 0.28s ease; }
+@media (prefers-reduced-motion: reduce) { .settings-reveal { animation: none; } }

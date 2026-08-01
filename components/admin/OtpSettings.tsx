@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Check, CircleAlert, PlayCircle, Save, ShieldCheck } from "lucide-react";
+import { Check, ChevronRight, CircleAlert, PlayCircle, Save, ShieldCheck } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import { OTP_CHANNEL_POLICIES, type OtpConfig } from "@/lib/otp-config";
 import SettingsLayout, { RailCard, ChecklistItem } from "@/components/admin/SettingsLayout";
@@ -208,28 +208,40 @@ export default function OtpSettings() {
       <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <div className="flex items-center justify-between">
           <p className="flex items-center gap-2 text-sm font-semibold">Email channel</p>
-          <Toggle on={c.email.enabled} onClick={() => setEmail({ enabled: !c.email.enabled })} />
+          <div className="flex items-center gap-2">
+            <ChevronRight size={15} aria-hidden className={`text-stone-400 transition-transform ${c.email.enabled ? "rotate-90" : ""}`} />
+            <Toggle on={c.email.enabled} onClick={() => setEmail({ enabled: !c.email.enabled })} />
+          </div>
         </div>
         <div className="mt-2 flex items-center gap-2">
           <Chip ok={avail.email} okText="ready" badText={avail.emailReason ?? "not ready"} />
         </div>
-        <div className="mt-3">
-          <label className={label}>From name</label>
-          <input value={c.email.fromName} onChange={(e) => setEmail({ fromName: e.target.value })} className={`${inputCls} w-full`} />
-          <p className="mt-1 text-[11px] text-stone-400">Uses your configured SMTP (Settings → email). Secrets stay in .env.</p>
-        </div>
+        {c.email.enabled && (
+          <div className="settings-reveal mt-3">
+            <label className={label}>From name</label>
+            <input value={c.email.fromName} onChange={(e) => setEmail({ fromName: e.target.value })} className={`${inputCls} w-full`} />
+            <p className="mt-1 text-[11px] text-stone-400">Uses your configured SMTP (Settings → email). Secrets stay in .env.</p>
+          </div>
+        )}
       </div>
 
       {/* SMS channel */}
       <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold">SMS channel</p>
-          <Toggle on={c.sms.enabled} onClick={() => setSms({ enabled: !c.sms.enabled })} />
+          <div className="flex items-center gap-2">
+            <ChevronRight size={15} aria-hidden className={`text-stone-400 transition-transform ${c.sms.enabled ? "rotate-90" : ""}`} />
+            <Toggle on={c.sms.enabled} onClick={() => setSms({ enabled: !c.sms.enabled })} />
+          </div>
         </div>
         <div className="mt-2 flex items-center gap-2">
           <Chip ok={avail.sms} okText="ready" badText={avail.smsReason ?? "not ready"} />
         </div>
 
+        {!c.sms.enabled ? (
+          <p className="mt-3 text-[11px] text-stone-400">Turn on to configure the gateway, sender ID and message.</p>
+        ) : (
+        <div className="settings-reveal">
         <div className="mt-3">
           <p className={label}>Transport</p>
           <div className="flex gap-2">
@@ -326,6 +338,8 @@ export default function OtpSettings() {
           <input value={c.smsTemplate} onChange={(e) => set({ smsTemplate: e.target.value })} className={`${inputCls} w-full`} />
           <p className="mt-1 text-[11px] text-stone-400">Use <code>{"{otp}"}</code> for the code and <code>{"{mins}"}</code> for the expiry.</p>
         </div>
+        </div>
+        )}
       </div>
 
       {/* Test */}

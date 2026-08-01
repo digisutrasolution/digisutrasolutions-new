@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, CircleAlert, Mail, MessageCircle, MessageSquare, PlayCircle, Save, Send } from "lucide-react";
+import { Check, ChevronRight, CircleAlert, Mail, MessageCircle, MessageSquare, PlayCircle, Save, Send } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import type { ChannelsConfig } from "@/lib/channels-config";
 import SettingsLayout, { RailCard, ChecklistItem } from "@/components/admin/SettingsLayout";
@@ -179,22 +179,29 @@ export default function ChannelsSettings() {
               <p className="text-sm font-semibold">Team alerts</p>
               <p className="text-[11px] text-stone-400">Post every new lead to your team&rsquo;s Telegram chat via the bot.</p>
             </div>
-            <Toggle on={c.telegram.alerts} onClick={() => setTg({ alerts: !c.telegram.alerts })} />
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            <Chip ok={avail.telegramBot} okText="bot token detected" badText="set TELEGRAM_BOT_TOKEN in .env" />
-          </div>
-          <div className="mt-3 flex flex-wrap items-end gap-2">
-            <div>
-              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">Team chat id</label>
-              <input value={c.telegram.chatId} onChange={(e) => setTg({ chatId: e.target.value })} placeholder="-1001234567890" className={`${inputCls} w-56`} />
+            <div className="flex items-center gap-2">
+              <ChevronRight size={15} aria-hidden className={`text-stone-400 transition-transform ${c.telegram.alerts ? "rotate-90" : ""}`} />
+              <Toggle on={c.telegram.alerts} onClick={() => setTg({ alerts: !c.telegram.alerts })} />
             </div>
-            <button onClick={() => void sendTest()} disabled={test.busy || !c.telegram.chatId} className="flex items-center gap-1 rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300">
-              <PlayCircle size={13} /> {test.busy ? "Sending…" : "Send test"}
-            </button>
-            {test.msg && <span className={`text-xs font-semibold ${test.ok ? "text-green-600" : "text-red-500"}`}>{test.msg}</span>}
           </div>
-          <p className="mt-2 text-[11px] text-stone-400">Add your bot to the group and use the group&rsquo;s chat id. The bot token is a secret and lives in <code>.env</code>.</p>
+          {c.telegram.alerts && (
+            <div className="settings-reveal">
+              <div className="mt-2 flex items-center gap-2">
+                <Chip ok={avail.telegramBot} okText="bot token detected" badText="set TELEGRAM_BOT_TOKEN in .env" />
+              </div>
+              <div className="mt-3 flex flex-wrap items-end gap-2">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">Team chat id</label>
+                  <input value={c.telegram.chatId} onChange={(e) => setTg({ chatId: e.target.value })} placeholder="-1001234567890" className={`${inputCls} w-56`} />
+                </div>
+                <button onClick={() => void sendTest()} disabled={test.busy || !c.telegram.chatId} className="flex items-center gap-1 rounded-lg border border-stone-300 px-2.5 py-1.5 text-xs font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300">
+                  <PlayCircle size={13} /> {test.busy ? "Sending…" : "Send test"}
+                </button>
+                {test.msg && <span className={`text-xs font-semibold ${test.ok ? "text-green-600" : "text-red-500"}`}>{test.msg}</span>}
+              </div>
+              <p className="mt-2 text-[11px] text-stone-400">Add your bot to the group and use the group&rsquo;s chat id. The bot token is a secret and lives in <code>.env</code>.</p>
+            </div>
+          )}
         </div>
       </div>
 
