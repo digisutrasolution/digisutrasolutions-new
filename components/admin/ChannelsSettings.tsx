@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, CircleAlert, Mail, MessageCircle, MessageSquare, PlayCircle, Save, Send } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import type { ChannelsConfig } from "@/lib/channels-config";
+import SettingsLayout, { RailCard, ChecklistItem } from "@/components/admin/SettingsLayout";
 
 type Availability = {
   emailProvider: boolean;
@@ -78,8 +79,42 @@ export default function ChannelsSettings() {
     } catch { setTest({ ok: false, msg: "Request failed." }); }
   }
 
+  // Live preview / status — recomputed from the current (unsaved) toggles.
+  const emailOn = c.email.enabled && avail.emailProvider;
+  const waOn = c.whatsapp.enabled;
+  const smsOn = c.sms.enabled && avail.smsGateway;
+  const tgOn = c.telegram.deepLink;
+  const liveCount = [emailOn, waOn, smsOn, tgOn].filter(Boolean).length;
+  const previewTab = (on: boolean, label: string) => (
+    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${on ? "bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900" : "border border-stone-200 text-stone-400 opacity-60 dark:border-stone-700"}`}>{label}</span>
+  );
+
+  const rail = (
+    <>
+      <RailCard title="Lead composer preview">
+        <div className="flex flex-wrap gap-1.5">
+          {previewTab(emailOn, "Email")}
+          {previewTab(waOn, "WhatsApp")}
+          {previewTab(smsOn, "SMS")}
+          {previewTab(tgOn, "Telegram")}
+        </div>
+        <p className="mt-2.5 text-[11px] leading-relaxed text-stone-400">Exactly what your team sees on a lead — dimmed channels are off or not configured.</p>
+      </RailCard>
+      <RailCard title="Setup checklist">
+        <ChecklistItem done={avail.emailProvider} label="Email" hint={avail.emailProvider ? "provider ready" : "configure SMTP in Settings"} />
+        <ChecklistItem done={c.whatsapp.enabled} label="WhatsApp" hint={c.whatsapp.enabled ? "no setup needed" : "turned off"} />
+        <ChecklistItem done={avail.smsGateway} label="SMS" hint={avail.smsGateway ? "gateway ready" : "add gateway URL in Verification"} />
+        <ChecklistItem done={avail.telegramBot} label="Telegram" hint={avail.telegramBot ? "bot token detected" : "set TELEGRAM_BOT_TOKEN"} />
+      </RailCard>
+      <RailCard title="Status">
+        <p className="text-2xl font-extrabold tracking-tight">{liveCount}<span className="text-sm font-semibold text-stone-400"> / 4 live</span></p>
+        <p className="mt-0.5 text-[11px] text-stone-400">channels your team can use right now</p>
+      </RailCard>
+    </>
+  );
+
   return (
-    <div className="max-w-2xl space-y-4">
+    <SettingsLayout rail={rail}>
       {/* Email */}
       <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <div className="flex items-center justify-between">
@@ -170,6 +205,6 @@ export default function ChannelsSettings() {
         {dirty && !flash && <span className="text-xs font-semibold text-amber-600">Unsaved changes</span>}
         {flash && <span className="flex items-center gap-1 text-xs font-semibold text-green-600"><Check size={12} /> {flash}</span>}
       </div>
-    </div>
+    </SettingsLayout>
   );
 }

@@ -57,20 +57,78 @@ ${footerHtml}
 </html>`;
 }
 
+/* Branded header: an orange gradient bar (solid fallback for Outlook) with a
+   logo mark + wordmark, and an optional badge chip on the right for internal
+   alerts. `tone` is kept for signature stability but the header is always the
+   branded orange bar now. */
 function header(label: string, tone: "dark" | "orange"): string {
-  const bg = tone === "orange" ? ORANGE : INK;
-  const text =
-    tone === "orange"
-      ? `<span style="color:#ffffff;font-size:15px;font-weight:bold;letter-spacing:0.3px;">${escapeHtml(label)}</span>`
-      : `<span style="color:#ffffff;font-size:16px;font-weight:bold;letter-spacing:0.5px;">DIGI<span style="color:${ORANGE};">SUTRA</span> SOLUTIONS</span>`;
-  return `<tr><td style="background:${bg};padding:18px 30px;">${text}</td></tr>`;
+  void tone;
+  const badge = label
+    ? `<span style="display:inline-block;background:rgba(255,255,255,0.20);color:#ffffff;font-size:11px;font-weight:bold;letter-spacing:0.4px;text-transform:uppercase;padding:4px 11px;border-radius:99px;">${escapeHtml(label)}</span>`
+    : "";
+  return `<tr><td style="background:${ORANGE};background-image:linear-gradient(135deg,#F26419,#E0510A);padding:20px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td style="vertical-align:middle;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td style="vertical-align:middle;padding-right:10px;">
+<div style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.22);text-align:center;line-height:30px;color:#ffffff;font-size:16px;font-weight:bold;">&#10022;</div>
+</td>
+<td style="vertical-align:middle;color:#ffffff;font-size:16px;font-weight:bold;letter-spacing:0.3px;">DigiSutra <span style="font-weight:normal;font-style:italic;">Solutions</span></td>
+</tr></table>
+</td>
+<td align="right" style="vertical-align:middle;">${badge}</td>
+</tr></table>
+</td></tr>`;
 }
 
 function footer(note: string): string {
-  return `<tr><td style="background:#F5F1EC;padding:18px 30px;text-align:center;font-size:11px;line-height:1.7;color:#8A7A6B;">
+  const url = SITE_URL || "https://digisutrasolutions.com";
+  return `<tr><td style="background:#F7F3EE;padding:22px 30px;text-align:center;font-family:${FONT};border-top:1px solid #EFE4D7;">
+<div style="font-size:13px;font-weight:bold;color:#44403C;">DigiSutra Solutions</div>
+<div style="font-size:11px;color:#A8A29E;margin-top:2px;">Growth marketing &amp; web development</div>
+<div style="margin-top:11px;font-size:11px;">
+<a href="${escapeHtml(url)}" style="color:${ORANGE};text-decoration:none;font-weight:bold;">Website</a>
+<span style="color:#D6D3D1;">&nbsp;&middot;&nbsp;</span>
+<a href="${escapeHtml(url)}/contact" style="color:${ORANGE};text-decoration:none;font-weight:bold;">Contact</a>
+</div>
+<div style="margin-top:12px;font-size:11px;line-height:1.7;color:#A8A29E;">
 ${escapeHtml(note)}<br>
 DigiSutra Solutions &middot; B-521, iThum Tower, Sector 62, Noida, Uttar Pradesh 201309
+</div>
 </td></tr>`;
+}
+
+/**
+ * Customer-facing one-time-code email (lead verification). Uses the shared
+ * branded shell with a spaced, single-use code and a security note.
+ */
+export function otpEmail(code: string, minutes: number): Email {
+  const body = `<h1 style="margin:0 0 12px;font-size:21px;line-height:1.3;color:${INK};">Verify your email</h1>
+<p style="${P}">Enter this code to confirm it&rsquo;s really you. For your security it expires soon and can only be used once.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 4px;">
+<tr><td style="background:#FFF6EF;border:1px solid #FFD9C2;border-radius:12px;padding:18px;text-align:center;">
+<div style="font-size:10px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#C2703F;padding-bottom:8px;">Your verification code</div>
+<div style="font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:bold;letter-spacing:10px;color:#9A3412;padding-left:10px;">${escapeHtml(code)}</div>
+</td></tr></table>
+<p style="margin:12px 0 0;text-align:center;font-size:12px;color:#A8A29E;">Expires in ${minutes} minutes</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #EFE4D7;font-size:12px;line-height:1.6;color:#A8A29E;">Didn&rsquo;t request this? You can safely ignore this email — nothing will change, and no one can act on it without the code.</p>`;
+
+  const text = [
+    "Verify your email",
+    "",
+    `Your DigiSutra verification code is ${code}.`,
+    `It expires in ${minutes} minutes and can only be used once.`,
+    "",
+    "Didn't request this? You can safely ignore this email.",
+    "",
+    "—",
+    "DigiSutra Solutions · B-521, iThum Tower, Sector 62, Noida",
+  ].join("\n");
+
+  return {
+    html: shell(header("", "orange"), body, footer("You received this because a verification was requested for this address on digisutrasolutions.com.")),
+    text,
+  };
 }
 
 const P = `margin:0 0 14px;font-size:14px;line-height:1.65;color:${MUTED};`;

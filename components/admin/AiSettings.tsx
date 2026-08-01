@@ -6,6 +6,7 @@ import { withBase } from "@/lib/base-path";
 import {
   AI_PROVIDER_META, type AiConfig, type AiProvider, type AiProviderId,
 } from "@/lib/ai-config";
+import SettingsLayout, { RailCard, ChecklistItem } from "@/components/admin/SettingsLayout";
 
 type Availability = Record<AiProviderId, boolean>;
 type TestState = { busy?: boolean; ok?: boolean; ms?: number; error?: string };
@@ -62,23 +63,33 @@ export default function AiSettings() {
 
   const activeChain = config.providers.filter((p) => p.enabled && avail[p.id]).map((p) => AI_PROVIDER_META[p.id].label);
 
-  return (
-    <div className="max-w-2xl space-y-4">
-      <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">Active chain</p>
-        <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm">
-          {activeChain.length === 0 ? (
-            <span className="text-amber-600">No provider is usable — enable one with its credential set.</span>
-          ) : activeChain.map((label, i) => (
-            <span key={label} className="flex items-center gap-1.5">
-              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-950 dark:text-orange-300">{label}</span>
-              {i < activeChain.length - 1 && <span className="text-stone-400">→</span>}
-            </span>
-          ))}
-        </p>
-        <p className="mt-1.5 text-[11px] text-stone-400">Requests try providers top-to-bottom until one answers. Reorder below.</p>
-      </div>
+  const rail = (
+    <>
+      <RailCard title="Active chain">
+        {activeChain.length === 0 ? (
+          <p className="text-xs text-amber-600">No provider is usable — enable one with its credential set.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {activeChain.map((label, i) => (
+              <div key={label} className="flex items-center gap-2 text-xs">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-[10px] font-bold text-orange-700 dark:bg-orange-950 dark:text-orange-300">{i + 1}</span>
+                <span className="font-semibold">{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="mt-2.5 text-[11px] leading-relaxed text-stone-400">Requests try providers top-to-bottom until one answers.</p>
+      </RailCard>
+      <RailCard title="Providers">
+        {config.providers.map((p) => (
+          <ChecklistItem key={p.id} done={avail[p.id]} label={AI_PROVIDER_META[p.id].label} hint={avail[p.id] ? "ready" : "credential missing"} />
+        ))}
+      </RailCard>
+    </>
+  );
 
+  return (
+    <SettingsLayout rail={rail}>
       {/* Ollama URL */}
       <div className="rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">Ollama URL</label>
@@ -142,6 +153,6 @@ export default function AiSettings() {
         {dirty && !flash && <span className="text-xs font-semibold text-amber-600">Unsaved changes</span>}
         {flash && <span className="flex items-center gap-1 text-xs font-semibold text-green-600"><Sparkles size={12} /> {flash}</span>}
       </div>
-    </div>
+    </SettingsLayout>
   );
 }

@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { otpEmail } from "@/lib/email-templates";
 import { sendSms } from "@/lib/sms";
 import { logLeadActivity } from "@/lib/crm-server";
 import { getOtpConfig, otpAvailability } from "@/lib/otp-config-server";
@@ -127,8 +128,13 @@ async function deliver(
     const res = await sendSms({ to: target, text, otp: code }, cfg);
     return res.ok ? { ok: true } : { ok: false, error: res.error };
   }
-  const mail = otpEmail(code, cfg.ttlMinutes, cfg.email.fromName);
-  const res = await sendEmail({ to: [target], subject: mail.subject, text: mail.text, html: mail.html });
+  const mail = otpEmail(code, cfg.ttlMinutes);
+  const res = await sendEmail({
+    to: [target],
+    subject: `${code} is your ${cfg.email.fromName} verification code`,
+    text: mail.text,
+    html: mail.html,
+  });
   return res.ok ? { ok: true } : { ok: false, error: res.error };
 }
 
@@ -191,34 +197,3 @@ async function stampLead(leadId: string, channel: "email" | "sms"): Promise<void
   });
 }
 
-/** Branded transactional email carrying the code. */
-function otpEmail(code: string, mins: number, fromName: string): { subject: string; text: string; html: string } {
-  const subject = `${code} is your ${fromName} verification code`;
-  const text = `Your verification code is ${code}. It is valid for ${mins} minutes. If you didn't request this, you can ignore this email.`;
-  const html = `<!doctype html><html><body style="margin:0;background:#faf7f3;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1c1917">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px">
-    <tr><td align="center">
-      <table role="presentation" width="100%" style="max-width:440px;background:#fff;border:1px solid #eee7e1;border-radius:16px;overflow:hidden">
-        <tr><td style="padding:28px 30px 8px">
-          <div style="font-weight:800;font-size:16px;letter-spacing:-.02em">${escapeHtml(fromName)}</div>
-        </td></tr>
-        <tr><td style="padding:8px 30px 0">
-          <h1 style="margin:0;font-size:20px;font-weight:800">Verify your email</h1>
-          <p style="margin:8px 0 0;font-size:14px;color:#78716c;line-height:1.6">Enter this code to confirm it's really you. It expires in ${mins} minutes.</p>
-        </td></tr>
-        <tr><td style="padding:22px 30px">
-          <div style="background:#fff1e9;border:1px solid #ffd9c2;border-radius:12px;padding:18px;text-align:center;font-size:34px;font-weight:800;letter-spacing:10px;color:#9a3412">${escapeHtml(code)}</div>
-        </td></tr>
-        <tr><td style="padding:0 30px 28px">
-          <p style="margin:0;font-size:12px;color:#a8a29e;line-height:1.6">Didn't request this? You can safely ignore this email — no changes will be made.</p>
-        </td></tr>
-      </table>
-      <p style="margin:16px 0 0;font-size:11px;color:#c2bcb6">© ${escapeHtml(fromName)}</p>
-    </td></tr>
-  </table></body></html>`;
-  return { subject, text, html };
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
-}

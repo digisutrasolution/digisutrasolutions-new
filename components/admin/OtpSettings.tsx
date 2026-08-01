@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, CircleAlert, PlayCircle, Save, ShieldCheck } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import { OTP_CHANNEL_POLICIES, type OtpConfig } from "@/lib/otp-config";
+import SettingsLayout, { RailCard, ChecklistItem } from "@/components/admin/SettingsLayout";
 
 type Availability = { email: boolean; sms: boolean; emailReason?: string; smsReason?: string };
 
@@ -117,8 +118,31 @@ export default function OtpSettings() {
     }
   }
 
+  const channelWord = c.channelPolicy === "email" ? "email" : c.channelPolicy === "sms" ? "phone" : "email or phone";
+  const rail = (
+    <>
+      <RailCard title="What the visitor sees">
+        <div className="rounded-xl border border-stone-200 bg-white p-3 text-center dark:border-stone-800 dark:bg-stone-900">
+          <p className="text-xs font-bold">Verify your {channelWord}</p>
+          <p className="text-[10px] text-stone-400">a {c.codeLength}-digit code is sent to your {channelWord}</p>
+          <div className="mt-2 flex justify-center gap-1">
+            {Array.from({ length: c.codeLength }).map((_, i) => (
+              <span key={i} className="h-6 w-5 rounded-md border-[1.5px] border-stone-300 dark:border-stone-600" />
+            ))}
+          </div>
+        </div>
+        <p className="mt-2.5 text-[11px] leading-relaxed text-stone-400">{c.enabled ? "Live on your public forms now." : "Turned off — forms behave normally."}</p>
+      </RailCard>
+      <RailCard title="Setup checklist">
+        <ChecklistItem done={c.enabled} label="Verification" hint={c.enabled ? "on" : "turn on the master switch"} />
+        <ChecklistItem done={avail.email} label="Email channel" hint={avail.email ? "ready" : avail.emailReason ?? "not ready"} />
+        <ChecklistItem done={avail.sms} label="SMS channel" hint={avail.sms ? "ready" : avail.smsReason ?? "not ready"} />
+      </RailCard>
+    </>
+  );
+
   return (
-    <div className="max-w-2xl space-y-4">
+    <SettingsLayout rail={rail}>
       {/* Master switch */}
       <div className="flex items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
         <div>
@@ -333,6 +357,6 @@ export default function OtpSettings() {
         {dirty && !flash && <span className="text-xs font-semibold text-amber-600">Unsaved changes</span>}
         {flash && <span className="flex items-center gap-1 text-xs font-semibold text-green-600"><Check size={12} /> {flash}</span>}
       </div>
-    </div>
+    </SettingsLayout>
   );
 }
