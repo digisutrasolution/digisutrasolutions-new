@@ -42,8 +42,65 @@ export default async function SiteLayout({
         })),
     ]),
   };
+
+  // Local-business identity — helps the local pack / Business Profile and gives
+  // Google a canonical entity for the brand.
+  const businessJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": `${SITE_URL}/#business`,
+    name: "DigiSutra Solutions",
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    image: `${SITE_URL}/logo.png`,
+    description:
+      "Growth marketing, SEO & AI search optimization, performance marketing, web/app development and AI automation — your growth, our sutra.",
+    slogan: "Your growth, our sutra.",
+    telephone: "+91-120-475-1400",
+    email: "Info@digisutrasolutions.com",
+    priceRange: "₹₹",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "B-521, iThum Tower B, Sector 62",
+      addressLocality: "Noida",
+      addressRegion: "Uttar Pradesh",
+      postalCode: "201309",
+      addressCountry: "IN",
+    },
+    areaServed: "Worldwide",
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "00:00",
+      closes: "23:59",
+    },
+    sameAs: [
+      "https://www.linkedin.com/company/digisutrasolutionsofficial/",
+      "https://www.instagram.com/digisutrasolutions",
+      "https://www.facebook.com/profile.php?id=61585578555272",
+      "https://x.com/Digisutra__",
+      "https://www.youtube.com/@DigiSutraSolutions",
+    ],
+  };
+
+  // WebSite + SearchAction — enables the sitelinks search box.
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
+    name: "DigiSutra Solutions",
+    url: SITE_URL,
+    publisher: { "@id": `${SITE_URL}/#business` },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/search?q={search_term_string}` },
+      "query-input": "required name=search_term_string",
+    },
+  };
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(businessJsonLd)} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(websiteJsonLd)} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(navJsonLd)}

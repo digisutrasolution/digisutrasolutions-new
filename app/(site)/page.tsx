@@ -2,6 +2,11 @@
    self-hosted deploys where the build runs before the DB is reachable. */
 export const revalidate = 300;
 
+import { SITE_URL } from "@/lib/site";
+
+/** Self-canonical for the homepage — prevents trailing-slash / param dilution. */
+export const metadata = { alternates: { canonical: SITE_URL } };
+
 import {
   getLiveCaseStudies,
   getLiveClientLogos,
