@@ -4,6 +4,11 @@ import { db } from "@/lib/db";
 import { liveTools } from "@/lib/free-tools";
 import { SITE_URL } from "@/lib/site";
 
+/* Rendered on demand, not baked at build. On this self-hosted deploy the build
+   runs before the DB is reachable, so a static sitemap froze empty and never
+   picked up posts published later from the admin. Dynamic = always current. */
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = SITE_URL;
 
