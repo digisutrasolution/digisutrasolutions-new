@@ -36,13 +36,17 @@ export default function AuditCta() {
               </p>
               <ul className="mt-6 grid max-w-md grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {AUDIT_CHECKS.map((c, i) => (
-                  <Reveal key={c} delay={0.12 + i * 0.09} y={10}>
-                    <li className="flex items-center gap-2 text-sm font-medium text-white">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 transition-colors duration-300 hover:bg-white/35">
-                        <Check size={12} aria-hidden />
-                      </span>
-                      {c}
-                    </li>
+                  <Reveal
+                    as="li"
+                    key={c}
+                    delay={0.12 + i * 0.09}
+                    y={10}
+                    className="flex items-center gap-2 text-sm font-medium text-white"
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 transition-colors duration-300 hover:bg-white/35">
+                      <Check size={12} aria-hidden />
+                    </span>
+                    {c}
                   </Reveal>
                 ))}
               </ul>

@@ -159,13 +159,17 @@ export default function FreeAuditPage() {
                 </p>
                 <ul className="mt-6 grid max-w-md grid-cols-1 gap-2.5">
                   {PROMISES.map((p, i) => (
-                    <Reveal key={p} delay={0.12 + i * 0.08} y={10}>
-                      <li className="flex items-center gap-2 text-sm font-medium text-white">
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/25">
-                          <Check size={12} strokeWidth={3} aria-hidden />
-                        </span>
-                        {p}
-                      </li>
+                    <Reveal
+                      as="li"
+                      key={p}
+                      delay={0.12 + i * 0.08}
+                      y={10}
+                      className="flex items-center gap-2 text-sm font-medium text-white"
+                    >
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/25">
+                        <Check size={12} strokeWidth={3} aria-hidden />
+                      </span>
+                      {p}
                     </Reveal>
                   ))}
                 </ul>

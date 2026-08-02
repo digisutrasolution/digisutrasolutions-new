@@ -8,6 +8,9 @@ type RevealProps = {
   delay?: number;
   y?: number;
   className?: string;
+  /* Element to render. Defaults to a div; pass "li" so a Reveal used inside a
+     <ul>/<ol> keeps valid list semantics (an <li> must be a direct child). */
+  as?: "div" | "li" | "span";
 };
 
 export default function Reveal({
@@ -15,11 +18,13 @@ export default function Reveal({
   delay = 0,
   y = 24,
   className,
+  as = "div",
 }: RevealProps) {
   const reduced = useReducedMotion();
+  const MotionTag = motion[as];
 
   return (
-    <motion.div
+    <MotionTag
       className={className}
       initial={reduced ? false : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -27,6 +32,6 @@ export default function Reveal({
       transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1], delay }}
     >
       {children}
-    </motion.div>
+    </MotionTag>
   );
 }

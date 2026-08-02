@@ -2,9 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Analytics from "@/components/Analytics";
 import TrackPageview from "@/components/TrackPageview";
-import BackToTop from "@/components/BackToTop";
-import FloatingCall from "@/components/FloatingCall";
-import SutraBot from "@/components/SutraBot";
+import DeferredWidgets from "@/components/DeferredWidgets";
 import { getAnalytics } from "@/lib/analytics";
 import { getBotNudge } from "@/lib/bot-nudge";
 import { getFeaturedPost, getLiveNav } from "@/lib/menu";
@@ -116,10 +114,10 @@ export default async function SiteLayout({
       </main>
       <Footer />
       {/* WhatsAppFab is intentionally unmounted — WhatsApp now lives inside
-          the bot panel, the footer contact tiles and the contact page. */}
-      <SutraBot nudge={botNudge} />
-      <BackToTop />
-      <FloatingCall />
+          the bot panel, the footer contact tiles and the contact page.
+          The remaining floating widgets are code-split and mounted on idle /
+          first interaction so their JS stays off the critical path. */}
+      <DeferredWidgets nudge={botNudge} />
     </>
   );
 }
