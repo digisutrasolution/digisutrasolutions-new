@@ -12,7 +12,7 @@ import { jsonLdScript } from "@/lib/jsonld";
 export const metadata: Metadata = {
   title: "Marketing ROI Calculator: Estimate Leads & Revenue",
   description:
-    "Free ROI calculator for Indian businesses — move the sliders to see the enquiries, orders and revenue a monthly marketing budget could return, with the assumptions shown.",
+    "Free ROI calculator for Indian businesses — move the sliders to see the enquiries, orders and revenue a monthly marketing budget could return.",
   alternates: { canonical: `${SITE_URL}/free-tools/roi-calculator` },
 };
 

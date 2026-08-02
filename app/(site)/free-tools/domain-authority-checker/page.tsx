@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Domain Health Checker: Security, Indexability & Speed",
   description:
-    "Free domain checker — see whether a site is reachable, secure, indexable and fast, with the signals that actually affect rankings. No invented authority scores.",
+    "Free domain checker — see whether a site is reachable, secure, indexable and fast, with the real signals that affect rankings. No fake DA scores.",
   alternates: { canonical: `${SITE_URL}/free-tools/domain-authority-checker` },
 };
 
