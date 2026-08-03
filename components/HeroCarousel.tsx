@@ -47,7 +47,7 @@ const SLIDE_MS = 5200;
 
 type SlideTheme = "light" | "dark" | "orange" | "cream";
 
-type TrustChip = { label: string; icon: LucideIcon };
+type TrustChip = { value: string; label: string; icon: LucideIcon };
 
 type Slide = {
   eyebrow: string;
@@ -65,9 +65,9 @@ const SLIDES: Slide[] = [
     cta: { label: "Get free strategy call ↗", href: "/contact" },
     cta2: { label: "View our services", href: "/#services" },
     trust: [
-      { label: "120+ happy clients", icon: Users },
-      { label: "12 countries served", icon: Earth },
-      { label: "5.8× avg client ROAS", icon: ChartLine },
+      { value: "120+", label: "happy clients", icon: Users },
+      { value: "12", label: "countries served", icon: Earth },
+      { value: "5.8×", label: "avg client ROAS", icon: ChartLine },
     ],
     theme: "dark",
   },
@@ -77,9 +77,9 @@ const SLIDES: Slide[] = [
     cta: { label: "Explore development ↗", href: "/services/website-design-development" },
     cta2: { label: "See our work", href: "/work" },
     trust: [
-      { label: "250+ projects shipped", icon: Code },
-      { label: "214ms avg response", icon: Zap },
-      { label: "ISO 27001", icon: ShieldCheck },
+      { value: "250+", label: "projects shipped", icon: Code },
+      { value: "214ms", label: "avg response", icon: Zap },
+      { value: "ISO 27001", label: "certified", icon: ShieldCheck },
     ],
     theme: "dark",
   },
@@ -92,9 +92,9 @@ const SLIDES: Slide[] = [
        nowhere. /work is there either way. */
     cta2: { label: "View case studies", href: "/work" },
     trust: [
-      { label: "24/7 always on", icon: Bot },
-      { label: "80% auto-resolved", icon: MessageCircle },
-      { label: "Human handoff built in", icon: Users },
+      { value: "24/7", label: "always on", icon: Bot },
+      { value: "80%", label: "auto-resolved", icon: MessageCircle },
+      { value: "Human", label: "handoff built in", icon: Users },
     ],
     theme: "dark",
   },
@@ -104,9 +104,9 @@ const SLIDES: Slide[] = [
     cta: { label: "Launch your store ↗", href: "/services/ecommerce-development" },
     cta2: { label: "View pricing", href: "/pricing" },
     trust: [
-      { label: "Sub-second loads", icon: Zap },
-      { label: "UPI + cards + EMI", icon: CreditCard },
-      { label: "Logistics-ready", icon: Truck },
+      { value: "<1s", label: "store loads", icon: Zap },
+      { value: "UPI + EMI", label: "payments", icon: CreditCard },
+      { value: "Logistics", label: "ready", icon: Truck },
     ],
     theme: "dark",
   },
@@ -829,20 +829,24 @@ export default function HeroCarousel() {
               >
                 {slide.copy}
               </motion.p>
+              {/* Mobile: full-width, stacked — the primary fills the row (no
+                  dead gutter) and reads as the single focus; the secondary sits
+                  right beneath it, subordinate. From sm up it reverts to the
+                  original inline pill row untouched. */}
               <motion.div
                 variants={itemVariants}
-                className="mt-7 flex flex-wrap items-center gap-3"
+                className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
               >
                 <Link
                   href={slide.cta.href}
-                  className="shine-sweep inline-block rounded-full bg-[#F26419] px-7 py-3.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+                  className="shine-sweep block w-full rounded-2xl bg-[#F26419] px-7 py-4 text-center text-sm font-bold text-white shadow-[0_10px_22px_rgba(242,100,25,0.34)] transition-transform hover:-translate-y-0.5 sm:inline-block sm:w-auto sm:rounded-full sm:py-3.5 sm:font-semibold sm:shadow-none"
                 >
                   {slide.cta.label}
                 </Link>
                 {slide.cta2 && (
                   <Link
                     href={slide.cta2.href}
-                    className={`inline-block rounded-full border px-7 py-3.5 text-sm font-semibold transition-all hover:-translate-y-0.5 ${
+                    className={`block w-full rounded-2xl border px-7 py-3.5 text-center text-sm font-semibold transition-all hover:-translate-y-0.5 sm:inline-block sm:w-auto sm:rounded-full ${
                       isDarkText
                         ? "border-white/40 text-white hover:bg-white/10"
                         : "border-stone-300 text-stone-800 hover:border-orange-500"
@@ -853,16 +857,29 @@ export default function HeroCarousel() {
                 )}
               </motion.div>
               {slide.trust && (
-                <motion.div
-                  variants={itemVariants}
-                  className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-stone-400"
-                >
-                  {slide.trust.map((t) => (
-                    <span key={t.label} className="flex items-center gap-1.5">
-                      <t.icon size={13} className="text-[#F26419]" aria-hidden />
-                      {t.label}
-                    </span>
-                  ))}
+                <motion.div variants={itemVariants} className="mt-6">
+                  {/* Mobile: aligned strip — value stacked over its label. */}
+                  <div className="flex justify-between gap-2 border-t border-white/10 pt-4 sm:hidden">
+                    {slide.trust.map((t) => (
+                      <div key={t.label} className="flex flex-col">
+                        <span className="text-sm font-bold text-white">
+                          {t.value}
+                        </span>
+                        <span className="text-[11px] text-stone-400">
+                          {t.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* sm and up: original inline icon chips, unchanged. */}
+                  <div className="hidden flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-stone-400 sm:flex">
+                    {slide.trust.map((t) => (
+                      <span key={t.label} className="flex items-center gap-1.5">
+                        <t.icon size={13} className="text-[#F26419]" aria-hidden />
+                        {t.value} {t.label}
+                      </span>
+                    ))}
+                  </div>
                 </motion.div>
               )}
             </div>
