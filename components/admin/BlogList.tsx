@@ -38,9 +38,11 @@ function slugify(value: string): string {
 export default function BlogList({
   posts,
   canPublish,
+  canDelete,
 }: {
   posts: PostRow[];
   canPublish: boolean;
+  canDelete: boolean;
 }) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
@@ -290,11 +292,10 @@ export default function BlogList({
                         Restore
                       </button>
                     )}
-                    {/* Gated like Archive/Restore: permanent deletion should
-                        never be open to a role that cannot even perform the
-                        reversible retire. (The API itself only requires
-                        blog.manage, so this UI is the stricter of the two.) */}
-                    {canPublish && p.status === "ARCHIVED" && (
+                    {/* Its own blog.delete permission — grant it per role in
+                        Roles & permissions. Only offered once a post is
+                        archived, and the API refuses to delete a live one. */}
+                    {canDelete && p.status === "ARCHIVED" && (
                       <button
                         onClick={() => void remove(p)}
                         disabled={busy}

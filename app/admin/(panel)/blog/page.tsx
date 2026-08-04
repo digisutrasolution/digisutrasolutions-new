@@ -40,6 +40,7 @@ export default async function AdminBlogPage() {
             updatedAt: p.updatedAt.toISOString(),
           }))}
           canPublish={userCan(user, "blog.publish")}
+          canDelete={userCan(user, "blog.delete")}
         />
       </div>
     </div>

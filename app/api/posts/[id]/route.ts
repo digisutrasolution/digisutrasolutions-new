@@ -105,7 +105,9 @@ export async function PATCH(req: Request, { params }: Params) {
 }
 
 export async function DELETE(req: Request, { params }: Params) {
-  const { user, error } = await requirePermission("blog.manage");
+  // Its own permission (not blog.manage) so deletion can be granted per role
+  // from the admin matrix — it is irreversible, unlike archiving.
+  const { user, error } = await requirePermission("blog.delete");
   if (error) return error;
   const { id } = await params;
 

@@ -26,6 +26,10 @@ export const PERMISSIONS = {
   "media.upload": ["SUPER_ADMIN", "DEVELOPER", "SEO_MANAGER"],
   "blog.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "blog.publish": ["SUPER_ADMIN"],
+  // Permanently delete an archived article. Separate from blog.manage so it can
+  // be granted (or withheld) per role in the admin matrix — deletion is
+  // irreversible, unlike archiving.
+  "blog.delete": ["SUPER_ADMIN"],
   "forms.manage": ["SUPER_ADMIN", "DEVELOPER"],
   "ai.use": ["SUPER_ADMIN", "DEVELOPER", "SEO_MANAGER"],
   "videos.manage": ["SUPER_ADMIN", "DEVELOPER", "SEO_MANAGER"],
@@ -161,6 +165,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "media.upload": { label: "Upload media", group: "Content" },
   "blog.manage": { label: "Manage blog", group: "Content" },
   "blog.publish": { label: "Publish blog", group: "Content" },
+  "blog.delete": { label: "Delete blog articles (permanent)", group: "Content" },
   "forms.manage": { label: "Manage forms", group: "Content" },
   "videos.manage": { label: "Manage videos", group: "Content" },
   "comments.moderate": { label: "Moderate comments", group: "Content" },
