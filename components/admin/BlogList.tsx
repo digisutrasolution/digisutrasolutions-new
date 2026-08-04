@@ -5,7 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, ExternalLink, FilePlus2, Pencil } from "lucide-react";
+import { Archive, ExternalLink, FilePlus2, Pencil, Trash2 } from "lucide-react";
 import type { PageStatus } from "@prisma/client";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -89,6 +89,29 @@ export default function BlogList({
     setBusy(false);
     if (!res.ok || !json.ok) {
       setError(json.error ?? "Action failed.");
+      return;
+    }
+    router.refresh();
+  }
+
+  /* Permanent delete — offered only on archived posts, which are already
+     retired from the site. The API refuses to delete a PUBLISHED post, so a
+     live article can never be removed in one click by mistake. */
+  async function remove(post: PostRow) {
+    if (
+      !window.confirm(
+        `Delete "${post.title}" permanently? This cannot be undone — the article and its comments are removed for good.`,
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    const res = await fetch(withBase(`/api/posts/${post.id}`), { method: "DELETE" });
+    const json = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok || !json.ok) {
+      setError(json.error ?? "Could not delete the post.");
       return;
     }
     router.refresh();
@@ -215,18 +238,24 @@ export default function BlogList({
                     >
                       <Pencil size={15} aria-hidden />
                     </Link>
-                    {p.status === "PUBLISHED" && (
-                      <a
-                        href={`/blog/${p.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`View ${p.title}`}
-                        title="View live"
-                        className="rounded-lg p-2 text-stone-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
-                      >
-                        <ExternalLink size={15} aria-hidden />
-                      </a>
-                    )}
+                    <a
+                      href={withBase(
+                        p.status === "PUBLISHED"
+                          ? `/blog/${p.slug}`
+                          : `/blog/${p.slug}?preview=1`,
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={
+                        p.status === "PUBLISHED"
+                          ? `View ${p.title}`
+                          : `Preview draft of ${p.title}`
+                      }
+                      title={p.status === "PUBLISHED" ? "View live" : "Preview draft"}
+                      className="rounded-lg p-2 text-stone-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
+                    >
+                      <ExternalLink size={15} aria-hidden />
+                    </a>
                     {canPublish && p.status !== "ARCHIVED" && (
                       <button
                         onClick={() => void act(p, p.status === "PUBLISHED" ? "unpublish" : "publish")}
@@ -259,6 +288,21 @@ export default function BlogList({
                         className="cursor-pointer rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 transition-colors hover:border-orange-500 dark:border-stone-700 dark:text-stone-300"
                       >
                         Restore
+                      </button>
+                    )}
+                    {/* Gated like Archive/Restore: permanent deletion should
+                        never be open to a role that cannot even perform the
+                        reversible retire. (The API itself only requires
+                        blog.manage, so this UI is the stricter of the two.) */}
+                    {canPublish && p.status === "ARCHIVED" && (
+                      <button
+                        onClick={() => void remove(p)}
+                        disabled={busy}
+                        aria-label={`Delete ${p.title}`}
+                        title="Delete permanently — cannot be undone"
+                        className="cursor-pointer rounded-lg p-2 text-stone-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:hover:bg-stone-800"
+                      >
+                        <Trash2 size={15} aria-hidden />
                       </button>
                     )}
                   </div>

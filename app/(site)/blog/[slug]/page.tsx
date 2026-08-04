@@ -12,6 +12,7 @@ import ShareRail from "@/components/blog/ShareRail";
 import BlogBody from "@/components/BlogBody";
 import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth/session";
 import { categoryByDb, extractHeadings, extractTakeaways } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPost(slug);
-  if (!post || post.status !== "PUBLISHED") return {};
+  // A draft reachable via ?preview=1 must never be indexable, so give the
+  // unpublished case explicit noindex rather than empty metadata.
+  if (!post || post.status !== "PUBLISHED") {
+    return { robots: { index: false, follow: false } };
+  }
   return {
     title: post.seoTitle ?? post.title,
     description: post.seoDescription ?? post.excerpt ?? undefined,
@@ -52,12 +57,24 @@ const dateFmt = (d: Date) =>
 
 export default async function BlogPostPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const { slug } = await params;
+  const { preview } = await searchParams;
   const post = await getPost(slug);
-  if (!post || post.status !== "PUBLISHED") {
+
+  /* Draft preview, mirroring the CMS pages route: a signed-in team member can
+     open an unpublished article with ?preview=1 and see the real article page.
+     Without this an author who cannot publish (blog.publish is super-admin
+     only) had no way to check their draft — the editor's Preview toggle only
+     renders the body markdown, not the cover, hero, TOC or rails. */
+  const isDraft = !post || post.status !== "PUBLISHED";
+  const previewer = isDraft && preview === "1" ? await getCurrentUser() : null;
+
+  if (!post || (isDraft && !previewer)) {
     // A post that was live and then unpublished/archived leaves a 301 to its
     // category hub (see /api/posts/[id]/publish) so old links + Google don't
     // hit a dead 404.
@@ -170,6 +187,11 @@ export default async function BlogPostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(jsonLd)}
       />
+      {isDraft && (
+        <div className="fixed inset-x-0 top-0 z-[60] bg-amber-400 py-1.5 text-center text-xs font-semibold text-amber-950">
+          Draft preview — this article is not publicly visible
+        </div>
+      )}
       <nav aria-label="Breadcrumb" className="text-xs text-stone-400">
         <Link href="/" className="hover:text-orange-700">
           Home
