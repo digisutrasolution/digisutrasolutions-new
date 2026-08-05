@@ -17,6 +17,7 @@ import {
   sourceTextFor,
   type BotNudge,
 } from "@/lib/bot-nudge";
+import { makeSpamToken } from "@/lib/spam";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
@@ -136,9 +137,11 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
   // Time-trap baseline for the lead endpoint; stamped after mount because
   // calling Date.now() during render is impure.
   const startedAt = useRef(0);
+  const jsToken = useRef("");
 
   useEffect(() => {
     startedAt.current = Date.now();
+    jsToken.current = makeSpamToken();
   }, []);
 
 
@@ -330,6 +333,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           source: "SUTRABOT",
           hp: lead.hp,
           startedAt: startedAt.current,
+          jsToken: jsToken.current,
         }),
       });
       const json = await res.json().catch(() => ({}));

@@ -8,11 +8,15 @@ import { notifyRoles } from "@/lib/notify";
 import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl } from "@/lib/email-templates";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { spamNote } from "@/lib/spam";
+import { assessSubmission } from "@/lib/spam-server";
 
 const SubmitSchema = z.object({
   slug: z.string().trim().min(1).max(80),
   data: z.record(z.string(), z.unknown()),
   website: z.string().optional(), // honeypot
+  jsToken: z.string().max(40).optional(), // proof the page script ran
+  startedAt: z.number().optional(), // time-trap — form render timestamp
 });
 
 /** Public endpoint used by embedded form sections on the site. */
@@ -34,10 +38,6 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  if (parsed.data.website) {
-    return NextResponse.json({ ok: true }); // honeypot: pretend success
-  }
-
   const form = await db.form.findUnique({
     where: { slug: parsed.data.slug },
   });
@@ -54,6 +54,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
   }
 
+  /* Dynamic forms have no fixed field names, so score the mapped lead fields
+     plus the whole answer set as the message body. Stored either way — a
+     quarantined submission is kept but routed to SPAM and never notified. */
+  const mapped = leadFromSubmission(result.clean);
+  const spam = assessSubmission(
+    {
+      name: mapped.name,
+      email: mapped.email,
+      message: Object.values(result.clean)
+        .filter((v) => typeof v === "string")
+        .join("\n")
+        .slice(0, 4000),
+      honeypot: Boolean(parsed.data.website),
+      elapsedMs: parsed.data.startedAt ? Date.now() - parsed.data.startedAt : null,
+      token: parsed.data.jsToken,
+    },
+    ip,
+  );
+  const quarantined = spam.verdict === "spam";
+
   await db.formSubmission.create({
     data: {
       formId: form.id,
@@ -69,7 +89,7 @@ export async function POST(req: Request) {
   // "lead" forms also drop a real Lead into the pipeline so the leads desk
   // works them like any contact enquiry; "submission" forms just notify.
   if (form.destination === "lead") {
-    const lead = leadFromSubmission(result.clean);
+    const lead = mapped;
     const created = await db.lead
       .create({
         data: {
@@ -81,19 +101,22 @@ export async function POST(req: Request) {
           timeline: lead.timeline || null,
           heardFrom: lead.heardFrom || null,
           source: "FORM",
-          notes: `Via form: ${form.name}`,
+          ...(quarantined ? { status: "SPAM" as const } : {}),
+          notes: [`Via form: ${form.name}`, spamNote(spam)].filter(Boolean).join(" "),
         },
       })
       .catch(() => null);
-    // Auto-route + score (best-effort, never blocks).
-    if (created) onLeadCreated(created);
-    void notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
-      type: "lead",
-      title: `New lead from "${form.name}"`,
-      body: `${lead.name}${lead.whatsapp ? ` · ${lead.whatsapp}` : ""}`.slice(0, 140),
-      link: "/admin/leads",
-    });
-  } else {
+    // Auto-route + score (best-effort, never blocks). Junk stays unassigned.
+    if (created && !quarantined) onLeadCreated(created);
+    if (!quarantined) {
+      void notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
+        type: "lead",
+        title: `New lead from "${form.name}"`,
+        body: `${lead.name}${lead.whatsapp ? ` · ${lead.whatsapp}` : ""}`.slice(0, 140),
+        link: "/admin/leads",
+      });
+    }
+  } else if (!quarantined) {
     void notifyRoles(["SUPER_ADMIN"], {
       type: "form",
       title: `New "${form.name}" submission`,
@@ -101,7 +124,7 @@ export async function POST(req: Request) {
       link: "/admin/forms",
     });
   }
-  if (form.notifyEmail) {
+  if (form.notifyEmail && !quarantined) {
     const mail = alertEmail({
       badge: "New form submission",
       title: form.name,

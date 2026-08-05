@@ -18,6 +18,8 @@ import { sendTelegram } from "@/lib/telegram";
 import { getScoringConfig } from "@/lib/scoring-server";
 import { leadScopeWhere } from "@/lib/auth/rbac";
 import { sourceLabel } from "@/lib/crm";
+import { spamNote } from "@/lib/spam";
+import { assessSubmission } from "@/lib/spam-server";
 
 const LeadSchema = z.object({
   name: z.string().trim().min(2).max(90),
@@ -37,6 +39,7 @@ const LeadSchema = z.object({
   source: z.enum(["CONTACT", "AUDIT", "ESTIMATOR", "SUTRABOT"]).optional(),
   hp: z.string().optional(),          // honeypot — must stay empty
   startedAt: z.number().optional(),   // time-trap — form render timestamp
+  jsToken: z.string().max(40).optional(), // proof the page script ran
 });
 
 /** Public: create a lead (contact page, audit band, estimator). */
@@ -60,20 +63,26 @@ export async function POST(req: Request) {
   }
   const d = parsed.data;
 
-  /* Spam signals are recorded, not obeyed.
-     Both heuristics have real false positives: a password manager can fill
-     a hidden honeypot, and a visitor whose draft was restored from
-     localStorage can submit within three seconds of the page loading.
-     Discarding those silently loses genuine enquiries while still showing
-     the sender a success screen, so the lead is stored with a note and
-     the admin decides. The response is identical either way, so a real
-     bot still learns nothing. */
+  /* Spam signals are scored, not obeyed. Every heuristic here has real false
+     positives — a password manager can fill a hidden honeypot, a restored
+     draft can submit within three seconds, a visitor may block scripts — so
+     the lead is ALWAYS stored and only its routing changes. A high score
+     parks it in the SPAM bucket instead of the pipeline; the response is
+     identical either way, so a real bot still learns nothing. */
   const elapsed = d.startedAt ? Date.now() - d.startedAt : null;
-  const flags: string[] = [];
-  if (d.hp) flags.push("honeypot field was filled");
-  if (elapsed !== null && elapsed < 3000) {
-    flags.push(`submitted ${(elapsed / 1000).toFixed(1)}s after the page loaded`);
-  }
+  const spam = assessSubmission(
+    {
+      name: d.name,
+      email: d.email,
+      message: d.message,
+      company: d.company,
+      honeypot: Boolean(d.hp),
+      elapsedMs: elapsed,
+      token: d.jsToken,
+    },
+    ip,
+  );
+  const quarantined = spam.verdict === "spam";
 
   const whatsapp = d.whatsapp.replace(/[\s-]/g, "");
   const duplicate = await db.lead.findFirst({
@@ -96,10 +105,11 @@ export async function POST(req: Request) {
       department: d.department ?? null,
       heardFrom: d.heardFrom ?? null,
       source: d.source ?? "CONTACT",
+      ...(quarantined ? { status: "SPAM" as const } : {}),
       notes:
         [
           duplicate ? "Possible duplicate: same WhatsApp within 24h." : null,
-          flags.length ? `Possible spam: ${flags.join("; ")}.` : null,
+          spamNote(spam),
         ]
           .filter(Boolean)
           .join(" ") || null,
@@ -110,11 +120,17 @@ export async function POST(req: Request) {
   void logLeadActivity({
     leadId: lead.id,
     type: "created",
-    message: `Lead captured from ${sourceLabel(lead.source)}`,
+    message: quarantined
+      ? `Quarantined as spam (score ${spam.score}) from ${sourceLabel(lead.source)}`
+      : `Lead captured from ${sourceLabel(lead.source)}`,
   });
 
-  // Auto-route to an owner and score the lead (best-effort, never blocks).
-  onLeadCreated(lead);
+  /* Auto-route to an owner and score the lead (best-effort, never blocks).
+     Quarantined leads are deliberately left unassigned and unscored — junk
+     must never land in a salesperson's queue or fire the lead.created
+     webhook. Restoring the lead's status from the desk re-runs nothing, so
+     an admin can assign it by hand if it turns out to be genuine. */
+  if (!quarantined) onLeadCreated(lead);
 
   /* Soft verification (Phase 1): if OTP is enabled, issue a code and hand the
      client a masked challenge. The lead is already captured — this only lets
@@ -123,7 +139,7 @@ export async function POST(req: Request) {
   let verify:
     | { id: string; channel: "email" | "sms"; target: string; length: number; resendSeconds: number; ttlMinutes: number }
     | null = null;
-  if (flags.length === 0) {
+  if (!quarantined) {
     try {
       const otp = await issueChallenge({
         leadId: lead.id,
@@ -142,7 +158,7 @@ export async function POST(req: Request) {
      Goes through sendEmail rather than calling Resend directly — this used
      to bypass it, so the desk alert kept needing a RESEND_API_KEY even after
      SMTP was configured in the admin. */
-  {
+  if (!quarantined) {
     const contactConfig = await getContactConfig();
     const to = process.env.CONTACT_TO_EMAIL ?? deskEmail(contactConfig, d.department);
     const mail = alertEmail({
@@ -174,10 +190,10 @@ export async function POST(req: Request) {
       ...(d.email ? { replyTo: d.email } : {}),
     });
 
-    /* Auto-reply to the enquirer. Only when they gave an email, only when the
-       submission is not flagged as spam — confirming receipt to a spammer
-       just turns this into a mail relay for them. */
-    if (d.email && flags.length === 0) {
+    /* Auto-reply to the enquirer. Only when they gave an email — confirming
+       receipt to a spammer just turns this into a mail relay for them, which
+       is why the whole block is skipped for quarantined submissions. */
+    if (d.email) {
       const ack = thankYouEmail({
         name: lead.name,
         summary: [
@@ -196,8 +212,8 @@ export async function POST(req: Request) {
     }
   }
 
-  // Suspected spam lands in the list but does not ping anyone.
-  if (flags.length === 0) {
+  // Quarantined spam lands in the SPAM bucket but does not ping anyone.
+  if (!quarantined) {
     notifyRoles(["SUPER_ADMIN", "SEO_MANAGER"], {
     type: "LEAD_NEW",
     title: `New lead: ${lead.name}`,

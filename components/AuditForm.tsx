@@ -2,8 +2,9 @@
 
 import { withBase } from "@/lib/base-path";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
+import { makeSpamToken } from "@/lib/spam";
 
 const WA_HREF =
   "https://wa.me/919953900123?text=" +
@@ -18,6 +19,17 @@ export default function AuditForm() {
     "idle",
   );
   const [error, setError] = useState("");
+  const startedAt = useRef<number>(0);
+  const jsToken = useRef<string>("");
+
+  // Arm the time-trap and mint the proof-of-JS token once mounted.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      startedAt.current = Date.now();
+      jsToken.current = makeSpamToken();
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,6 +48,8 @@ export default function AuditForm() {
           siteUrl: data.siteUrl,
           service: "Free growth audit",
           hp: data.hp,
+          startedAt: startedAt.current,
+          jsToken: jsToken.current,
         }),
       });
       const json = await res.json().catch(() => ({}));

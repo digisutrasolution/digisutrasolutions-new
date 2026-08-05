@@ -7,6 +7,8 @@ import { onLeadCreated } from "@/lib/lead-intake";
 import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { getSmtp, smtpReady } from "@/lib/smtp";
+import { spamNote } from "@/lib/spam";
+import { assessSubmission } from "@/lib/spam-server";
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
@@ -33,6 +35,8 @@ type Payload = {
   message?: string;
   website?: string; // honeypot (legacy contact form) — real users never fill this
   hp?: string; // honeypot (audit form)
+  jsToken?: string; // proof the page script ran
+  startedAt?: number; // time-trap — form render timestamp
 };
 
 export async function POST(req: Request) {
@@ -52,11 +56,6 @@ export async function POST(req: Request) {
       { ok: false, error: "Invalid request." },
       { status: 400 },
     );
-  }
-
-  if (body.website || body.hp) {
-    // Honeypot tripped — pretend success so bots learn nothing.
-    return NextResponse.json({ ok: true });
   }
 
   const name = (body.name ?? "").trim().slice(0, 200);
@@ -83,6 +82,25 @@ export async function POST(req: Request) {
     );
   }
 
+  /* Score rather than silently drop. A tripped honeypot used to return a fake
+     success and store nothing, which also threw away the occasional genuine
+     enquiry a password manager had auto-filled. Now every submission is kept
+     — a quarantined one just lands in the SPAM bucket and sends no mail. The
+     response is unchanged either way, so a bot still learns nothing. */
+  const spam = assessSubmission(
+    {
+      name,
+      email,
+      message,
+      company: body.company,
+      honeypot: Boolean(body.website || body.hp),
+      elapsedMs: body.startedAt ? Date.now() - body.startedAt : null,
+      token: body.jsToken,
+    },
+    ip,
+  );
+  const quarantined = spam.verdict === "spam";
+
   // The saved lead is the source of truth — the enquiry is captured here,
   // and email below is only a notification. Success is decided by whether
   // this write lands, NOT by whether the email sends: a captured lead that
@@ -101,12 +119,14 @@ export async function POST(req: Request) {
         budget: (body.budget ?? "").trim().slice(0, 60) || null,
         message,
         source: "AUDIT",
+        ...(quarantined ? { status: "SPAM" as const } : {}),
+        notes: spamNote(spam),
         ipHash: createHash("sha256").update(ip).digest("hex").slice(0, 24),
       },
     });
     leadSaved = true;
-    // Auto-route + score (best-effort, never blocks).
-    onLeadCreated(lead);
+    // Auto-route + score (best-effort, never blocks). Junk is left unassigned.
+    if (!quarantined) onLeadCreated(lead);
   } catch {
     /* DB write failed — email below becomes the only capture path. */
   }
@@ -128,7 +148,9 @@ export async function POST(req: Request) {
   /* Goes through sendEmail so the admin's SMTP settings are honoured; this
      used to call Resend directly, so the alert kept needing an API key even
      after SMTP was configured. */
-  const hasProvider = smtpReady(await getSmtp()) || Boolean(process.env.RESEND_API_KEY);
+  // Quarantined submissions send nothing — no desk alert, no auto-reply.
+  const hasProvider =
+    !quarantined && (smtpReady(await getSmtp()) || Boolean(process.env.RESEND_API_KEY));
   let emailed = false;
 
   if (hasProvider) {
@@ -182,6 +204,10 @@ export async function POST(req: Request) {
         html: ack.html,
       });
     }
+  } else if (quarantined) {
+    console.warn(
+      `Contact form: submission quarantined as spam (score ${spam.score}) — stored, no email sent.`,
+    );
   } else {
     console.warn("Contact form: RESEND_API_KEY not set — lead saved, no email sent.");
     if (process.env.NODE_ENV !== "production") {

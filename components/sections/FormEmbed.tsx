@@ -2,8 +2,9 @@
 
 import { withBase } from "@/lib/base-path";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormField } from "@/lib/cms/forms";
+import { makeSpamToken } from "@/lib/spam";
 
 const inputCls =
   "w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200";
@@ -14,6 +15,14 @@ export default function FormEmbed({ slug }: { slug: string }) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const startedAt = useRef<number>(0);
+  const jsToken = useRef<string>("");
+
+  // Arm the time-trap and mint the proof-of-JS token once mounted.
+  useEffect(() => {
+    startedAt.current = Date.now();
+    jsToken.current = makeSpamToken();
+  }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -39,7 +48,13 @@ export default function FormEmbed({ slug }: { slug: string }) {
       const res = await fetch(withBase("/api/form-submissions"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, data, website: data.website }),
+        body: JSON.stringify({
+          slug,
+          data,
+          website: data.website,
+          startedAt: startedAt.current,
+          jsToken: jsToken.current,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.ok) {

@@ -17,6 +17,7 @@ import CountrySelect from "@/components/contact/CountrySelect";
 import ServicePicker, { type ServiceOption } from "@/components/contact/ServicePicker";
 import OtpVerify, { type Challenge } from "@/components/OtpVerify";
 import { HEARD_FROM } from "@/lib/contact-channels";
+import { makeSpamToken } from "@/lib/spam";
 import type { ContactConfig, DeskIcon } from "@/lib/contact-config";
 
 const DESK_ICON: Record<DeskIcon, LucideIcon> = {
@@ -111,6 +112,7 @@ export default function LeadForm({
   const [errMsg, setErrMsg] = useState("");
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const startedAt = useRef<number>(0);
+  const jsToken = useRef<string>("");
   const leadIdRef = useRef<string | null>(null);
   const router = useRouter();
 
@@ -118,6 +120,8 @@ export default function LeadForm({
   useEffect(() => {
     const t = setTimeout(() => {
       startedAt.current = Date.now();
+      // Proof the page script ran — bots posting raw JSON never mint one.
+      jsToken.current = makeSpamToken();
       try {
         const raw = localStorage.getItem(DRAFT_KEY);
         if (raw) setF((prev) => ({ ...prev, ...JSON.parse(raw) }));
@@ -191,6 +195,7 @@ export default function LeadForm({
           source: "CONTACT",
           hp: "",
           startedAt: startedAt.current,
+          jsToken: jsToken.current,
         }),
       });
       const data = await res.json();
