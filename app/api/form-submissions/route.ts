@@ -10,6 +10,7 @@ import { alertEmail, emailUrl } from "@/lib/email-templates";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { spamNote } from "@/lib/spam";
 import { assessSubmission } from "@/lib/spam-server";
+import { issueChallenge, type IssueChallenge } from "@/lib/otp";
 
 const SubmitSchema = z.object({
   slug: z.string().trim().min(1).max(80),
@@ -88,6 +89,8 @@ export async function POST(req: Request) {
 
   // "lead" forms also drop a real Lead into the pipeline so the leads desk
   // works them like any contact enquiry; "submission" forms just notify.
+  let verify: IssueChallenge | null = null;
+
   if (form.destination === "lead") {
     const lead = mapped;
     const created = await db.lead
@@ -115,6 +118,22 @@ export async function POST(req: Request) {
         body: `${lead.name}${lead.whatsapp ? ` · ${lead.whatsapp}` : ""}`.slice(0, 140),
         link: "/admin/leads",
       });
+
+      /* Soft verification — the submission is already stored, so the code is
+         only an optional way to prove the contact. Skipped for quarantined
+         junk so the channel can't be used as a relay. */
+      if (created) {
+        try {
+          const otp = await issueChallenge({
+            leadId: created.id,
+            email: lead.email || "",
+            phone: lead.whatsapp && lead.whatsapp !== "—" ? lead.whatsapp : "",
+          });
+          if (otp.sent) verify = otp.challenge;
+        } catch {
+          /* best-effort — never costs a captured submission */
+        }
+      }
     }
   } else if (!quarantined) {
     void notifyRoles(["SUPER_ADMIN"], {
@@ -144,7 +163,7 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, ...(verify ? { verify } : {}) });
 }
 
 /** Public form definition for embedding (active forms only). */

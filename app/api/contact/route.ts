@@ -9,6 +9,7 @@ import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { getSmtp, smtpReady } from "@/lib/smtp";
 import { spamNote } from "@/lib/spam";
 import { assessSubmission } from "@/lib/spam-server";
+import { issueChallenge, type IssueChallenge } from "@/lib/otp";
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 5;
@@ -108,6 +109,7 @@ export async function POST(req: Request) {
   // always carry a WhatsApp number; an email-only contact still gets a row
   // via a synthesised placeholder so nothing is ever silently dropped.
   let leadSaved = false;
+  let leadId: string | null = null;
   try {
     const lead = await db.lead.create({
       data: {
@@ -125,6 +127,7 @@ export async function POST(req: Request) {
       },
     });
     leadSaved = true;
+    leadId = lead.id;
     // Auto-route + score (best-effort, never blocks). Junk is left unassigned.
     if (!quarantined) onLeadCreated(lead);
   } catch {
@@ -220,10 +223,28 @@ export async function POST(req: Request) {
     }
   }
 
+  /* Soft verification, same contract as /api/leads: the enquiry is already
+     captured, so a code is only an optional way for the visitor to prove the
+     contact. Never issued for quarantined submissions — that would turn the
+     verification channel into a relay for whoever tripped the filters. */
+  let verify: IssueChallenge | null = null;
+  if (leadSaved && !quarantined) {
+    try {
+      const otp = await issueChallenge({
+        leadId,
+        email: email || "",
+        phone: whatsapp && whatsapp !== "—" ? whatsapp : "",
+      });
+      if (otp.sent) verify = otp.challenge;
+    } catch {
+      /* best-effort — verification must never cost a captured lead */
+    }
+  }
+
   // Captured if either path worked. Only a total failure — DB write AND no
   // email — is a real error the visitor should see.
   if (leadSaved || emailed) {
-    return NextResponse.json({ ok: true, emailed });
+    return NextResponse.json({ ok: true, emailed, ...(verify ? { verify } : {}) });
   }
   return NextResponse.json(
     {

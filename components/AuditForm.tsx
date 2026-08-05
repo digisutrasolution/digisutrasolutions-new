@@ -4,6 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
+import OtpVerify, { type Challenge } from "@/components/OtpVerify";
 import { makeSpamToken } from "@/lib/spam";
 
 const WA_HREF =
@@ -15,10 +16,12 @@ const inputCls =
 
 /* Embedded lead form for the free-audit band — posts to /api/contact. */
 export default function AuditForm() {
-  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">(
-    "idle",
-  );
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "verify" | "done" | "error"
+  >("idle");
   const [error, setError] = useState("");
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [contact, setContact] = useState<{ whatsapp: string }>({ whatsapp: "" });
   const startedAt = useRef<number>(0);
   const jsToken = useRef<string>("");
 
@@ -58,11 +61,44 @@ export default function AuditForm() {
         setStatus("error");
         return;
       }
+      /* Verification is soft and skippable — the request is already captured,
+         so this only lets the visitor prove the number they gave. */
+      if (json.verify) {
+        setContact({ whatsapp: String(data.whatsapp ?? "") });
+        setChallenge(json.verify as Challenge);
+        setStatus("verify");
+        return;
+      }
       setStatus("done");
     } catch {
       setError("Network error. Try WhatsApp instead.");
       setStatus("error");
     }
+  }
+
+  if (status === "verify" && challenge) {
+    return (
+      <div className="mt-7 max-w-md rounded-2xl bg-white p-5">
+        <OtpVerify
+          challenge={challenge}
+          resend={async () => {
+            try {
+              const res = await fetch(withBase("/api/otp/send"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone: contact.whatsapp }),
+              });
+              const d = await res.json();
+              return d.ok && d.challenge ? { id: d.challenge.id } : null;
+            } catch {
+              return null;
+            }
+          }}
+          onVerified={() => setStatus("done")}
+          onSkip={() => setStatus("done")}
+        />
+      </div>
+    );
   }
 
   if (status === "done") {

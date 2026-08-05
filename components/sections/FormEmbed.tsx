@@ -4,6 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useEffect, useRef, useState } from "react";
 import type { FormField } from "@/lib/cms/forms";
+import OtpVerify, { type Challenge } from "@/components/OtpVerify";
 import { makeSpamToken } from "@/lib/spam";
 
 const inputCls =
@@ -15,6 +16,8 @@ export default function FormEmbed({ slug }: { slug: string }) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [sentContact, setSentContact] = useState({ email: "", phone: "" });
   const startedAt = useRef<number>(0);
   const jsToken = useRef<string>("");
 
@@ -61,6 +64,13 @@ export default function FormEmbed({ slug }: { slug: string }) {
         setError(json.error ?? "Could not submit. Try again.");
         return;
       }
+      /* Soft verification — the submission is already stored, so this step is
+         optional and skippable. Only lead-destination forms return one. */
+      if (json.verify) {
+        setSentContact({ email: data.email ?? "", phone: data.phone ?? data.whatsapp ?? "" });
+        setChallenge(json.verify as Challenge);
+        return;
+      }
       setSubmitted(true);
     } catch {
       setError("Network error — check your connection.");
@@ -73,6 +83,39 @@ export default function FormEmbed({ slug }: { slug: string }) {
   if (!fields) {
     return (
       <div className="h-40 animate-pulse rounded-3xl border border-stone-200 bg-stone-50" />
+    );
+  }
+  if (challenge) {
+    return (
+      <div className="rounded-3xl border border-stone-200 bg-white p-8">
+        <OtpVerify
+          challenge={challenge}
+          resend={async () => {
+            try {
+              const res = await fetch(withBase("/api/otp/send"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: sentContact.email,
+                  phone: sentContact.phone,
+                }),
+              });
+              const d = await res.json();
+              return d.ok && d.challenge ? { id: d.challenge.id } : null;
+            } catch {
+              return null;
+            }
+          }}
+          onVerified={() => {
+            setChallenge(null);
+            setSubmitted(true);
+          }}
+          onSkip={() => {
+            setChallenge(null);
+            setSubmitted(true);
+          }}
+        />
+      </div>
     );
   }
   if (submitted) {
