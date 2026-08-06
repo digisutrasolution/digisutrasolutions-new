@@ -39,6 +39,8 @@ type Item = {
   panelImage: string | null;
   tagline: string | null;
   featured: boolean;
+  visibleFrom?: string | null;
+  visibleUntil?: string | null;
   deletedAt?: string | null;
 };
 
@@ -111,6 +113,8 @@ function ItemForm({
     tagline: item.tagline ?? "",
     featured: item.featured ?? false,
     newTab: item.newTab ?? false,
+    visibleFrom: item.visibleFrom ? item.visibleFrom.slice(0, 16) : "",
+    visibleUntil: item.visibleUntil ? item.visibleUntil.slice(0, 16) : "",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -137,6 +141,10 @@ function ItemForm({
       tagline: f.tagline || null,
       featured: f.featured,
       newTab: f.newTab,
+      /* datetime-local gives wall-clock with no zone; the API stores a real
+         instant, so send it as one. Blank clears the end of the window. */
+      visibleFrom: f.visibleFrom ? new Date(f.visibleFrom).toISOString() : null,
+      visibleUntil: f.visibleUntil ? new Date(f.visibleUntil).toISOString() : null,
       ...(isNew ? { parentId: item.parentId, location } : {}),
     };
     try {
@@ -222,7 +230,31 @@ function ItemForm({
             </div>
           </>
         )}
+        <div>
+          <label className={labelCls}>Show from (optional)</label>
+          <input
+            type="datetime-local"
+            value={f.visibleFrom}
+            onChange={(e) => set("visibleFrom", e.target.value)}
+            className={inputCls}
+          />
+        </div>
+        <div>
+          <label className={labelCls}>Hide after (optional)</label>
+          <input
+            type="datetime-local"
+            value={f.visibleUntil}
+            onChange={(e) => set("visibleUntil", e.target.value)}
+            className={inputCls}
+          />
+        </div>
       </div>
+      {(f.visibleFrom || f.visibleUntil) && (
+        <p className="mt-2 text-[11px] text-stone-500 dark:text-stone-400">
+          Campaign window — the item appears and retires on its own once
+          published, without anyone re-publishing the menu.
+        </p>
+      )}
       <div className="mt-3 flex flex-wrap items-center gap-4">
         {showPanelFields && (
           <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-stone-600 dark:text-stone-300">

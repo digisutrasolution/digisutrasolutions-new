@@ -23,6 +23,9 @@ export type NavChild = {
   badge?: string;
   description?: string;
   newTab?: boolean;
+  /* ISO campaign window; enforced when the live nav is read. */
+  visibleFrom?: string;
+  visibleUntil?: string;
   /* Nesting is unlimited in the data. Surfaces render what their design
      allows: the mega panel shows two levels, the mobile drawer and footer
      go deeper. */
@@ -37,6 +40,8 @@ export type NavNode = {
   panelImage?: string;
   featured?: boolean;
   newTab?: boolean;
+  visibleFrom?: string;
+  visibleUntil?: string;
   children?: NavChild[];
 };
 
@@ -217,6 +222,8 @@ export function itemsToTree(items: MenuItem[], opts?: { includeHidden?: boolean 
           ...(c.badge ? { badge: c.badge } : {}),
           ...(c.description ? { description: c.description } : {}),
           ...(c.newTab ? { newTab: true } : {}),
+          ...(c.visibleFrom ? { visibleFrom: c.visibleFrom.toISOString() } : {}),
+          ...(c.visibleUntil ? { visibleUntil: c.visibleUntil.toISOString() } : {}),
           ...(kids.length ? { children: kids } : {}),
         };
       });
@@ -233,9 +240,34 @@ export function itemsToTree(items: MenuItem[], opts?: { includeHidden?: boolean 
         ...(top.panelImage ? { panelImage: top.panelImage } : {}),
         ...(top.featured ? { featured: true } : {}),
         ...(top.newTab ? { newTab: true } : {}),
+        ...(top.visibleFrom ? { visibleFrom: top.visibleFrom.toISOString() } : {}),
+        ...(top.visibleUntil ? { visibleUntil: top.visibleUntil.toISOString() } : {}),
         ...(kids.length ? { children: kids } : {}),
       };
     });
+}
+
+/** Is a node inside its campaign window right now? No window = always on. */
+function inWindow(n: { visibleFrom?: string; visibleUntil?: string }, now: number): boolean {
+  if (n.visibleFrom && Date.parse(n.visibleFrom) > now) return false;
+  if (n.visibleUntil && Date.parse(n.visibleUntil) < now) return false;
+  return true;
+}
+
+/* Campaign windows are enforced when the snapshot is READ, not when it is
+   written — a scheduled link must appear and retire on its own, and a baked
+   snapshot cannot do that. Dropping a parent drops its children with it. */
+export function applyWindows<T extends { visibleFrom?: string; visibleUntil?: string; children?: NavChild[] }>(
+  nodes: T[],
+  now: number = Date.now(),
+): T[] {
+  return nodes
+    .filter((n) => inWindow(n, now))
+    .map((n) =>
+      n.children?.length
+        ? { ...n, children: applyWindows(n.children, now) }
+        : n,
+    );
 }
 
 /** Published nav for a location — snapshot first, defaults otherwise. */
@@ -245,7 +277,7 @@ export async function getLiveNav(
   try {
     const row = await db.siteSetting.findUnique({ where: { key: liveKey(location) } });
     const nav = row?.value as NavNode[] | undefined;
-    if (Array.isArray(nav) && nav.length > 0) return nav;
+    if (Array.isArray(nav) && nav.length > 0) return applyWindows(nav);
   } catch {
     /* DB down → static nav keeps the site navigable */
   }

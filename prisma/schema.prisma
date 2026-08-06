@@ -516,6 +516,11 @@ model MenuItem {
   description String?
   order      Int      @default(0)
   visible    Boolean  @default(true)
+  /// Optional campaign window. Both null = always on (the normal case).
+  /// Enforced when the live nav is read, so a window opens and closes on its
+  /// own without anyone re-publishing the menu.
+  visibleFrom  DateTime?
+  visibleUntil DateTime?
   newTab     Boolean  @default(false)
   panelImage String?
   tagline    String?

@@ -45,6 +45,10 @@ export const ItemSchema = z.object({
   panelImage: z.string().trim().max(600).nullable().optional(),
   tagline: z.string().trim().max(200).nullable().optional(),
   featured: z.boolean().optional(),
+  /* Campaign window — either end may stand alone (open-ended in that
+     direction). Empty string clears, so the form can send a blank field. */
+  visibleFrom: z.string().datetime().nullable().optional().or(z.literal("")),
+  visibleUntil: z.string().datetime().nullable().optional().or(z.literal("")),
 });
 
 export async function markDirty(location: string, dirty = true) {

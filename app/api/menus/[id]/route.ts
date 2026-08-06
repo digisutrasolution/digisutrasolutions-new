@@ -89,6 +89,12 @@ export async function PATCH(
       ...(fields.panelImage !== undefined ? { panelImage: fields.panelImage } : {}),
       ...(fields.tagline !== undefined ? { tagline: fields.tagline } : {}),
       ...(fields.featured !== undefined ? { featured: fields.featured } : {}),
+      ...(fields.visibleFrom !== undefined
+        ? { visibleFrom: fields.visibleFrom ? new Date(fields.visibleFrom) : null }
+        : {}),
+      ...(fields.visibleUntil !== undefined
+        ? { visibleUntil: fields.visibleUntil ? new Date(fields.visibleUntil) : null }
+        : {}),
       ...(parentChange ?? {}),
     },
   });

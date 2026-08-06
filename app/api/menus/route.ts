@@ -92,6 +92,8 @@ export async function POST(req: Request) {
       panelImage: d.panelImage ?? null,
       tagline: d.tagline ?? null,
       featured: d.featured ?? false,
+      visibleFrom: d.visibleFrom ? new Date(d.visibleFrom) : null,
+      visibleUntil: d.visibleUntil ? new Date(d.visibleUntil) : null,
       order: (last?.order ?? -1) + 1,
     },
   });
