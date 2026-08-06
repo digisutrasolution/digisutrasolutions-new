@@ -65,6 +65,7 @@ const NAV_GROUPS = [
       { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage", badge: "newLeads" },
       { label: "Follow-ups", href: "/admin/followups", icon: CalendarClock, permission: "leads.manage", badge: "dueFollowups" },
       { label: "Quotations", href: "/admin/quotations", icon: ReceiptText, permission: "quotes.manage" },
+      { label: "Payments", href: "/admin/payments", icon: IndianRupee, permission: "payments.manage" },
       { label: "Activity", href: "/admin/leads/activity", icon: History, permission: "leads.manage" },
     ],
   },

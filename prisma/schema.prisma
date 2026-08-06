@@ -729,6 +729,7 @@ model Lead {
   quotations      Quotation[]
   comms           CommLog[]
   attachments     Attachment[]
+  payments        Payment[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -911,6 +912,7 @@ model Quotation {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   attachments   Attachment[]
+  payments      Payment[]
 
   @@unique([number, version])
   @@index([status, createdAt])
@@ -1046,4 +1048,57 @@ model CaseStudy {
   updatedAt DateTime @updatedAt
 
   @@index([visible, order])
+}
+
+/* Recorded payments against a lead or quotation.
+
+   Deliberately a LEDGER, not a checkout: rows are entered by the team as
+   money actually arrives (UPI, bank transfer, cheque, or a gateway settled
+   outside the app). Live checkout is a later phase — when it lands it writes
+   the same rows, so nothing here has to change. Client details are snapshot
+   on the row so a payment survives its lead or quotation being deleted. */
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+  FAILED
+  CANCELLED
+}
+
+model Payment {
+  id        String @id @default(cuid())
+  /// Human reference, e.g. PAY-2026-0001 — unique, generated on create.
+  reference String @unique
+
+  lead        Lead?      @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId      String?
+  quotation   Quotation? @relation(fields: [quotationId], references: [id], onDelete: SetNull)
+  quotationId String?
+
+  clientName    String
+  clientCompany String?
+  clientEmail   String?
+  clientPhone   String?
+
+  amount   Float
+  currency String @default("INR")
+  /// upi | bank | wire | cashfree | paypal | cash | cheque | other
+  method   String @default("bank")
+  status   PaymentStatus @default(PENDING)
+
+  /// UTR, cheque number or gateway transaction id.
+  txnRef String?
+  /// When the money actually landed (not when the row was typed).
+  paidAt DateTime?
+  notes  String?
+
+  recordedById   String?
+  recordedByName String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([leadId])
+  @@index([quotationId])
 }
