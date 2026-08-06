@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { NAV_ICONS, navIcon } from "@/components/nav-icons";
 import { MENU_LOCATIONS, type MenuLocation } from "@/lib/menu-locations";
+import type { DiffEntry, MenuDiff } from "@/lib/menu-diff";
 
 type Item = {
   id: string;
@@ -251,6 +252,45 @@ function ItemForm({
   );
 }
 
+/** One category of the draft-vs-live diff; renders nothing when empty. */
+function DiffGroup({
+  title,
+  tone,
+  entries,
+}: {
+  title: string;
+  tone: string;
+  entries: DiffEntry[];
+}) {
+  if (!entries.length) return null;
+  return (
+    <div>
+      <p className={`text-[11px] font-bold uppercase tracking-[0.12em] ${tone}`}>
+        {title} ({entries.length})
+      </p>
+      <ul className="mt-1 space-y-1">
+        {entries.slice(0, 8).map((e, i) => (
+          <li key={`${e.href}-${i}`} className="text-xs text-stone-700 dark:text-stone-300">
+            {e.path.length > 0 && (
+              <span className="text-stone-400">{e.path.join(" › ")} › </span>
+            )}
+            <span className="font-semibold">{e.label}</span>{" "}
+            <span className="text-stone-500">{e.href}</span>
+            {e.detail && (
+              <span className="block text-[11px] text-stone-500 dark:text-stone-400">
+                {e.detail}
+              </span>
+            )}
+          </li>
+        ))}
+        {entries.length > 8 && (
+          <li className="text-[11px] text-stone-500">+{entries.length - 8} more</li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
 export default function MenusManager() {
   const [location, setLocation] = useState<MenuLocation>("HEADER");
   const [items, setItems] = useState<Item[]>([]);
@@ -271,7 +311,28 @@ export default function MenusManager() {
   const [versions, setVersions] = useState<Version[] | null>(null);
   const [showTrash, setShowTrash] = useState(false);
   const [linkGroups, setLinkGroups] = useState<LinkGroup[]>([]);
+  /* What publishing would change — loaded whenever the draft is dirty so the
+     editor never has to publish blind to find out. */
+  const [diff, setDiff] = useState<MenuDiff | null>(null);
+  const [diffSummary, setDiffSummary] = useState("");
+  const [showDiff, setShowDiff] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const loadDiff = useCallback(async () => {
+    try {
+      const res = await fetch(withBase(`/api/menus/diff?location=${location}`));
+      const data = await res.json();
+      if (data.ok) {
+        setDiff(data.diff);
+        /* Editing something and reverting it leaves the dirty flag set with
+           nothing actually different — say so rather than implying a pending
+           change the editor then can't find. */
+        setDiffSummary(data.diff.total ? data.summary : "identical to live");
+      }
+    } catch {
+      /* the diff is advisory — never block editing on it */
+    }
+  }, [location]);
 
   const reload = useCallback(async () => {
     const res = await fetch(withBase(`/api/menus?location=${location}`));
@@ -280,9 +341,15 @@ export default function MenusManager() {
       setItems(data.items);
       setTrash(data.trash ?? []);
       setDirty(data.dirty);
+      if (data.dirty) void loadDiff();
+      else {
+        setDiff(null);
+        setDiffSummary("");
+        setShowDiff(false);
+      }
     }
     setLoading(false);
-  }, [location]);
+  }, [location, loadDiff]);
 
   useEffect(() => {
     // Defer past the first paint — repo convention for initial fetches.
@@ -756,9 +823,13 @@ export default function MenusManager() {
 
       <div className="flex flex-wrap items-center gap-3">
         {dirty ? (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
-            Unpublished changes
-          </span>
+          <button
+            onClick={() => setShowDiff((v) => !v)}
+            title="See exactly what publishing would change"
+            className="cursor-pointer rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-200 dark:bg-amber-900/40 dark:text-amber-200"
+          >
+            Unpublished changes{diffSummary ? ` · ${diffSummary}` : ""}
+          </button>
         ) : (
           <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
             Live menu is up to date
@@ -827,6 +898,31 @@ export default function MenusManager() {
           </button>
         </div>
       </div>
+
+      {showDiff && diff && diff.total > 0 && (
+        <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-800 dark:text-amber-200">
+              Publishing would change {diff.total} {diff.total === 1 ? "entry" : "entries"}
+            </p>
+            <button
+              onClick={() => setShowDiff(false)}
+              aria-label="Hide changes"
+              className="cursor-pointer text-amber-700 hover:text-amber-900 dark:text-amber-300"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <div className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+            <DiffGroup title="Added" tone="text-emerald-700 dark:text-emerald-300" entries={diff.added} />
+            <DiffGroup title="Removed" tone="text-red-700 dark:text-red-300" entries={diff.removed} />
+            <DiffGroup title="Renamed" tone="text-sky-700 dark:text-sky-300" entries={diff.renamed} />
+            <DiffGroup title="Retargeted" tone="text-sky-700 dark:text-sky-300" entries={diff.retargeted} />
+            <DiffGroup title="Moved" tone="text-purple-700 dark:text-purple-300" entries={diff.moved} />
+            <DiffGroup title="Reordered" tone="text-stone-600 dark:text-stone-300" entries={diff.reordered} />
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <div className="relative min-w-56 flex-1 sm:max-w-xs">
