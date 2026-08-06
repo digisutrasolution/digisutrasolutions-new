@@ -23,6 +23,7 @@ import {
 import { NAV_ICONS, navIcon } from "@/components/nav-icons";
 import { MENU_LOCATIONS, type MenuLocation } from "@/lib/menu-locations";
 import type { DiffEntry, MenuDiff } from "@/lib/menu-diff";
+import MegaPanelPreview, { type PreviewChild } from "@/components/admin/MegaPanelPreview";
 
 type Item = {
   id: string;
@@ -89,6 +90,7 @@ function ItemForm({
   depth,
   location,
   linkGroups,
+  panelChildren,
   onSaved,
   onCancel,
 }: {
@@ -96,6 +98,8 @@ function ItemForm({
   depth: number;
   location: MenuLocation;
   linkGroups: LinkGroup[];
+  /** Live sub-items, so the panel preview shows real grouping and order. */
+  panelChildren: PreviewChild[];
   onSaved: () => void;
   onCancel: () => void;
 }) {
@@ -254,6 +258,17 @@ function ItemForm({
           Campaign window — the item appears and retires on its own once
           published, without anyone re-publishing the menu.
         </p>
+      )}
+      {showPanelFields && (
+        <div className="mt-3">
+          <MegaPanelPreview
+            label={f.label}
+            panelImage={f.panelImage}
+            tagline={f.tagline}
+            featured={f.featured}
+            items={panelChildren}
+          />
+        </div>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-4">
         {showPanelFields && (
@@ -781,6 +796,7 @@ export default function MenusManager() {
             depth={depth}
             location={location}
             linkGroups={linkGroups}
+            panelChildren={kids}
             onSaved={() => { setEditing(null); void reload(); }}
             onCancel={() => setEditing(null)}
           />
@@ -794,6 +810,7 @@ export default function MenusManager() {
                 depth={depth + 1}
                 location={location}
                 linkGroups={linkGroups}
+                panelChildren={[]}
                 onSaved={() => { setEditing(null); void reload(); }}
                 onCancel={() => setEditing(null)}
               />
@@ -813,6 +830,7 @@ export default function MenusManager() {
             depth={depth + 1}
             location={location}
             linkGroups={linkGroups}
+            panelChildren={[]}
             onSaved={() => { setEditing(null); void reload(); }}
             onCancel={() => setEditing(null)}
           />
@@ -1053,6 +1071,7 @@ export default function MenusManager() {
                 depth={0}
                 location={location}
                 linkGroups={linkGroups}
+                panelChildren={[]}
                 onSaved={() => { setEditing(null); void reload(); }}
                 onCancel={() => setEditing(null)}
               />
