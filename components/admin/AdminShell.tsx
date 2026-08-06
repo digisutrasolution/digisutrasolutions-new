@@ -85,7 +85,7 @@ const NAV_GROUPS = [
   {
     label: "Site setup",
     items: [
-      { label: "Menus", href: "/admin/menus", icon: MenuSquare, permission: "menus.manage" },
+      { label: "Menus", href: "/admin/menus", icon: MenuSquare, permission: "menus.manage", badge: "brokenLinks" },
       { label: "Services", href: "/admin/services", icon: LayoutGrid, permission: "services.manage" },
       { label: "Pricing", href: "/admin/pricing", icon: IndianRupee, permission: "pricing.manage" },
       { label: "Ads", href: "/admin/ads", icon: Megaphone, permission: "ads.manage" },
@@ -122,7 +122,7 @@ type NavItem = {
   href: string;
   icon: typeof Gauge;
   permission: string | null;
-  badge?: "newLeads" | "pendingComments" | "dueFollowups";
+  badge?: "newLeads" | "pendingComments" | "dueFollowups" | "brokenLinks";
 };
 
 export default function AdminShell({
@@ -137,10 +137,11 @@ export default function AdminShell({
   const [dark, setDark] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
-  const [badges, setBadges] = useState<{ newLeads: number; pendingComments: number; dueFollowups: number }>({
+  const [badges, setBadges] = useState<{ newLeads: number; pendingComments: number; dueFollowups: number; brokenLinks: number }>({
     newLeads: 0,
     pendingComments: 0,
     dueFollowups: 0,
+    brokenLinks: 0,
   });
 
   // Restore persisted group state, then make sure the active page's group
@@ -188,7 +189,7 @@ export default function AdminShell({
         const res = await fetch(withBase("/api/admin/badges"));
         const data = await res.json();
         if (data.ok && !cancelled) {
-          setBadges({ newLeads: data.newLeads, pendingComments: data.pendingComments, dueFollowups: data.dueFollowups ?? 0 });
+          setBadges({ newLeads: data.newLeads, pendingComments: data.pendingComments, dueFollowups: data.dueFollowups ?? 0, brokenLinks: data.brokenLinks ?? 0 });
         }
       } catch {
         /* transient */
@@ -265,7 +266,9 @@ export default function AdminShell({
         ? badges.pendingComments
         : item.badge === "dueFollowups"
           ? badges.dueFollowups
-          : 0;
+          : item.badge === "brokenLinks"
+            ? badges.brokenLinks
+            : 0;
 
   const renderLink = (item: NavItem, indent = false) => {
     const active =

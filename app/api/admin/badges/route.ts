@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guards";
 import { userCan, leadScopeWhere } from "@/lib/auth/rbac";
 import { db } from "@/lib/db";
+import { getMenuHealth, totalBroken } from "@/lib/menu-check";
 
 /** Sidebar badge counts — each figure only for users allowed to act on it. */
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999);
 
-  const [newLeads, pendingComments, dueFollowups] = await Promise.all([
+  const [newLeads, pendingComments, dueFollowups, brokenLinks] = await Promise.all([
     userCan(user, "leads.manage")
       ? db.lead.count({ where: { status: "NEW", ...leadScopeWhere(user) } })
       : Promise.resolve(0),
@@ -30,7 +31,18 @@ export async function GET() {
           },
         })
       : Promise.resolve(0),
+    // Broken menu links from the last sweep — read from the stored summary, so
+    // the badge never costs a live crawl on every 60s poll.
+    userCan(user, "menus.manage")
+      ? getMenuHealth().then(totalBroken)
+      : Promise.resolve(0),
   ]);
 
-  return NextResponse.json({ ok: true, newLeads, pendingComments, dueFollowups });
+  return NextResponse.json({
+    ok: true,
+    newLeads,
+    pendingComments,
+    dueFollowups,
+    brokenLinks,
+  });
 }

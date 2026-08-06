@@ -513,7 +513,14 @@ export default function MenusManager() {
     setPublishing(false);
     if (data.ok) {
       setDirty(false);
-      setNotice("Published — the live site is now serving this menu.");
+      /* The publish is never blocked on link health, but a silent success
+         after shipping dead links is how 18 broken links once went unnoticed
+         for weeks — so say it plainly. */
+      setNotice(
+        data.brokenLinks
+          ? `Published — but ${data.brokenLinks} link${data.brokenLinks === 1 ? "" : "s"} in this menu ${data.brokenLinks === 1 ? "is" : "are"} broken. Run "Check links" to see which.`
+          : "Published — the live site is now serving this menu.",
+      );
     } else {
       setNotice(data.error ?? "Publish failed.");
     }
