@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requirePermission } from "@/lib/auth/guards";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
-import { MAX_LINKS, checkAllLocations, checkLocation } from "@/lib/menu-check";
+import { MAX_LINKS, checkAllLocations, checkLocation, selfOrigin } from "@/lib/menu-check";
 
 /* On-demand link check for one location. The probing engine itself lives in
    lib/menu-check.ts so the scheduled sweep (/api/cron/menu-check) and this
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null);
   const location = typeof body?.location === "string" ? body.location : "HEADER";
-  const origin = new URL(req.url).origin;
+  const origin = selfOrigin(req);
 
   /* Checking one location refreshes the stored health for every location, so
      the sidebar badge can never disagree with what the page just showed. */

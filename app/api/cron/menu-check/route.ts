@@ -6,6 +6,7 @@ import {
   brokenKeys,
   checkAllLocations,
   getMenuHealth,
+  selfOrigin,
   totalBroken,
 } from "@/lib/menu-check";
 
@@ -64,12 +65,12 @@ export async function POST(req: Request) {
   if (!(await authorize(req))) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, ...(await run(new URL(req.url).origin)) });
+  return NextResponse.json({ ok: true, ...(await run(selfOrigin(req))) });
 }
 
 export async function GET(req: Request) {
   if (!(await authorize(req))) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, ...(await run(new URL(req.url).origin)) });
+  return NextResponse.json({ ok: true, ...(await run(selfOrigin(req))) });
 }

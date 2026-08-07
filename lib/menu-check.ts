@@ -22,6 +22,27 @@ export const MAX_LINKS = 120;
 const CONCURRENCY = 8;
 const TIMEOUT_MS = 6000;
 
+/**
+ * Where to send the probe requests.
+ *
+ * The request's own origin is the public domain in production, so probing it
+ * sends every check out of the container, through Cloudflare and back — which
+ * on the first live run reported 85 of 86 links broken when all but five were
+ * fine. Inside the container the app answers on its own port, so probe that
+ * directly: no egress, no proxy, no bot challenge.
+ *
+ * MENU_CHECK_ORIGIN overrides it if a deployment needs something else.
+ */
+export function selfOrigin(req: Request): string {
+  const configured = process.env.MENU_CHECK_ORIGIN?.trim();
+  if (configured) return configured.replace(/\/+$/, "");
+
+  const url = new URL(req.url);
+  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  if (!local) return `http://127.0.0.1:${process.env.PORT || 3000}`;
+  return url.origin;
+}
+
 export type LinkStatus = "ok" | "redirect" | "broken" | "external" | "anchor";
 
 export type LinkResult = {

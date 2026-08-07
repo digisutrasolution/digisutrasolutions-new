@@ -4,7 +4,7 @@ import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
 import { parseLocation, publishMenu } from "@/lib/menu-admin";
 import { clientIp } from "@/lib/rate-limit";
-import { checkLocation } from "@/lib/menu-check";
+import { checkLocation, selfOrigin } from "@/lib/menu-check";
 
 export async function POST(req: Request) {
   const { user, error } = await requirePermission("menus.manage");
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
      being written), and refusing would strand the editor. */
   let brokenLinks = 0;
   try {
-    const results = await checkLocation(location, new URL(req.url).origin);
+    const results = await checkLocation(location, selfOrigin(req));
     brokenLinks = results.filter((r) => r.status === "broken").length;
   } catch {
     /* health check must never stop a publish */
