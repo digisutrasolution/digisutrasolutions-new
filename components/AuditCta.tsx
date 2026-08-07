@@ -16,10 +16,13 @@ export default function AuditCta() {
       <Reveal>
         <div className="bg-dots-light relative overflow-hidden rounded-[2rem] bg-[#F26419] px-6 py-12 sm:px-12 sm:py-14">
           <div className="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_1fr]">
-            {/* Below lg the copy/checklist/form are max-w-md, so the column
-                itself is centered at that width — otherwise viewports between
-                ~500px and lg show a much larger right gap than left. */}
-            <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none">
+            {/* Below lg the copy/checklist/form are centred rather than left
+                aligned, otherwise the right gap dwarfs the left. The cap grows
+                with the viewport: a phone keeps the max-w-md reading width,
+                but a tablet or an unfolded foldable (~870px, where the score
+                card is still hidden) would otherwise strand ~190px of empty
+                orange on each side of a 448px column. */}
+            <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:mx-0 lg:max-w-none">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-100">
                 Free website audit
               </p>
@@ -34,7 +37,9 @@ export default function AuditCta() {
                 yours free, no strings attached. Know exactly what&apos;s
                 holding your growth back.
               </p>
-              <ul className="mt-6 grid max-w-md grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {/* Uncapped from sm so the two checklist columns spread across
+                  the widened block instead of huddling at max-w-md. */}
+              <ul className="mt-6 grid max-w-md grid-cols-1 gap-2.5 sm:max-w-none sm:grid-cols-2">
                 {AUDIT_CHECKS.map((c, i) => (
                   <Reveal
                     as="li"

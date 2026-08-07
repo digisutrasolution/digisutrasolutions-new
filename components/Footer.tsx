@@ -390,12 +390,15 @@ export default async function Footer() {
 
           {/* We Accept — mobile: a uniform 3-column grid so the six badges
               sit in two even rows instead of wrapping ragged (5 + a lone
-              Bank Transfer) as they did in a flex row. */}
+              Bank Transfer) as they did in a flex row. From md the six go in
+              one row across the full width: this block runs until lg, so on a
+              tablet or unfolded foldable a 340px-capped grid left most of the
+              row empty. Chip size barely changes (~108px → ~114px). */}
           <div className="mt-6 border-t border-white/10 pt-5 lg:hidden">
             <p className="mb-3 text-[0.85rem] font-black uppercase tracking-wide text-[#F26419]">
               We Accept
             </p>
-            <div className="grid max-w-[340px] grid-cols-3 gap-2">
+            <div className="grid max-w-[340px] grid-cols-3 gap-2 md:max-w-none md:grid-cols-6">
               <PaymentChips compact />
             </div>
           </div>

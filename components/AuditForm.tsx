@@ -126,7 +126,10 @@ export default function AuditForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-7 max-w-md">
+    // Capped for phones, then it fills whatever column it is dropped into —
+    // the audit band widens past max-w-md on tablets and unfolded foldables,
+    // while /free-audit keeps it narrow via its own wrapper.
+    <form onSubmit={onSubmit} className="mt-7 max-w-md sm:max-w-none">
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <label className="sr-only" htmlFor="audit-name">
           Your name
