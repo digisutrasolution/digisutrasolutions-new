@@ -34,6 +34,16 @@ function explain(err: unknown): string {
     return `Permission refused by the browser. ${detail}`;
   }
   if (e?.name === "AbortError") {
+    if (/public key/i.test(detail)) {
+      // Chrome reached its push service fine — it could not produce the local
+      // ECDH keys for this origin's registration. Its own store is stale.
+      return (
+        "Chrome could not produce the encryption keys for this site — its stored " +
+        "registration is stale. Automatic repair did not clear it. Open " +
+        "chrome://serviceworker-internals, unregister every entry for this site, " +
+        "then reload and click Enable again."
+      );
+    }
     // Chrome funnels every subscription through its own push service; a
     // network that blocks it fails here and nowhere else.
     return `The browser could not reach its push service — usually a network or firewall block. ${detail}`;
@@ -42,6 +52,61 @@ function explain(err: unknown): string {
     return `A previous service worker is still active. Fully close every tab of this site, reopen, and try again. ${detail}`;
   }
   return detail;
+}
+
+/** Resolve once this registration has an activated worker. serviceWorker.ready
+    is not a substitute — it resolves for whichever registration controls the
+    page, which during a worker swap is still the old one. */
+async function waitActivated(reg: ServiceWorkerRegistration): Promise<void> {
+  if (reg.active) return;
+  const pending = reg.installing ?? reg.waiting;
+  if (!pending) return;
+  await new Promise<void>((resolve) => {
+    const done = () => {
+      pending.removeEventListener("statechange", onChange);
+      clearTimeout(timer);
+      resolve();
+    };
+    const onChange = () => {
+      if (pending.state === "activated" || pending.state === "redundant") done();
+    };
+    // Never hang the button on a worker that refuses to settle.
+    const timer = setTimeout(done, 5000);
+    pending.addEventListener("statechange", onChange);
+  });
+}
+
+/** True when an existing subscription was created with the key we still use.
+    A rotated VAPID key leaves the old subscription undeliverable (the push
+    service rejects it), so reusing one blindly reports "on" and sends nothing. */
+function usesKey(sub: PushSubscription, key: Uint8Array): boolean {
+  const raw = sub.options?.applicationServerKey;
+  if (!raw) return false;
+  const a = new Uint8Array(raw);
+  return a.length === key.length && a.every((b, i) => b === key[i]);
+}
+
+/** Tear down every push-sw registration for this origin, unsubscribing first.
+    This is the only cure for Chrome's PUBLIC_KEY_UNAVAILABLE: its local key
+    store has lost the keys bound to the existing registration. */
+async function hardReset(): Promise<void> {
+  const regs = await navigator.serviceWorker.getRegistrations().catch(() => []);
+  for (const reg of regs) {
+    const script =
+      reg.active?.scriptURL ?? reg.waiting?.scriptURL ?? reg.installing?.scriptURL ?? "";
+    // Only ours — never unregister a worker some other feature owns.
+    if (!script.endsWith("/push-sw.js")) continue;
+    const sub = await reg.pushManager.getSubscription().catch(() => null);
+    if (sub) {
+      await fetch(withBase("/api/push/unsubscribe"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: sub.endpoint }),
+      }).catch(() => {});
+      await sub.unsubscribe().catch(() => {});
+    }
+    await reg.unregister().catch(() => {});
+  }
 }
 
 type State = "loading" | "unsupported" | "unconfigured" | "off" | "on" | "denied";
@@ -80,7 +145,10 @@ export default function PushToggle() {
         }
         const reg = await navigator.serviceWorker.getRegistration(withBase("/push-sw.js"));
         const sub = reg ? await reg.pushManager.getSubscription() : null;
-        if (!cancelled) setState(sub ? "on" : "off");
+        // A subscription made with a superseded VAPID key is undeliverable, so
+        // it must not read as "on" — the operator would think they were covered.
+        const live = sub ? usesKey(sub, urlBase64ToUint8Array(json.key)) : false;
+        if (!cancelled) setState(live ? "on" : "off");
       } catch (err) {
         if (!cancelled) {
           setState("off");
@@ -109,16 +177,38 @@ export default function PushToggle() {
         });
         return;
       }
-      const reg = await navigator.serviceWorker.register(withBase("/push-sw.js"));
-      // Not serviceWorker.ready — that waits on the worker controlling THIS
-      // page, which never happens while an older worker sits in `waiting`.
-      await navigator.serviceWorker.ready.catch(() => {});
-      const sub =
-        (await reg.pushManager.getSubscription()) ??
-        (await reg.pushManager.subscribe({
+      const keyBytes = urlBase64ToUint8Array(key);
+
+      async function subscribeOnce(): Promise<PushSubscription> {
+        const reg = await navigator.serviceWorker.register(withBase("/push-sw.js"));
+        await waitActivated(reg);
+        const existing = await reg.pushManager.getSubscription();
+        if (existing) {
+          if (usesKey(existing, keyBytes)) return existing;
+          // Key rotated since this subscription was made — it can no longer
+          // receive anything, so replace it rather than reporting success.
+          await existing.unsubscribe().catch(() => {});
+        }
+        return reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(key) as BufferSource,
-        }));
+          applicationServerKey: keyBytes as BufferSource,
+        });
+      }
+
+      let sub: PushSubscription;
+      try {
+        sub = await subscribeOnce();
+      } catch (first) {
+        // A stale registration in Chrome's own store fails with
+        // AbortError "could not retrieve the public key". Rebuilding the
+        // registration from scratch is the documented cure, so try that once
+        // before surfacing anything to the operator.
+        if ((first as { name?: string }).name !== "AbortError") throw first;
+        setNote({ kind: "ok", text: "Clearing a stale registration and retrying…" });
+        await hardReset();
+        sub = await subscribeOnce();
+      }
+
       const json = sub.toJSON();
       const res = await fetch(withBase("/api/push/subscribe"), {
         method: "POST",
