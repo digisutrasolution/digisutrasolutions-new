@@ -3,34 +3,26 @@
 import { useState } from "react";
 import AnalyticsManager from "@/components/admin/AnalyticsManager";
 import BotNudgeManager from "@/components/admin/BotNudgeManager";
-import ContactManager from "@/components/admin/ContactManager";
-import FooterInfoManager from "@/components/admin/FooterInfoManager";
 import PaymentGatewayManager, { type PaymentsView } from "@/components/admin/PaymentGatewayManager";
 import SmtpManager, { type MaskedSmtp } from "@/components/admin/SmtpManager";
 import SmsGatewayManager from "@/components/admin/SmsGatewayManager";
 import SocialLinksManager from "@/components/admin/SocialLinksManager";
 import type { AnalyticsSettings } from "@/lib/analytics";
 import type { BotNudge } from "@/lib/bot-nudge";
-import type { ContactConfig } from "@/lib/contact-config";
-import type { FooterInfo } from "@/lib/footer";
 
 type SocialLink = { key: string; label: string; followers?: string; url: string };
 
-type TabKey = "analytics" | "bot" | "email" | "sms" | "contact" | "footer" | "social" | "payments";
+type TabKey = "analytics" | "bot" | "email" | "sms" | "social" | "payments";
 
 export default function SettingsTabs({
   analytics,
   botNudge,
-  contact,
-  footerInfo,
   links,
   payments,
   smtp,
 }: {
   analytics: AnalyticsSettings;
   botNudge: BotNudge;
-  contact: ContactConfig;
-  footerInfo: FooterInfo;
   links: SocialLink[];
   payments: PaymentsView;
   smtp: MaskedSmtp;
@@ -85,18 +77,6 @@ export default function SettingsTabs({
       hint: "Your own SMS platform — the shared gateway used by both lead verification (OTP codes) and lead messaging. Send URL + sender ID + DLT here; credentials in .env.",
     },
     {
-      key: "contact",
-      label: "Contact page",
-      chip: `${contact.desks.length} desk${contact.desks.length === 1 ? "" : "s"}`,
-      hint: "The /contact page — heading, promises, address, hours, WhatsApp, the enquiry desks (and the inbox each routes to) and SEO.",
-    },
-    {
-      key: "footer",
-      label: "Footer & contact",
-      chip: footerInfo.email,
-      hint: "The footer's brand text, address, phone numbers and email. Link columns and the legal bar are managed under Menus.",
-    },
-    {
       key: "social",
       label: "Social profiles",
       chip: socialChip,
@@ -139,8 +119,6 @@ export default function SettingsTabs({
       {tab === "bot" && <BotNudgeManager initial={botNudge} />}
       {tab === "email" && <SmtpManager initial={smtp} />}
       {tab === "sms" && <SmsGatewayManager />}
-      {tab === "contact" && <ContactManager contact={contact} />}
-      {tab === "footer" && <FooterInfoManager initial={footerInfo} />}
       {tab === "social" && <SocialLinksManager initial={links} />}
       {tab === "payments" && <PaymentGatewayManager initial={payments} />}
     </div>

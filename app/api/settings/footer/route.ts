@@ -6,7 +6,7 @@ import { DEFAULT_FOOTER_INFO, FooterInfoSchema } from "@/lib/footer";
 import { clientIp } from "@/lib/rate-limit";
 
 export async function GET() {
-  const { error } = await requirePermission("settings.manage");
+  const { error } = await requirePermission("contact.manage");
   if (error) return error;
   const setting = await db.siteSetting.findUnique({ where: { key: "footerInfo" } });
   return NextResponse.json({
@@ -16,7 +16,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const { user, error } = await requirePermission("settings.manage");
+  const { user, error } = await requirePermission("contact.manage");
   if (error) return error;
 
   const body = await req.json().catch(() => null);

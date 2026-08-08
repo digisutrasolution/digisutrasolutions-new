@@ -26,6 +26,10 @@ export const PERMISSIONS = {
   "media.upload": ["SUPER_ADMIN", "DEVELOPER", "SEO_MANAGER"],
   "blog.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "blog.publish": ["SUPER_ADMIN"],
+  // The contact page copy and the footer's details. Editorial, not
+  // infrastructure — it used to sit behind settings.manage (super admin only),
+  // so nobody but the owner could fix a phone number or a heading.
+  "contact.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   // Permanently delete an archived article. Separate from blog.manage so it can
   // be granted (or withheld) per role in the admin matrix — deletion is
   // irreversible, unlike archiving.
@@ -169,6 +173,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "blog.manage": { label: "Manage blog", group: "Content" },
   "blog.publish": { label: "Publish blog", group: "Content" },
   "blog.delete": { label: "Delete blog articles (permanent)", group: "Content" },
+  "contact.manage": { label: "Edit contact page & footer details", group: "Content" },
   "forms.manage": { label: "Manage forms", group: "Content" },
   "videos.manage": { label: "Manage videos", group: "Content" },
   "comments.moderate": { label: "Moderate comments", group: "Content" },

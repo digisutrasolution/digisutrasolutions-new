@@ -5,8 +5,6 @@ import { db } from "@/lib/db";
 import SettingsTabs from "@/components/admin/SettingsTabs";
 import { getAnalytics } from "@/lib/analytics";
 import { getBotNudge } from "@/lib/bot-nudge";
-import { getContactConfig } from "@/lib/contact-config-server";
-import { DEFAULT_FOOTER_INFO } from "@/lib/footer";
 import { getPayments, maskPayments } from "@/lib/payments";
 import { getSmtp, maskSmtp } from "@/lib/smtp";
 
@@ -18,18 +16,15 @@ export default async function AdminSettingsPage() {
   const user = await getCurrentUser();
   if (!user || !userCan(user, "settings.manage")) redirect("/admin");
 
-  const [social, footer, botNudge, payments, analytics, smtp, contact] = await Promise.all([
+  const [social, botNudge, payments, analytics, smtp] = await Promise.all([
     db.siteSetting.findUnique({ where: { key: "socialLinks" } }),
-    db.siteSetting.findUnique({ where: { key: "footerInfo" } }),
     getBotNudge(),
     getPayments(),
     getAnalytics(),
     getSmtp(),
-    getContactConfig(),
   ]);
   const paymentsView = maskPayments(payments);
   const links = Array.isArray(social?.value) ? (social.value as SocialLink[]) : [];
-  const footerInfo = { ...DEFAULT_FOOTER_INFO, ...(footer?.value as object | undefined) };
 
   return (
     <div>
@@ -41,8 +36,6 @@ export default async function AdminSettingsPage() {
       <SettingsTabs
         analytics={analytics}
         botNudge={botNudge}
-        contact={contact}
-        footerInfo={footerInfo}
         links={links}
         payments={paymentsView}
         smtp={maskSmtp(smtp)}
