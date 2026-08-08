@@ -224,9 +224,7 @@ export default function PushToggle() {
           setState("tab");
           setNote({
             kind: "ok",
-            text:
-              "Background push is unavailable in this browser profile, so alerts " +
-              "will pop while the CMS is open in a tab instead. Send a test to check.",
+            text: "Background push is unavailable in this browser — switched to tab alerts. Send a test to check.",
           });
           return;
         }
@@ -296,7 +294,10 @@ export default function PushToggle() {
           icon: withBase("/logo.png"),
           tag: "push-test",
         });
-        setNote({ kind: "ok", text: "Fired. Nothing on screen? Check Windows Settings → Notifications → Google Chrome, and turn off Do Not Disturb." });
+        setNote({
+          kind: "ok",
+          text: "Fired — look at your desktop. Nothing there? Windows Settings → Notifications → Google Chrome.",
+        });
       } catch (err) {
         setNote({ kind: "error", text: explain(err) });
       } finally {
@@ -310,7 +311,7 @@ export default function PushToggle() {
       if (res.ok && body.sent > 0) {
         setNote({
           kind: "ok",
-          text: "Sent. Nothing on screen? Check Windows Settings → Notifications → Google Chrome.",
+          text: "Sent — look at your desktop. Nothing there? Windows Settings → Notifications → Google Chrome.",
         });
       } else {
         setNote({
@@ -353,21 +354,20 @@ export default function PushToggle() {
         ) : (
           <BellOff size={13} className="shrink-0 text-stone-400" aria-hidden />
         )}
-        <span className="font-medium text-stone-600 dark:text-stone-300">
-          {on
-            ? "Desktop alerts on"
-            : tab
-              ? "Alerts on while this tab is open"
-              : "Desktop alerts off"}
+        {/* Labels and actions stay on one line — the panel is only 320px wide,
+            and a wrapped "Send / test" reads as two broken controls. The
+            caveat that tab alerts need the CMS open goes on its own row. */}
+        <span className="truncate font-medium text-stone-600 dark:text-stone-300">
+          {on ? "Desktop alerts on" : tab ? "Tab alerts on" : "Desktop alerts off"}
         </span>
-        <span className="ml-auto flex items-center gap-2">
+        <span className="ml-auto flex shrink-0 items-center gap-3 whitespace-nowrap">
           {active && (
             <button
               onClick={() => void test(tab)}
               disabled={busy}
               className="cursor-pointer font-semibold text-orange-700 hover:underline disabled:opacity-60 dark:text-orange-400"
             >
-              Send test
+              Test
             </button>
           )}
           <button
@@ -379,6 +379,11 @@ export default function PushToggle() {
           </button>
         </span>
       </div>
+      {tab && (
+        <p className="px-4 pb-2 text-[11px] leading-snug text-stone-400">
+          Only while the CMS is open — this browser cannot do background push.
+        </p>
+      )}
       {note && (
         <p
           className={`px-4 pb-2.5 text-[11px] leading-snug ${
