@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import PushToggle from "@/components/admin/PushToggle";
+import { canRaiseTabAlert } from "@/lib/tab-alerts";
 
 type NotificationItem = {
   id: string;
@@ -32,18 +33,51 @@ export default function NotificationsBell() {
   const [unread, setUnread] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  /* Ids already accounted for. Null until the first poll lands, so the
+     existing backlog is adopted silently instead of firing 36 notifications
+     at whoever opens the CMS. */
+  const seen = useRef<Set<string> | null>(null);
+
   const load = useCallback(async () => {
     try {
       const res = await fetch(withBase("/api/notifications"));
       const json = await res.json().catch(() => ({}));
-      if (json.ok) {
-        setItems(json.items);
-        setUnread(json.unread);
+      if (!json.ok) return;
+      const list = json.items as NotificationItem[];
+
+      if (seen.current === null) {
+        seen.current = new Set(list.map((i) => i.id));
+      } else {
+        const fresh = list.filter((i) => !seen.current!.has(i.id));
+        list.forEach((i) => seen.current!.add(i.id));
+        // The push-service fallback: raise the notification from this tab.
+        if (canRaiseTabAlert()) {
+          for (const item of fresh) {
+            if (item.readAt) continue;
+            try {
+              const n = new Notification(item.title, {
+                body: item.body ?? "",
+                tag: item.id,
+                icon: withBase("/logo.png"),
+              });
+              n.onclick = () => {
+                window.focus();
+                if (item.link) router.push(item.link);
+                n.close();
+              };
+            } catch {
+              /* a profile can refuse the constructor outright — skip it */
+            }
+          }
+        }
       }
+
+      setItems(list);
+      setUnread(json.unread);
     } catch {
       /* transient */
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     // Defer the initial fetch past commit (react-hooks/set-state-in-effect).

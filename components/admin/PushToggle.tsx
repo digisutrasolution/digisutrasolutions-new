@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Bell, BellOff, Loader2 } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import { setTabAlerts, tabAlertsEnabled } from "@/lib/tab-alerts";
 
 /* Enable/disable browser push (desktop notifications) for the signed-in admin.
    Registers the tiny push-sw.js service worker, subscribes with the server's
@@ -109,7 +110,9 @@ async function hardReset(): Promise<void> {
   }
 }
 
-type State = "loading" | "unsupported" | "unconfigured" | "off" | "on" | "denied";
+/** "on" = real Web Push (arrives with the CMS closed). "tab" = the fallback
+    tier: notifications raised by the open CMS tab, no push service involved. */
+type State = "loading" | "unsupported" | "unconfigured" | "off" | "on" | "tab" | "denied";
 
 export default function PushToggle() {
   const [state, setState] = useState<State>("loading");
@@ -148,7 +151,10 @@ export default function PushToggle() {
         // A subscription made with a superseded VAPID key is undeliverable, so
         // it must not read as "on" — the operator would think they were covered.
         const live = sub ? usesKey(sub, urlBase64ToUint8Array(json.key)) : false;
-        if (!cancelled) setState(live ? "on" : "off");
+        if (cancelled) return;
+        // No push subscription, but the tab-alert fallback may still be armed
+        // from a previous session on this machine.
+        setState(live ? "on" : tabAlertsEnabled() ? "tab" : "off");
       } catch (err) {
         if (!cancelled) {
           setState("off");
@@ -206,8 +212,26 @@ export default function PushToggle() {
         if ((first as { name?: string }).name !== "AbortError") throw first;
         setNote({ kind: "ok", text: "Clearing a stale registration and retrying…" });
         await hardReset();
-        sub = await subscribeOnce();
+        try {
+          sub = await subscribeOnce();
+        } catch (second) {
+          // Two clean attempts failed, so this is not our registration — the
+          // profile's push machinery is unavailable and no app code reaches
+          // it. Permission IS granted though, so fall back to the tier that
+          // needs no push service at all.
+          if ((second as { name?: string }).name !== "AbortError") throw second;
+          setTabAlerts(true);
+          setState("tab");
+          setNote({
+            kind: "ok",
+            text:
+              "Background push is unavailable in this browser profile, so alerts " +
+              "will pop while the CMS is open in a tab instead. Send a test to check.",
+          });
+          return;
+        }
       }
+      setTabAlerts(true);
 
       const json = sub.toJSON();
       const res = await fetch(withBase("/api/push/subscribe"), {
@@ -248,8 +272,10 @@ export default function PushToggle() {
         });
         await sub.unsubscribe();
       }
+      setTabAlerts(false);
       setState("off");
     } catch (err) {
+      setTabAlerts(false);
       setState("off");
       setNote({ kind: "error", text: explain(err) });
     } finally {
@@ -259,9 +285,25 @@ export default function PushToggle() {
 
   /* Round-trips a real push through the same path a new lead takes, so a
      silent failure downstream of the subscription shows up here too. */
-  const test = useCallback(async () => {
+  const test = useCallback(async (tabMode: boolean) => {
     setBusy(true);
     setNote(null);
+    if (tabMode) {
+      // No server round trip to make — this tier fires from the page itself.
+      try {
+        new Notification("DigiSutra CMS — test alert", {
+          body: "Tab alerts are working. New leads will pop like this while the CMS is open.",
+          icon: withBase("/logo.png"),
+          tag: "push-test",
+        });
+        setNote({ kind: "ok", text: "Fired. Nothing on screen? Check Windows Settings → Notifications → Google Chrome, and turn off Do Not Disturb." });
+      } catch (err) {
+        setNote({ kind: "error", text: explain(err) });
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     try {
       const res = await fetch(withBase("/api/push/test"), { method: "POST" });
       const body = await res.json().catch(() => ({}));
@@ -298,24 +340,30 @@ export default function PushToggle() {
     );
   }
 
+  const tab = state === "tab";
   const on = state === "on";
+  const active = on || tab;
   return (
     <div className="border-t border-stone-100 dark:border-stone-800">
       <div className="flex items-center gap-2 px-4 py-2.5 text-[11px]">
         {busy ? (
           <Loader2 size={13} className="shrink-0 animate-spin text-stone-400" aria-hidden />
-        ) : on ? (
+        ) : active ? (
           <Bell size={13} className="shrink-0 text-orange-600" aria-hidden />
         ) : (
           <BellOff size={13} className="shrink-0 text-stone-400" aria-hidden />
         )}
         <span className="font-medium text-stone-600 dark:text-stone-300">
-          {on ? "Desktop alerts on" : "Desktop alerts off"}
+          {on
+            ? "Desktop alerts on"
+            : tab
+              ? "Alerts on while this tab is open"
+              : "Desktop alerts off"}
         </span>
         <span className="ml-auto flex items-center gap-2">
-          {on && (
+          {active && (
             <button
-              onClick={() => void test()}
+              onClick={() => void test(tab)}
               disabled={busy}
               className="cursor-pointer font-semibold text-orange-700 hover:underline disabled:opacity-60 dark:text-orange-400"
             >
@@ -323,11 +371,11 @@ export default function PushToggle() {
             </button>
           )}
           <button
-            onClick={() => void (on ? disable() : enable())}
+            onClick={() => void (active ? disable() : enable())}
             disabled={busy}
             className="cursor-pointer font-semibold text-orange-700 hover:underline disabled:opacity-60 dark:text-orange-400"
           >
-            {on ? "Turn off" : "Enable"}
+            {active ? "Turn off" : "Enable"}
           </button>
         </span>
       </div>
