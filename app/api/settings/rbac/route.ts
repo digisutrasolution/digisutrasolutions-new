@@ -7,6 +7,8 @@ import {
   ALL_PERMISSIONS,
   EDITABLE_ROLES,
   currentMatrix,
+  permissionsAddedSinceSave,
+  rbacMatrixIsLegacy,
   type Permission,
 } from "@/lib/auth/rbac";
 import { ensureRbacLoaded, saveRbacMatrix } from "@/lib/auth/rbac-server";
@@ -22,7 +24,14 @@ export async function GET() {
   const { error } = await requirePermission("roles.manage");
   if (error) return error;
   await ensureRbacLoaded(true);
-  return NextResponse.json({ ok: true, matrix: currentMatrix() });
+  return NextResponse.json({
+    ok: true,
+    matrix: currentMatrix(),
+    // Permissions the saved matrix never saw. They are following their code
+    // defaults right now; saving once records them explicitly.
+    addedSinceSave: permissionsAddedSinceSave(),
+    legacyMatrix: rbacMatrixIsLegacy(),
+  });
 }
 
 /** Replace the matrix. Super Admin is never included (always all-powerful). */

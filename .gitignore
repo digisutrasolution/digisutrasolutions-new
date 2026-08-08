@@ -51,3 +51,4 @@ contact-submissions.log
 # Database dumps — contain real user rows and bcrypt hashes, never commit
 *.dump
 *.sql.gz
+/.next-verify/

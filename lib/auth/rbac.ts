@@ -82,20 +82,91 @@ function defaultsFor(role: Role): Permission[] {
 
 /* ---- Runtime overrides (populated on the server by rbac-server) ---- */
 
+/**
+ * A saved matrix REPLACES the code defaults, which used to mean a permission
+ * added in a later release was silently denied to every role whose list had
+ * ever been edited — the admin never unticked it, it simply did not exist when
+ * they saved. contact.manage, payments.manage and blog.delete all landed that
+ * way.
+ *
+ * So a saved matrix now also records the permission catalog as it stood at
+ * save time. Anything absent from that catalog was never presented to the
+ * admin, so it falls back to its code default; anything present is honoured
+ * exactly as stored. That distinction is the whole point: an explicit untick
+ * must never be quietly re-granted.
+ *
+ * Matrices saved before this change carry no catalog. Those are treated as
+ * complete — no fallback — because there is no way to tell "unticked on
+ * purpose" from "did not exist yet", and guessing wrong would silently widen
+ * access (un-ticking leads.viewAll to scope a sales role is exactly the case
+ * that must not be undone). They are surfaced in the admin UI instead.
+ */
+export const RBAC_MATRIX_VERSION = 2;
+
+export type StoredRbac = {
+  version?: number;
+  catalog?: string[];
+  roles?: Partial<Record<string, string[]>>;
+};
+
 let overrides: Partial<Record<Role, Permission[]>> | null = null;
+/** Permission keys the stored matrix was aware of; null when none is stored. */
+let storedCatalog: Set<string> | null = null;
+/** True when the stored matrix predates catalog tracking. */
+let legacyMatrix = false;
+
+/** Accepts the current shape and the legacy bare `{ROLE: [...]}` map. */
+function unwrap(raw: StoredRbac | Partial<Record<string, string[]>>): {
+  roles: Partial<Record<string, string[]>>;
+  catalog: string[] | null;
+} {
+  const maybe = raw as StoredRbac;
+  if (maybe && typeof maybe === "object" && maybe.roles && !Array.isArray(maybe.roles)) {
+    return {
+      roles: maybe.roles,
+      catalog: Array.isArray(maybe.catalog) ? maybe.catalog : null,
+    };
+  }
+  return { roles: raw as Partial<Record<string, string[]>>, catalog: null };
+}
 
 /** Replace the in-memory override matrix. `null` reverts to code defaults. */
-export function setRbacOverrides(raw: Partial<Record<string, string[]>> | null): void {
+export function setRbacOverrides(
+  raw: StoredRbac | Partial<Record<string, string[]>> | null,
+): void {
   if (!raw) {
     overrides = null;
+    storedCatalog = null;
+    legacyMatrix = false;
     return;
   }
+  const { roles, catalog } = unwrap(raw);
+  legacyMatrix = catalog === null;
+  // No catalog recorded ⇒ treat every known permission as "already seen", so
+  // nothing falls back and existing installs behave exactly as before.
+  storedCatalog = new Set(catalog ?? ALL_PERMISSIONS);
+
   const clean: Partial<Record<Role, Permission[]>> = {};
   for (const role of EDITABLE_ROLES) {
-    const list = raw[role];
-    if (Array.isArray(list)) clean[role] = list.filter(isPermission);
+    const list = roles[role];
+    if (!Array.isArray(list)) continue;
+    const stored = list.filter(isPermission);
+    // Permissions the admin never saw fall back to their code default.
+    const unseen = defaultsFor(role).filter((p) => !storedCatalog!.has(p));
+    clean[role] = [...new Set([...stored, ...unseen])];
   }
   overrides = clean;
+}
+
+/** Permissions added since the matrix was saved — for the admin UI to flag. */
+export function permissionsAddedSinceSave(): Permission[] {
+  if (!storedCatalog || legacyMatrix) return [];
+  return ALL_PERMISSIONS.filter((p) => !storedCatalog!.has(p));
+}
+
+/** True when the stored matrix predates catalog tracking (one save fixes it). */
+export function rbacMatrixIsLegacy(): boolean {
+  return legacyMatrix;
 }
 
 /** Current overrides (defaults filled in for editable roles) — for the admin UI. */

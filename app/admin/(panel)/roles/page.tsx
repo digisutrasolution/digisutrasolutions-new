@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
-import { currentMatrix } from "@/lib/auth/rbac";
+import { currentMatrix, permissionsAddedSinceSave, rbacMatrixIsLegacy, PERMISSION_META } from "@/lib/auth/rbac";
 import { ensureRbacLoaded } from "@/lib/auth/rbac-server";
 import { db } from "@/lib/db";
 import RolesWorkspace from "@/components/admin/RolesWorkspace";
@@ -14,6 +14,13 @@ export default async function RolesPage() {
 
   await ensureRbacLoaded(true);
   const matrix = currentMatrix();
+  /* Permissions a later release added that the saved matrix never saw. They
+     are following their code defaults; one save records them explicitly. */
+  const addedSinceSave = permissionsAddedSinceSave().map((p) => ({
+    key: p,
+    label: PERMISSION_META[p].label,
+  }));
+  const legacyMatrix = rbacMatrixIsLegacy();
 
   // Users per system role (excluding those overridden by a custom role) +
   // Super Admin, for the counts shown next to each role.
@@ -36,7 +43,7 @@ export default async function RolesPage() {
         yourself out.
       </p>
       <div className="mt-6">
-        <RolesWorkspace initialMatrix={matrix} systemCounts={systemCounts} />
+        <RolesWorkspace initialMatrix={matrix} systemCounts={systemCounts} addedSinceSave={addedSinceSave} legacyMatrix={legacyMatrix} />
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ function RoleRow({ active, avatar, name, sub, onClick, badge, locked }: { active
   );
 }
 
-export default function RolesWorkspace({ initialMatrix, systemCounts }: { initialMatrix: Matrix; systemCounts: Record<string, number> }) {
+export default function RolesWorkspace({ initialMatrix, systemCounts, addedSinceSave = [], legacyMatrix = false }: { initialMatrix: Matrix; systemCounts: Record<string, number>; addedSinceSave?: { key: string; label: string }[]; legacyMatrix?: boolean }) {
   const [matrix, setMatrix] = useState<Matrix>(initialMatrix);
   const [savedMatrix, setSavedMatrix] = useState<Matrix>(initialMatrix);
   const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
@@ -174,6 +174,46 @@ export default function RolesWorkspace({ initialMatrix, systemCounts }: { initia
   }
 
   return (
+    <>
+      {/* A permission added after this matrix was saved would otherwise be
+          silently denied to every edited role — the admin never unticked it,
+          it just did not exist yet. Say so instead of letting it hide. */}
+      {(addedSinceSave.length > 0 || legacyMatrix) && (
+        <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-amber-800 dark:text-amber-200">
+            {legacyMatrix ? "Review permissions once" : `${addedSinceSave.length} new permission${addedSinceSave.length === 1 ? "" : "s"}`}
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-amber-900/80 dark:text-amber-200/80">
+            {legacyMatrix ? (
+              <>
+                This matrix was saved before new permissions were tracked, so
+                anything added since is switched <b>off</b> for the edited roles
+                even though it was never unticked. Check each role and save once
+                — from then on new permissions arrive on their defaults.
+              </>
+            ) : (
+              <>
+                Added after this matrix was saved, so they are currently
+                following their built-in defaults. Save to record them
+                explicitly.
+              </>
+            )}
+          </p>
+          {addedSinceSave.length > 0 && (
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {addedSinceSave.map((p) => (
+                <li
+                  key={p.key}
+                  className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-amber-900 dark:bg-stone-900 dark:text-amber-200"
+                >
+                  {p.label}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
       {/* Left: roles */}
       <div className="w-full shrink-0 rounded-2xl border border-stone-200 bg-white p-2.5 lg:w-64 dark:border-stone-800 dark:bg-stone-900">
@@ -280,5 +320,6 @@ export default function RolesWorkspace({ initialMatrix, systemCounts }: { initia
         )}
       </div>
     </div>
+    </>
   );
 }
