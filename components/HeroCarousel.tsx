@@ -135,8 +135,14 @@ function HeadlineLine({
 }
 
 function SlideHeadline({ index }: { index: number }) {
+  /* Each headline is three hand-broken lines, so it must not re-wrap. Between
+     700 and lg the copy shares the row with the phone and the column is only
+     ~420-460px, where 5xl pushed "Scale your business" onto a second line and
+     made it four. So 5xl applies only to the single-column 640-699 band and
+     again from lg. The ranges are written not to overlap on purpose — a
+     min-[700px] override lost to sm: in the generated cascade. */
   const h =
-    "font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl";
+    "font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:max-[699px]:text-5xl lg:text-5xl";
   const grad =
     "grad-shimmer bg-[linear-gradient(100deg,#EA580C,#F59E0B)] bg-clip-text text-transparent";
 
@@ -807,7 +813,13 @@ export default function HeroCarousel() {
               if (info.offset.x < -70) go(index + 1);
               if (info.offset.x > 70) go(index - 1);
             }}
-            className="relative mx-auto grid max-w-[1280px] cursor-grab grid-cols-1 items-center gap-10 px-6 pb-28 pt-8 active:cursor-grabbing sm:pt-10 lg:min-h-[660px] lg:grid-cols-[1fr_0.44fr_0.98fr] lg:gap-5"
+            /* From 700px the phone moves up beside the copy and the command
+               shell spans underneath, so an unfolded foldable (~740px) stops
+               showing a half-empty band. 700 rather than sm: at 640 the text
+               column would be ~350px and the sm:text-5xl headline overflows
+               it. minmax(0,1fr) keeps the text track from refusing to shrink
+               below its longest word. */
+            className="relative mx-auto grid max-w-[1280px] cursor-grab grid-cols-1 items-center gap-10 px-6 pb-28 pt-8 active:cursor-grabbing sm:pt-10 min-[700px]:grid-cols-[minmax(0,1fr)_auto] min-[700px]:gap-8 lg:min-h-[660px] lg:grid-cols-[1fr_0.44fr_0.98fr] lg:gap-5"
           >
             <div>
               <motion.p
@@ -885,13 +897,13 @@ export default function HeroCarousel() {
             </div>
             <motion.div
               variants={itemVariants}
-              className="hidden justify-center lg:flex"
+              className="hidden justify-center min-[700px]:flex"
             >
               <PhoneMockup index={index} />
             </motion.div>
             <motion.div
               variants={itemVariants}
-              className="flex w-full justify-center lg:justify-end"
+              className="flex w-full justify-center min-[700px]:col-span-2 lg:col-span-1 lg:justify-end"
             >
               <motion.div
                 className="w-full max-w-sm lg:max-w-[26rem]"

@@ -105,9 +105,17 @@ export default async function SitemapPage() {
     bucket.items.push(s);
   }
 
-  // Nav-derived columns; Services is rendered in full separately, and
-  // childless top-level items fold into a Company column.
-  const navColumns = nav.filter((n) => n.children?.length && n.label !== "Services");
+  /* Nav-derived columns, minus anything this page already renders in full
+     further down — otherwise Services and the free tools appear twice, the
+     second time with whatever count the menu label happens to say (the tools
+     column read "19" against a real 18). Matched on href, not label, because
+     the labels get renamed in admin: "Resources" became "Free Tools" and a
+     label check would have silently stopped excluding it. Childless top-level
+     items fold into the Company column instead. */
+  const RENDERED_IN_FULL = new Set(["/services", "/free-tools"]);
+  const navColumns = nav.filter(
+    (n) => n.children?.length && !RENDERED_IN_FULL.has(n.href),
+  );
   const standalone = nav.filter((n) => !n.children?.length);
 
   const company: LinkItem[] = [
