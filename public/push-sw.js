@@ -3,6 +3,12 @@
    click URL are absolute URLs supplied by the server payload, so this works
    the same on the apex domain and on subpath (staging) deploys. */
 
+/* Take over immediately. Without these a redeployed worker parks in `waiting`
+   until every CMS tab is closed, and navigator.serviceWorker.ready never
+   settles for the page trying to subscribe. */
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -29,8 +35,13 @@ self.addEventListener("notificationclick", (event) => {
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((list) => {
+        // Reuse any already-open CMS tab — an exact URL match almost never
+        // hits, so match the /admin prefix and navigate it.
         for (const client of list) {
-          if (client.url === url && "focus" in client) return client.focus();
+          if (client.url.indexOf("/admin") !== -1 && "focus" in client) {
+            if ("navigate" in client) client.navigate(url).catch(function () {});
+            return client.focus();
+          }
         }
         if (self.clients.openWindow) return self.clients.openWindow(url);
         return undefined;

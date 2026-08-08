@@ -39,20 +39,33 @@ export type PushPayload = {
   tag?: string;
 };
 
-/** Best-effort push to every subscription owned by the given users. Expired
-    endpoints (404/410) are pruned. Never throws into the caller. */
-export async function sendPushToUsers(
+export type PushResult = {
+  /** Subscriptions the push service accepted. */
+  sent: number;
+  /** Dead endpoints (404/410) deleted during this send. */
+  pruned: number;
+  /** Human-readable reasons for the sends that failed for any other cause. */
+  errors: string[];
+};
+
+/** Push to every subscription owned by the given users and report what
+    happened. Expired endpoints (404/410) are pruned. Never throws. */
+export async function sendPushToUsersDetailed(
   userIds: string[],
   payload: PushPayload,
-): Promise<void> {
-  if (!ready) return;
+): Promise<PushResult> {
+  const result: PushResult = { sent: 0, pruned: 0, errors: [] };
+  if (!ready) {
+    result.errors.push("Push is not configured on the server (no VAPID keys).");
+    return result;
+  }
   const ids = [...new Set(userIds)].filter(Boolean);
-  if (ids.length === 0) return;
+  if (ids.length === 0) return result;
 
   const subs = await db.pushSubscription
     .findMany({ where: { userId: { in: ids } } })
     .catch(() => []);
-  if (subs.length === 0) return;
+  if (subs.length === 0) return result;
 
   const body = JSON.stringify({
     title: payload.title,
@@ -69,14 +82,29 @@ export async function sendPushToUsers(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
           body,
         );
+        result.sent += 1;
       } catch (err) {
         const code = (err as { statusCode?: number }).statusCode;
         if (code === 404 || code === 410) {
           await db.pushSubscription.delete({ where: { id: s.id } }).catch(() => {});
+          result.pruned += 1;
         } else {
+          const detail = (err as { body?: string; message?: string }).body
+            ?? (err as { message?: string }).message
+            ?? String(err);
+          result.errors.push(`${code ?? "?"}: ${detail}`.slice(0, 300));
           console.error("push send failed:", code ?? err);
         }
       }
     }),
   );
+  return result;
+}
+
+/** Best-effort push — fire and forget. Callers on the request path use this. */
+export async function sendPushToUsers(
+  userIds: string[],
+  payload: PushPayload,
+): Promise<void> {
+  await sendPushToUsersDetailed(userIds, payload);
 }
