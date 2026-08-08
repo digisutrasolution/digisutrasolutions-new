@@ -7,6 +7,7 @@ import { ArrowLeft, BadgeCheck, MessageCircle, Pencil, Trash2 } from "lucide-rea
 import { FileText, Sparkles } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import LeadFollowUps, { type FollowUp } from "@/components/admin/LeadFollowUps";
+import AssigneePicker, { type Assignee } from "@/components/admin/AssigneePicker";
 import LeadComms from "@/components/admin/LeadComms";
 import Attachments from "@/components/admin/Attachments";
 import LeadInsights from "@/components/admin/LeadInsights";
@@ -84,7 +85,7 @@ export default function LeadDetail({
   senderName = "",
 }: {
   lead: Lead;
-  assignees: { id: string; name: string }[];
+  assignees: Assignee[];
   scoringConfig: ScoringConfig;
   canQuote?: boolean;
   senderName?: string;
@@ -174,13 +175,20 @@ export default function LeadDetail({
             {LEAD_PRIORITIES.map((s) => <option key={s} value={s}>{PRIORITY_LABEL[s]}</option>)}
           </select>
         </label>
-        <label className="text-xs">
+        {/* A div, not a label: <button> is labelable, so a wrapping label
+            would make the caption text pop the dropdown open. */}
+        <div className="text-xs">
           <span className="mb-1 block font-semibold uppercase tracking-wide text-stone-500">Assigned to</span>
-          <select value={lead.assignedToId ?? ""} disabled={saving} onChange={(e) => void patch({ assignedToId: e.target.value || null })} className={inputCls}>
-            <option value="">Unassigned</option>
-            {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-        </label>
+          <AssigneePicker
+            assignees={assignees}
+            value={lead.assignedToId ?? ""}
+            onChange={(v) => void patch({ assignedToId: v || null })}
+            leading={[{ value: "", label: "Unassigned" }]}
+            placeholder="Unassigned"
+            label="Assigned to"
+            disabled={saving}
+          />
+        </div>
         <div className="text-xs">
           <span className="mb-1 block font-semibold uppercase tracking-wide text-stone-500">Score</span>
           {(() => {

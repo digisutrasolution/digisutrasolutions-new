@@ -30,7 +30,14 @@ export default async function LeadDetailPage({
     }),
     db.user.findMany({
       where: { isActive: true },
-      select: { id: true, name: true },
+      // Role + email disambiguate the shared mailboxes in the picker.
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        customRole: { select: { name: true } },
+      },
       orderBy: { name: "asc" },
     }),
     getScoringConfig(),

@@ -14,7 +14,15 @@ export default async function AdminLeadsPage() {
   const [assignees, scoringConfig] = await Promise.all([
     db.user.findMany({
       where: { isActive: true },
-      select: { id: true, name: true },
+      // Role + email disambiguate the shared mailboxes ("Sales Team" ×3) in
+      // every assignee picker.
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        customRole: { select: { name: true } },
+      },
       orderBy: { name: "asc" },
     }),
     getScoringConfig(),

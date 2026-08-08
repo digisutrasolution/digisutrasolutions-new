@@ -7,7 +7,7 @@ import LeadsKanban from "@/components/admin/LeadsKanban";
 import LeadsManager from "@/components/admin/LeadsManager";
 import type { ScoringConfig } from "@/lib/scoring";
 
-type Assignee = { id: string; name: string };
+import type { Assignee } from "@/components/admin/AssigneePicker";
 
 export default function LeadsWorkspace({
   assignees,

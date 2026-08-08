@@ -14,7 +14,8 @@ import {
 } from "@/lib/crm";
 import { BAND_LABEL, BAND_STYLE, bandOf, type ScoringConfig } from "@/lib/scoring";
 
-type Assignee = { id: string; name: string };
+import AssigneePicker, { type Assignee } from "@/components/admin/AssigneePicker";
+
 type Lead = {
   id: string;
   name: string;
@@ -98,11 +99,14 @@ export default function LeadsKanban({
           <option value="ALL">All sources</option>
           {LEAD_SOURCES.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s]}</option>)}
         </select>
-        <select value={assignee} onChange={(e) => onFilter(setAssignee)(e.target.value)} className={inputCls} aria-label="Assignee">
-          <option value="ALL">Anyone</option>
-          <option value="unassigned">Unassigned</option>
-          {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
+        <AssigneePicker
+          assignees={assignees}
+          value={assignee}
+          onChange={onFilter(setAssignee)}
+          leading={[{ value: "ALL", label: "Anyone" }, { value: "unassigned", label: "Unassigned" }]}
+          label="Assignee"
+          className="w-44"
+        />
         <span className="text-xs text-stone-400">{loading ? "Loading…" : `${leads.length} in pipeline`}</span>
       </div>
 

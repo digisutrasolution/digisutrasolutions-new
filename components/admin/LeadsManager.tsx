@@ -24,7 +24,7 @@ import {
   type ScoringConfig,
 } from "@/lib/scoring";
 
-type Assignee = { id: string; name: string };
+import AssigneePicker, { type Assignee } from "@/components/admin/AssigneePicker";
 
 type Lead = {
   id: string;
@@ -199,11 +199,14 @@ export default function LeadsManager({
           <option value="ALL">All scores</option>
           {SCORE_BANDS.map((b) => <option key={b} value={b}>{BAND_LABEL[b]}</option>)}
         </select>
-        <select value={assignee} onChange={(e) => onFilter(setAssignee)(e.target.value)} className={inputCls} aria-label="Assignee">
-          <option value="ALL">Anyone</option>
-          <option value="unassigned">Unassigned</option>
-          {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
+        <AssigneePicker
+          assignees={assignees}
+          value={assignee}
+          onChange={onFilter(setAssignee)}
+          leading={[{ value: "ALL", label: "Anyone" }, { value: "unassigned", label: "Unassigned" }]}
+          label="Assignee"
+          className="w-44"
+        />
         <button
           onClick={() => setShowAdd(true)}
           className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-orange-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-orange-500"
@@ -225,11 +228,15 @@ export default function LeadsManager({
       {selected.size > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs dark:border-orange-900/60 dark:bg-orange-950/30">
           <span className="font-semibold text-orange-800 dark:text-orange-300">{selected.size} selected</span>
-          <select value={bulkAssignee} onChange={(e) => setBulkAssignee(e.target.value)} className={inputCls} aria-label="Bulk assign to">
-            <option value="">Assign to…</option>
-            <option value="__unassign">Unassign</option>
-            {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
+          <AssigneePicker
+            assignees={assignees}
+            value={bulkAssignee}
+            onChange={setBulkAssignee}
+            leading={[{ value: "__unassign", label: "Unassign" }]}
+            placeholder="Assign to…"
+            label="Bulk assign to"
+            className="w-52"
+          />
           <button
             onClick={() => void bulkAssign(bulkAssignee === "__unassign" ? null : bulkAssignee)}
             disabled={bulkBusy || !bulkAssignee}
@@ -433,10 +440,14 @@ function AddLeadModal({
             </select>
           </Field>
           <Field label="Assign to" full>
-            <select value={f.assignedToId} onChange={(e) => set("assignedToId", e.target.value)} className={`${inputCls} w-full`}>
-              <option value="">Unassigned</option>
-              {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-            </select>
+            <AssigneePicker
+              assignees={assignees}
+              value={f.assignedToId}
+              onChange={(v) => set("assignedToId", v)}
+              leading={[{ value: "", label: "Unassigned" }]}
+              placeholder="Unassigned"
+              label="Assign to"
+            />
           </Field>
           <Field label="Message / notes" full>
             <textarea value={f.message} onChange={(e) => set("message", e.target.value)} rows={2} className={`${inputCls} w-full`} />
