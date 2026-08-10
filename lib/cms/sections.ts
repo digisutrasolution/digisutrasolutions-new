@@ -299,25 +299,30 @@ export const StickyCtaSectionSchema = z.object({
   showAfter: z.number().int().min(0).max(5000).default(600),
 });
 
+/* Every block can be switched off without being deleted — the commonest
+   editorial move is "take this out for now", and deleting loses the content.
+   Applied here rather than in each schema so a new kind cannot forget it. */
+const HIDEABLE = { hidden: z.boolean().default(false) };
+
 export const SectionSchema = z.discriminatedUnion("type", [
-  HeroSectionSchema,
-  RichTextSectionSchema,
-  CardsSectionSchema,
-  StatsSectionSchema,
-  CountriesSectionSchema,
-  IndustriesSectionSchema,
-  FaqSectionSchema,
-  CtaSectionSchema,
-  FormSectionSchema,
-  VideoSectionSchema,
-  TestimonialsSectionSchema,
-  LogosSectionSchema,
-  CaseStudiesSectionSchema,
-  PricingSectionSchema,
-  ComparisonSectionSchema,
-  StepsSectionSchema,
-  GallerySectionSchema,
-  StickyCtaSectionSchema,
+  HeroSectionSchema.extend(HIDEABLE),
+  RichTextSectionSchema.extend(HIDEABLE),
+  CardsSectionSchema.extend(HIDEABLE),
+  StatsSectionSchema.extend(HIDEABLE),
+  CountriesSectionSchema.extend(HIDEABLE),
+  IndustriesSectionSchema.extend(HIDEABLE),
+  FaqSectionSchema.extend(HIDEABLE),
+  CtaSectionSchema.extend(HIDEABLE),
+  FormSectionSchema.extend(HIDEABLE),
+  VideoSectionSchema.extend(HIDEABLE),
+  TestimonialsSectionSchema.extend(HIDEABLE),
+  LogosSectionSchema.extend(HIDEABLE),
+  CaseStudiesSectionSchema.extend(HIDEABLE),
+  PricingSectionSchema.extend(HIDEABLE),
+  ComparisonSectionSchema.extend(HIDEABLE),
+  StepsSectionSchema.extend(HIDEABLE),
+  GallerySectionSchema.extend(HIDEABLE),
+  StickyCtaSectionSchema.extend(HIDEABLE),
 ]);
 
 export const SectionsSchema = z.array(SectionSchema).max(40);
@@ -350,6 +355,12 @@ export const SECTION_DEFS: Record<
 };
 
 export function defaultSection(type: SectionType): Section {
+  // The per-kind schemas below do not carry HIDEABLE, so add it here rather
+  // than returning a block the union would reject.
+  return { ...baseSection(type), hidden: false } as Section;
+}
+
+function baseSection(type: SectionType) {
   switch (type) {
     case "hero":
       return HeroSectionSchema.parse({ type });

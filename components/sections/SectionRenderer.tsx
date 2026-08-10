@@ -415,7 +415,9 @@ function FormBlock({ s }: { s: Extract<Section, { type: "form" }> }) {
 export default function SectionRenderer({ sections }: { sections: Section[] }) {
   return (
     <>
-      {sections.map((section, i) => {
+      {/* Hidden blocks are skipped everywhere, preview included — "hidden"
+          has to mean hidden, or the editor cannot tell what a visitor sees. */}
+      {sections.filter((s) => !s.hidden).map((section, i) => {
         switch (section.type) {
           case "hero":
             return <HeroBlock key={i} s={section} />;

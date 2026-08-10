@@ -9,6 +9,10 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  Copy,
+  Eye,
+  EyeOff,
+  GripVertical,
   ExternalLink,
   History,
   Plus,
@@ -190,6 +194,38 @@ export default function PageEditor({
   function updateSection(index: number, patch: Partial<Section>) {
     setSections((prev) =>
       prev.map((s, i) => (i === index ? ({ ...s, ...patch } as Section) : s)),
+    );
+  }
+
+  /* Native HTML5 drag-and-drop rather than a dependency. The up/down buttons
+     stay: dragging is pointer-only, and WCAG 2.5.7 wants a single-pointer
+     alternative for any drag operation. */
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  function reorder(from: number, to: number) {
+    if (from === to) return;
+    setSections((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  }
+
+  function duplicateSection(index: number) {
+    setSections((prev) => {
+      const next = [...prev];
+      // Deep copy — a shallow one would share the items array, so editing a
+      // card in the copy would silently edit the original too.
+      next.splice(index + 1, 0, JSON.parse(JSON.stringify(prev[index])) as Section);
+      return next;
+    });
+  }
+
+  function toggleHidden(index: number) {
+    setSections((prev) =>
+      prev.map((s, i) => (i === index ? ({ ...s, hidden: !s.hidden } as Section) : s)),
     );
   }
 
@@ -459,14 +495,62 @@ export default function PageEditor({
           </div>
 
           {sections.map((section, i) => (
-            <div key={i} className={cardCls}>
+            <div
+              key={i}
+              /* The whole card is the drop target; only the handle starts a
+                 drag, so text selection inside the fields still works. */
+              onDragOver={(e) => {
+                if (dragIndex === null) return;
+                e.preventDefault();
+                setOverIndex(i);
+              }}
+              onDrop={(e) => {
+                if (dragIndex === null) return;
+                e.preventDefault();
+                reorder(dragIndex, i);
+                setDragIndex(null);
+                setOverIndex(null);
+              }}
+              className={[
+                cardCls,
+                "transition-opacity",
+                dragIndex === i ? "opacity-40" : "",
+                overIndex === i && dragIndex !== null && dragIndex !== i
+                  ? "ring-2 ring-orange-400"
+                  : "",
+                section.hidden ? "border-dashed opacity-60" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
               <div className="mb-4 flex items-center justify-between">
-                <p className="font-display text-sm font-bold">
+                <p className="flex items-center font-display text-sm font-bold">
+                  {permissions.edit && (
+                    <span
+                      draggable
+                      onDragStart={() => setDragIndex(i)}
+                      onDragEnd={() => {
+                        setDragIndex(null);
+                        setOverIndex(null);
+                      }}
+                      title="Drag to reorder"
+                      className="mr-1 cursor-grab text-stone-400 active:cursor-grabbing"
+                    >
+                      <GripVertical size={15} aria-hidden />
+                    </span>
+                  )}
                   <span className="mr-2 text-orange-600">{String(i + 1).padStart(2, "0")}</span>
                   {SECTION_DEFS[section.type].label}
+                  {section.hidden && (
+                    <span className="ml-2 rounded-full bg-stone-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-stone-600 dark:bg-stone-700 dark:text-stone-300">
+                      Hidden
+                    </span>
+                  )}
                 </p>
                 {permissions.edit && (
                   <div className="flex gap-1">
+                    <button onClick={() => toggleHidden(i)} aria-label={section.hidden ? "Show section" : "Hide section"} title={section.hidden ? "Show on the page" : "Hide without deleting"} className="cursor-pointer rounded-lg p-1.5 text-stone-500 hover:bg-orange-50 dark:hover:bg-stone-800">{section.hidden ? <EyeOff size={14} aria-hidden /> : <Eye size={14} aria-hidden />}</button>
+                    <button onClick={() => duplicateSection(i)} aria-label="Duplicate section" title="Duplicate" className="cursor-pointer rounded-lg p-1.5 text-stone-500 hover:bg-orange-50 dark:hover:bg-stone-800"><Copy size={14} aria-hidden /></button>
                     <button onClick={() => moveSection(i, -1)} disabled={i === 0} aria-label="Move up" className="cursor-pointer rounded-lg p-1.5 text-stone-500 hover:bg-orange-50 disabled:opacity-30 dark:hover:bg-stone-800"><ArrowUp size={14} aria-hidden /></button>
                     <button onClick={() => moveSection(i, 1)} disabled={i === sections.length - 1} aria-label="Move down" className="cursor-pointer rounded-lg p-1.5 text-stone-500 hover:bg-orange-50 disabled:opacity-30 dark:hover:bg-stone-800"><ArrowDown size={14} aria-hidden /></button>
                     <button onClick={() => setSections((p) => p.filter((_, k) => k !== i))} aria-label="Remove section" className="cursor-pointer rounded-lg p-1.5 text-stone-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-stone-800"><Trash2 size={14} aria-hidden /></button>
