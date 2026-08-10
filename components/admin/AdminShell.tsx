@@ -127,6 +127,32 @@ type NavItem = {
   badge?: "newLeads" | "pendingComments" | "dueFollowups" | "brokenLinks";
 };
 
+/** Does this path sit under this nav item? Exact match, or a real path
+    segment beneath it — the trailing slash stops "/admin/leadsomething"
+    counting as a child of "/admin/leads". */
+function covers(href: string, pathname: string): boolean {
+  if (href === "/admin") return pathname === "/admin";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** The single nav item that should light up: the LONGEST href that covers the
+    current path. Without this, /admin/leads/activity highlights both Activity
+    and Leads, because one href is a prefix of the other. A lead detail page
+    still resolves to Leads, since nothing longer covers it. */
+function activeHref(pathname: string): string {
+  // Hrefs only — the nav arrays are `as const` tuples with per-item literal
+  // types, so flattening the objects themselves fights the inferencer.
+  const hrefs: string[] = [
+    ...PINNED.map((i) => String(i.href)),
+    ...NAV_GROUPS.flatMap((g) => g.items.map((i) => String(i.href))),
+  ];
+  let best = "";
+  for (const href of hrefs) {
+    if (covers(href, pathname) && href.length > best.length) best = href;
+  }
+  return best;
+}
+
 export default function AdminShell({
   user,
   children,
@@ -135,6 +161,7 @@ export default function AdminShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const current = activeHref(pathname);
   const router = useRouter();
   const [dark, setDark] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
@@ -153,9 +180,8 @@ export default function AdminShell({
       // Only one group open at a time: the group holding the current page
       // wins; otherwise fall back to the single persisted group.
       let open = new Set<string>();
-      const active = NAV_GROUPS.find((g) =>
-        g.items.some((i) => pathname.startsWith(i.href)),
-      );
+      const winner = activeHref(pathname);
+      const active = NAV_GROUPS.find((g) => g.items.some((i) => i.href === winner));
       if (active) {
         open = new Set([active.label]);
       } else {
@@ -273,8 +299,7 @@ export default function AdminShell({
             : 0;
 
   const renderLink = (item: NavItem, indent = false) => {
-    const active =
-      item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+    const active = item.href === current;
     const count = badgeFor(item);
     return (
       <Link
