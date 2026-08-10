@@ -40,6 +40,7 @@ const UpdatePageSchema = z
     seoDescription: z.string().trim().max(400).nullable().optional(),
     canonicalUrl: z.string().trim().url().max(400).nullable().optional(),
     ogImage: z.string().trim().max(400).nullable().optional(),
+    kind: z.enum(["PAGE", "LANDING", "TEMPLATE"]).optional(),
     noIndex: z.boolean().optional(),
     schemaJson: z.unknown().nullable().optional(),
     versionNote: z.string().trim().max(300).optional(),

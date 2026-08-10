@@ -5,8 +5,8 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, ExternalLink, FilePlus2, Pencil } from "lucide-react";
-import type { PageStatus, WorkflowStage } from "@prisma/client";
+import { Copy, ExternalLink, FilePlus2, LayoutTemplate, Pencil } from "lucide-react";
+import type { PageKind, PageStatus, WorkflowStage } from "@prisma/client";
 import { STAGE_LABELS } from "@/lib/cms/workflow";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -15,6 +15,7 @@ type PageRow = {
   id: string;
   title: string;
   slug: string;
+  kind: PageKind;
   status: PageStatus;
   workflowStage: WorkflowStage;
   scheduledAt: string | null;
@@ -28,6 +29,24 @@ const STATUS_STYLE: Record<PageStatus, string> = {
   PUBLISHED: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
   ARCHIVED: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
 };
+
+/* Landing pages and templates are chips; a plain PAGE gets none, so the list
+   stays quiet for the site pages that are the majority. */
+const KIND_STYLE: Partial<Record<PageKind, string>> = {
+  LANDING: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
+  TEMPLATE: "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300",
+};
+const KIND_LABEL: Record<PageKind, string> = {
+  PAGE: "Page",
+  LANDING: "Landing",
+  TEMPLATE: "Template",
+};
+const KIND_TABS = [
+  { value: "ALL", label: "All" },
+  { value: "PAGE", label: "Site pages" },
+  { value: "LANDING", label: "Landing pages" },
+  { value: "TEMPLATE", label: "Templates" },
+] as const;
 
 const inputCls =
   "w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
@@ -54,9 +73,12 @@ export default function PagesList({
   const [slug, setSlug] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [newKind, setNewKind] = useState<PageKind>("PAGE");
+  const [kindTab, setKindTab] = useState<(typeof KIND_TABS)[number]["value"]>("ALL");
+  const visible = kindTab === "ALL" ? pages : pages.filter((p) => p.kind === kindTab);
 
   const { query, setQuery, page, setPage, pageItems, total, grandTotal, totalPages, pageSize, setPageSize } =
-    useAdminList(pages, (p) => `${p.title} ${p.slug} ${p.status}`);
+    useAdminList(visible, (p) => `${p.title} ${p.slug} ${p.status} ${p.kind}`);
 
   async function call(path: string, init: RequestInit): Promise<Response | null> {
     setError(null);
@@ -89,7 +111,7 @@ export default function PagesList({
       const res = await fetch(withBase("/api/pages"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, slug }),
+        body: JSON.stringify({ title, slug, kind: newKind }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.ok) {
@@ -130,7 +152,7 @@ export default function PagesList({
       {showCreate && (
         <form
           onSubmit={handleCreate}
-          className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-stone-200 bg-white p-5 sm:grid-cols-[1fr_1fr_auto] dark:border-stone-800 dark:bg-stone-900"
+          className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-stone-200 bg-white p-5 sm:grid-cols-[1fr_1fr_auto_auto] dark:border-stone-800 dark:bg-stone-900"
         >
           <div>
             <label htmlFor="page-title" className="mb-1 block text-xs font-semibold">
@@ -163,6 +185,21 @@ export default function PagesList({
               placeholder="digital-marketing-services"
             />
           </div>
+          <div>
+            <label htmlFor="page-kind" className="mb-1 block text-xs font-semibold">
+              Kind
+            </label>
+            <select
+              id="page-kind"
+              value={newKind}
+              onChange={(e) => setNewKind(e.target.value as PageKind)}
+              className={inputCls}
+            >
+              <option value="PAGE">Site page</option>
+              <option value="LANDING">Landing page</option>
+              <option value="TEMPLATE">Template</option>
+            </select>
+          </div>
           <button
             type="submit"
             disabled={busy}
@@ -173,7 +210,33 @@ export default function PagesList({
         </form>
       )}
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Filter by page kind">
+        {KIND_TABS.map((t) => {
+          const n = t.value === "ALL" ? pages.length : pages.filter((p) => p.kind === t.value).length;
+          const on = kindTab === t.value;
+          return (
+            <button
+              key={t.value}
+              role="tab"
+              aria-selected={on}
+              onClick={() => {
+                setKindTab(t.value);
+                setPage(1);
+              }}
+              className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                on
+                  ? "border-orange-500 bg-orange-500 text-white"
+                  : "border-stone-300 text-stone-500 hover:border-orange-400 dark:border-stone-700 dark:text-stone-400"
+              }`}
+            >
+              {t.label}
+              <span className={`ml-1.5 tabular-nums ${on ? "text-white/70" : "text-stone-400"}`}>{n}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-3">
         <AdminSearch
           value={query}
           onChange={setQuery}
@@ -218,6 +281,11 @@ export default function PagesList({
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex flex-wrap gap-1.5">
+                    {KIND_STYLE[p.kind] && (
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${KIND_STYLE[p.kind]}`}>
+                        {KIND_LABEL[p.kind]}
+                      </span>
+                    )}
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLE[p.status]}`}>
                       {p.status === "SCHEDULED" && p.scheduledAt
                         ? `Scheduled · ${new Date(p.scheduledAt).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}`
@@ -242,6 +310,7 @@ export default function PagesList({
                     >
                       <Pencil size={15} aria-hidden />
                     </Link>
+                    {p.kind !== "TEMPLATE" && (
                     <a
                       href={`/${p.slug}?preview=1`}
                       target="_blank"
@@ -252,15 +321,56 @@ export default function PagesList({
                     >
                       <ExternalLink size={15} aria-hidden />
                     </a>
+                    )}
                     {canCreate && (
                       <button
-                        onClick={() => void call(`/api/pages/${p.id}/clone`, { method: "POST" })}
+                        onClick={() =>
+                          void call(`/api/pages/${p.id}/clone`, {
+                            method: "POST",
+                            body: JSON.stringify({}),
+                          })
+                        }
                         disabled={busy}
-                        aria-label={`Clone ${p.title}`}
-                        title="Clone"
+                        aria-label={`Duplicate ${p.title}`}
+                        title="Duplicate"
                         className="cursor-pointer rounded-lg p-2 text-stone-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:hover:bg-stone-800"
                       >
                         <Copy size={15} aria-hidden />
+                      </button>
+                    )}
+                    {/* Both directions of the template flow are the same clone
+                        call with a different target kind. */}
+                    {canCreate && p.kind === "TEMPLATE" && (
+                      <button
+                        onClick={() =>
+                          void call(`/api/pages/${p.id}/clone`, {
+                            method: "POST",
+                            body: JSON.stringify({ kind: "LANDING" }),
+                          })
+                        }
+                        disabled={busy}
+                        className="cursor-pointer rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-500"
+                      >
+                        Use template
+                      </button>
+                    )}
+                    {canCreate && p.kind !== "TEMPLATE" && (
+                      <button
+                        onClick={() =>
+                          void call(`/api/pages/${p.id}/clone`, {
+                            method: "POST",
+                            body: JSON.stringify({
+                              kind: "TEMPLATE",
+                              title: `${p.title} template`,
+                            }),
+                          })
+                        }
+                        disabled={busy}
+                        aria-label={`Save ${p.title} as a template`}
+                        title="Save as template"
+                        className="cursor-pointer rounded-lg p-2 text-stone-500 transition-colors hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-stone-800"
+                      >
+                        <LayoutTemplate size={15} aria-hidden />
                       </button>
                     )}
                     {canPublish && p.status !== "PUBLISHED" && (

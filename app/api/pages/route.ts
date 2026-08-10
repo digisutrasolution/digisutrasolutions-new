@@ -21,6 +21,7 @@ const CreatePageSchema = z.object({
       "Slug segments may contain lowercase letters, numbers and hyphens, separated by /.",
     ),
   sections: SectionsSchema.optional(),
+  kind: z.enum(["PAGE", "LANDING", "TEMPLATE"]).optional(),
 });
 
 export async function GET() {
@@ -33,6 +34,7 @@ export async function GET() {
       id: true,
       title: true,
       slug: true,
+      kind: true,
       status: true,
       publishedAt: true,
       scheduledAt: true,
@@ -78,6 +80,7 @@ export async function POST(req: Request) {
     data: {
       title: parsed.data.title,
       slug: parsed.data.slug,
+      kind: parsed.data.kind ?? "PAGE",
       sections,
       createdById: user.id,
       updatedById: user.id,

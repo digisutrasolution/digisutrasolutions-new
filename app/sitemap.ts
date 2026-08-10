@@ -15,7 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [pages, posts, serviceCats] = await Promise.all([
     db.page
       .findMany({
-        where: { status: "PUBLISHED", noIndex: false },
+        // Templates are scaffolding and never render — keep them out.
+        where: { status: "PUBLISHED", noIndex: false, kind: { not: "TEMPLATE" } },
         select: { slug: true, updatedAt: true },
       })
       .catch(() => []),

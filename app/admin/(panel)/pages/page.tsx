@@ -16,6 +16,7 @@ export default async function AdminPagesPage() {
       id: true,
       title: true,
       slug: true,
+      kind: true,
       status: true,
       workflowStage: true,
       scheduledAt: true,

@@ -48,7 +48,12 @@ export function isReservedSlug(slug: string): boolean {
  * A SCHEDULED page whose time has arrived is live; flipping the stored
  * status is done lazily here rather than by a cron.
  */
-export function isLive(page: Pick<Page, "status" | "scheduledAt">): boolean {
+export function isLive(page: Pick<Page, "status" | "scheduledAt" | "kind">): boolean {
+  /* A template is scaffolding, never a destination. Gating here rather than at
+     the route means the sitemap, the preview gate and anything else that asks
+     "is this live?" all inherit it — including a template someone publishes by
+     accident. */
+  if (page.kind === "TEMPLATE") return false;
   if (page.status === "PUBLISHED") return true;
   return (
     page.status === "SCHEDULED" &&
