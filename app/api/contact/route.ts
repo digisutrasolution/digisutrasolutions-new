@@ -8,6 +8,7 @@ import { sendEmail } from "@/lib/email";
 import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { getSmtp, smtpReady } from "@/lib/smtp";
 import { spamNote } from "@/lib/spam";
+import { AttributionSchema, resolveAttribution } from "@/lib/attribution-server";
 import { assessSubmission } from "@/lib/spam-server";
 import { issueChallenge, type IssueChallenge } from "@/lib/otp";
 
@@ -38,6 +39,7 @@ type Payload = {
   hp?: string; // honeypot (audit form)
   jsToken?: string; // proof the page script ran
   startedAt?: number; // time-trap — form render timestamp
+  attribution?: unknown; // validated by AttributionSchema before use
 };
 
 export async function POST(req: Request) {
@@ -113,6 +115,7 @@ export async function POST(req: Request) {
   try {
     const lead = await db.lead.create({
       data: {
+        ...(await resolveAttribution(AttributionSchema.safeParse(body.attribution).data)),
         name,
         whatsapp: whatsapp ? whatsapp.replace(/[\s-]/g, "") : "—",
         email: email || null,

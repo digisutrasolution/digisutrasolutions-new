@@ -1,6 +1,7 @@
 "use client";
 
 import { withBase } from "@/lib/base-path";
+import { readAttribution } from "@/lib/attribution";
 
 import { useEffect, useRef, useState } from "react";
 import type { FormField } from "@/lib/cms/forms";
@@ -56,6 +57,7 @@ export default function FormEmbed({ slug }: { slug: string }) {
           data,
           website: data.website,
           startedAt: startedAt.current,
+          attribution: readAttribution(),
           jsToken: jsToken.current,
         }),
       });

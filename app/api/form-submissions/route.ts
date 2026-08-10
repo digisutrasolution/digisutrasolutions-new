@@ -10,6 +10,7 @@ import { alertEmail, emailUrl } from "@/lib/email-templates";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { spamNote } from "@/lib/spam";
 import { assessSubmission } from "@/lib/spam-server";
+import { AttributionSchema, resolveAttribution } from "@/lib/attribution-server";
 import { issueChallenge, type IssueChallenge } from "@/lib/otp";
 
 const SubmitSchema = z.object({
@@ -18,6 +19,7 @@ const SubmitSchema = z.object({
   website: z.string().optional(), // honeypot
   jsToken: z.string().max(40).optional(), // proof the page script ran
   startedAt: z.number().optional(), // time-trap — form render timestamp
+  attribution: AttributionSchema.optional(),
 });
 
 /** Public endpoint used by embedded form sections on the site. */
@@ -96,6 +98,7 @@ export async function POST(req: Request) {
     const created = await db.lead
       .create({
         data: {
+          ...(await resolveAttribution(parsed.data.attribution)),
           name: lead.name,
           whatsapp: lead.whatsapp,
           email: lead.email || null,

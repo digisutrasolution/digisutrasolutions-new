@@ -1,6 +1,7 @@
 "use client";
 
 import { withBase } from "@/lib/base-path";
+import { readAttribution } from "@/lib/attribution";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Check, Info } from "lucide-react";
@@ -65,6 +66,7 @@ export default function RoiCalculator({
           source: "ESTIMATOR",
           hp: lead.hp,
           startedAt: startedAt.current,
+          attribution: readAttribution(),
         }),
       });
       const json = await res.json().catch(() => ({}));

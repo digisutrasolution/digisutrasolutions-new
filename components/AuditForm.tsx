@@ -1,6 +1,7 @@
 "use client";
 
 import { withBase } from "@/lib/base-path";
+import { readAttribution } from "@/lib/attribution";
 
 import { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
@@ -52,6 +53,7 @@ export default function AuditForm() {
           service: "Free growth audit",
           hp: data.hp,
           startedAt: startedAt.current,
+          attribution: readAttribution(),
           jsToken: jsToken.current,
         }),
       });

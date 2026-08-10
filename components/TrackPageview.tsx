@@ -4,6 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { captureAttribution } from "@/lib/attribution";
 
 /** Cookie-less first-party page-view beacon for the public site. */
 export default function TrackPageview() {
@@ -11,6 +12,8 @@ export default function TrackPageview() {
 
   useEffect(() => {
     if (!pathname || pathname.startsWith("/admin")) return;
+    // Record the campaign entry point before anything navigates away from it.
+    captureAttribution();
     // Ephemeral per-tab id: lives in sessionStorage, gone when the tab closes.
     // Groups this visit's pages together without any cookie or lasting id.
     let sid: string | undefined;

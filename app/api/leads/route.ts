@@ -20,6 +20,7 @@ import { leadScopeWhere } from "@/lib/auth/rbac";
 import { sourceLabel } from "@/lib/crm";
 import { spamNote } from "@/lib/spam";
 import { assessSubmission } from "@/lib/spam-server";
+import { AttributionSchema, resolveAttribution } from "@/lib/attribution-server";
 
 const LeadSchema = z.object({
   name: z.string().trim().min(2).max(90),
@@ -37,6 +38,7 @@ const LeadSchema = z.object({
   heardFrom: z.string().trim().max(80).optional(),
   message: z.string().trim().max(2000).optional(),
   source: z.enum(["CONTACT", "AUDIT", "ESTIMATOR", "SUTRABOT"]).optional(),
+  attribution: AttributionSchema.optional(),
   hp: z.string().optional(),          // honeypot — must stay empty
   startedAt: z.number().optional(),   // time-trap — form render timestamp
   jsToken: z.string().max(40).optional(), // proof the page script ran
@@ -90,8 +92,11 @@ export async function POST(req: Request) {
     select: { id: true },
   });
 
+  const attribution = await resolveAttribution(d.attribution);
+
   const lead = await db.lead.create({
     data: {
+      ...attribution,
       name: d.name,
       whatsapp,
       email: d.email ?? null,

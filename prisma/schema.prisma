@@ -123,6 +123,7 @@ model Page {
   updatedAt      DateTime      @updatedAt
   workflowStage  WorkflowStage @default(DRAFT)
   versions       PageVersion[]
+  leads          Lead[]        @relation("LeadLandingPage")
   transitions    WorkflowTransition[]
   comments       PageComment[]
   bugs           BugReport[]
@@ -733,6 +734,21 @@ model Lead {
   utmSource       String?
   utmMedium       String?
   utmCampaign     String?
+  utmTerm         String?
+  utmContent      String?
+  /// Paid-click ids — the most reliable attribution signal there is.
+  gclid           String?
+  fbclid          String?
+  msclkid         String?
+  /// External referrer of the visit that produced this lead.
+  referrer        String?
+  /// Path of the first page seen. Kept even when it is not a CMS page, so
+  /// /services/seo attributes as well as a landing page does.
+  landingPath     String?
+  /// Set only when landingPath resolves to a CMS Page, which is what makes
+  /// leads-per-landing-page and conversion rate possible.
+  landingPage     Page?    @relation("LeadLandingPage", fields: [landingPageId], references: [id], onDelete: SetNull)
+  landingPageId   String?
   expectedRevenue Int?
   priority        LeadPriority @default(MEDIUM)
   score           Int?
@@ -756,6 +772,7 @@ model Lead {
   @@index([assignedToId])
   @@index([source, createdAt])
   @@index([deletedAt])
+  @@index([landingPageId])
 }
 
 /* Ordered rules that route a freshly-captured lead to an owner. The first

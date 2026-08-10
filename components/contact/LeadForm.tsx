@@ -1,6 +1,7 @@
 "use client";
 
 import { withBase } from "@/lib/base-path";
+import { readAttribution } from "@/lib/attribution";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -194,6 +195,7 @@ export default function LeadForm({
           message: f.message.trim() || undefined,
           source: "CONTACT",
           hp: "",
+          attribution: readAttribution(),
           startedAt: startedAt.current,
           jsToken: jsToken.current,
         }),

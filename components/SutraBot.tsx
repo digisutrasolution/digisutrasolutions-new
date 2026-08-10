@@ -1,6 +1,7 @@
 "use client";
 
 import { withBase } from "@/lib/base-path";
+import { readAttribution } from "@/lib/attribution";
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -333,6 +334,7 @@ export default function SutraBot({ nudge }: { nudge?: BotNudge }) {
           source: "SUTRABOT",
           hp: lead.hp,
           startedAt: startedAt.current,
+          attribution: readAttribution(),
           jsToken: jsToken.current,
         }),
       });

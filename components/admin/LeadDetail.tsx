@@ -61,6 +61,14 @@ type Lead = {
   utmSource: string | null;
   utmMedium: string | null;
   utmCampaign: string | null;
+  utmTerm: string | null;
+  utmContent: string | null;
+  gclid: string | null;
+  fbclid: string | null;
+  msclkid: string | null;
+  referrer: string | null;
+  landingPath: string | null;
+  landingPage: { id: string; title: string; slug: string } | null;
   heardFrom: string | null;
   services: string[];
   tags: string[];
@@ -234,6 +242,26 @@ export default function LeadDetail({
                 <Row label="UTM source" value={lead.utmSource} />
                 <Row label="UTM medium" value={lead.utmMedium} />
                 <Row label="UTM campaign" value={lead.utmCampaign} />
+                <Row label="UTM term" value={lead.utmTerm} />
+                <Row label="UTM content" value={lead.utmContent} />
+                {/* Whichever paid network sent them — only one is ever set. */}
+                <Row label="Google click id" value={lead.gclid} />
+                <Row label="Meta click id" value={lead.fbclid} />
+                <Row label="Microsoft click id" value={lead.msclkid} />
+                <Row label="Referrer" value={lead.referrer} />
+                {lead.landingPage ? (
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-stone-400">Landed on</dt>
+                    <dd className="mt-0.5">
+                      <Link href={`/admin/pages/${lead.landingPage.id}`} className="font-medium text-orange-700 hover:underline dark:text-orange-400">
+                        {lead.landingPage.title}
+                      </Link>
+                      <span className="ml-1 text-stone-400">/{lead.landingPage.slug}</span>
+                    </dd>
+                  </div>
+                ) : (
+                  <Row label="Landed on" value={lead.landingPath} />
+                )}
                 <Row label="Found us via" value={lead.heardFrom} />
                 {lead.message && (
                   <div className="sm:col-span-2">

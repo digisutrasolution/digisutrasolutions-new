@@ -21,6 +21,7 @@ export default async function LeadDetailPage({
       where: { id, deletedAt: null },
       include: {
         assignedTo: { select: { id: true, name: true } },
+        landingPage: { select: { id: true, title: true, slug: true } },
         activities: { orderBy: { createdAt: "desc" }, take: 200 },
         followUps: {
           orderBy: [{ status: "asc" }, { dueAt: "asc" }],
