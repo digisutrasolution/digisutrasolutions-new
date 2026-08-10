@@ -11,6 +11,12 @@ import {
   PricingBlock,
   TestimonialsBlock,
 } from "@/components/sections/LibraryBlocks";
+import {
+  ComparisonBlock,
+  GalleryBlock,
+  StepsBlock,
+} from "@/components/sections/LandingBlocks";
+import StickyCtaBar from "@/components/sections/StickyCtaBar";
 import SpotlightCard from "@/components/sections/SpotlightCard";
 import VideoBlock from "@/components/sections/VideoBlock";
 import { withBase } from "@/lib/base-path";
@@ -441,6 +447,14 @@ export default function SectionRenderer({ sections }: { sections: Section[] }) {
             return <CaseStudiesBlock key={i} s={section} />;
           case "pricing":
             return <PricingBlock key={i} s={section} />;
+          case "comparison":
+            return <ComparisonBlock key={i} s={section} />;
+          case "steps":
+            return <StepsBlock key={i} s={section} />;
+          case "gallery":
+            return <GalleryBlock key={i} s={section} />;
+          case "stickyCta":
+            return <StickyCtaBar key={i} s={section} />;
         }
       })}
     </>

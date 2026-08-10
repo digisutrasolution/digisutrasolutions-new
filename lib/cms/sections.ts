@@ -220,6 +220,85 @@ export const PricingSectionSchema = z.object({
   ids: libraryIds,
 });
 
+/* --------------------------------------------------------------- comparison */
+
+export const ComparisonSectionSchema = z.object({
+  type: z.literal("comparison"),
+  heading: z.string().max(160).default("How we compare"),
+  copy: z.string().max(400).default(""),
+  /* One entry per column AFTER the row-label column. Exactly one should
+     usually be highlighted — that is the "us" column. */
+  columns: z
+    .array(
+      z.object({
+        label: z.string().max(40).default(""),
+        highlight: z.boolean().default(false),
+      }),
+    )
+    .max(4)
+    .default([]),
+  /* values are positional against `columns`. "yes"/"no" render as a tick or
+     a dash; anything else renders as its own text. */
+  rows: z
+    .array(
+      z.object({
+        label: z.string().max(140).default(""),
+        values: z.array(z.string().max(80)).max(4).default([]),
+      }),
+    )
+    .max(24)
+    .default([]),
+});
+
+/* -------------------------------------------------------------------- steps */
+
+export const StepsSectionSchema = z.object({
+  type: z.literal("steps"),
+  heading: z.string().max(160).default("How it works"),
+  copy: z.string().max(400).default(""),
+  items: z
+    .array(
+      z.object({
+        title: z.string().max(120).default(""),
+        copy: z.string().max(400).default(""),
+      }),
+    )
+    .max(8)
+    .default([]),
+});
+
+/* ------------------------------------------------------------------ gallery */
+
+export const GallerySectionSchema = z.object({
+  type: z.literal("gallery"),
+  heading: z.string().max(160).default(""),
+  columns: z.enum(["2", "3", "4"]).default("3"),
+  items: z
+    .array(
+      z.object({
+        src: z.string().max(300).default(""),
+        alt: z.string().max(160).default(""),
+        caption: z.string().max(160).default(""),
+      }),
+    )
+    .max(24)
+    .default([]),
+});
+
+/* --------------------------------------------------------------- sticky CTA */
+
+export const StickyCtaSectionSchema = z.object({
+  type: z.literal("stickyCta"),
+  text: z.string().max(160).default(""),
+  ctaLabel: z.string().max(60).default("Get a free consultation"),
+  ctaHref: z.string().max(300).default("/contact"),
+  cta2Label: z.string().max(60).default(""),
+  cta2Href: z.string().max(300).default(""),
+  /* Pixels scrolled before the bar appears. Showing it immediately competes
+     with the hero's own CTA; ~600px clears a typical hero first. */
+  showAfter: z.number().int().min(0).max(5000).default(600),
+});
+
 export const SectionSchema = z.discriminatedUnion("type", [
   HeroSectionSchema,
   RichTextSectionSchema,
@@ -235,6 +314,10 @@ export const SectionSchema = z.discriminatedUnion("type", [
   LogosSectionSchema,
   CaseStudiesSectionSchema,
   PricingSectionSchema,
+  ComparisonSectionSchema,
+  StepsSectionSchema,
+  GallerySectionSchema,
+  StickyCtaSectionSchema,
 ]);
 
 export const SectionsSchema = z.array(SectionSchema).max(40);
@@ -260,6 +343,10 @@ export const SECTION_DEFS: Record<
   logos: { label: "Client logos", description: "Logo wall from the clients library" },
   caseStudies: { label: "Case studies", description: "Cards from the case-studies library" },
   pricing: { label: "Pricing", description: "Plan cards from the pricing library" },
+  comparison: { label: "Comparison table", description: "Us-versus-them feature matrix" },
+  steps: { label: "Process steps", description: "Numbered how-it-works sequence" },
+  gallery: { label: "Gallery", description: "Grid of images with captions" },
+  stickyCta: { label: "Sticky CTA bar", description: "Bar that follows the reader down the page" },
 };
 
 export function defaultSection(type: SectionType): Section {
@@ -304,6 +391,21 @@ export function defaultSection(type: SectionType): Section {
       return CaseStudiesSectionSchema.parse({ type });
     case "pricing":
       return PricingSectionSchema.parse({ type });
+    case "comparison":
+      return ComparisonSectionSchema.parse({
+        type,
+        columns: [
+          { label: "DigiSutra", highlight: true },
+          { label: "Typical agency", highlight: false },
+        ],
+        rows: [{ label: "", values: ["yes", "no"] }],
+      });
+    case "steps":
+      return StepsSectionSchema.parse({ type, items: [{ title: "", copy: "" }] });
+    case "gallery":
+      return GallerySectionSchema.parse({ type, items: [{ src: "", alt: "", caption: "" }] });
+    case "stickyCta":
+      return StickyCtaSectionSchema.parse({ type });
   }
 }
 

@@ -897,5 +897,135 @@ function SectionFields({
           </div>
         </div>
       );
+    case "comparison":
+      return (
+        <div className="space-y-3">
+          <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>Intro copy (optional)</label><textarea rows={2} value={section.copy} disabled={disabled} onChange={(e) => onChange({ copy: e.target.value })} className={inputCls} /></div>
+          <div>
+            <label className={labelCls}>Columns — tick the one that is us</label>
+            <ItemList
+              items={section.columns}
+              blank={{ label: "", highlight: false }}
+              disabled={disabled}
+              set={(columns) => onChange({ columns })}
+              render={(col, update) => (
+                <div className="flex items-center gap-3">
+                  <input value={col.label} disabled={disabled} placeholder="Typical agency" onChange={(e) => update({ label: e.target.value })} className={inputCls} />
+                  <label className="flex shrink-0 items-center gap-1.5 text-xs font-semibold">
+                    <input type="checkbox" checked={col.highlight} disabled={disabled} onChange={(e) => update({ highlight: e.target.checked })} className="accent-orange-600" />
+                    Us
+                  </label>
+                </div>
+              )}
+            />
+          </div>
+          <div>
+            <label className={labelCls}>
+              Rows — one value per column, in the same order. Type{" "}
+              <code className="rounded bg-stone-100 px-1 dark:bg-stone-800">yes</code> or{" "}
+              <code className="rounded bg-stone-100 px-1 dark:bg-stone-800">no</code> for a tick or a dash;
+              anything else shows as text.
+            </label>
+            <ItemList
+              items={section.rows}
+              blank={{ label: "", values: [] }}
+              disabled={disabled}
+              set={(rows) => onChange({ rows })}
+              render={(row, update) => (
+                <div className="space-y-2">
+                  <input value={row.label} disabled={disabled} placeholder="Dedicated account manager" onChange={(e) => update({ label: e.target.value })} className={inputCls} />
+                  <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.max(1, section.columns.length)}, minmax(0,1fr))` }}>
+                    {section.columns.map((col, ci) => (
+                      <input
+                        key={ci}
+                        value={row.values[ci] ?? ""}
+                        disabled={disabled}
+                        placeholder={col.label || `Column ${ci + 1}`}
+                        onChange={(e) => {
+                          // Pad so a value can be set on a later column before an earlier one.
+                          const values = [...row.values];
+                          while (values.length < section.columns.length) values.push("");
+                          values[ci] = e.target.value;
+                          update({ values: values.slice(0, section.columns.length) });
+                        }}
+                        className={inputCls}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            />
+          </div>
+        </div>
+      );
+    case "steps":
+      return (
+        <div className="space-y-3">
+          <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>Intro copy (optional)</label><textarea rows={2} value={section.copy} disabled={disabled} onChange={(e) => onChange({ copy: e.target.value })} className={inputCls} /></div>
+          <ItemList
+            items={section.items}
+            blank={{ title: "", copy: "" }}
+            disabled={disabled}
+            set={(items) => onChange({ items })}
+            render={(item, update) => (
+              <div className="space-y-2">
+                <input value={item.title} disabled={disabled} placeholder="Step title" onChange={(e) => update({ title: e.target.value })} className={inputCls} />
+                <textarea rows={2} value={item.copy} disabled={disabled} placeholder="What happens at this step" onChange={(e) => update({ copy: e.target.value })} className={inputCls} />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "gallery":
+      return (
+        <div className="space-y-3">
+          <div className={grid}>
+            <div><label className={labelCls}>Heading (optional)</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+            <div>
+              <label className={labelCls}>Columns</label>
+              <select value={section.columns} disabled={disabled} onChange={(e) => onChange({ columns: e.target.value as typeof section.columns })} className={inputCls}>
+                <option value="2">Two across</option>
+                <option value="3">Three across</option>
+                <option value="4">Four across</option>
+              </select>
+            </div>
+          </div>
+          <ItemList
+            items={section.items}
+            blank={{ src: "", alt: "", caption: "" }}
+            disabled={disabled}
+            set={(items) => onChange({ items })}
+            render={(item, update) => (
+              <div className="space-y-2">
+                <input value={item.src} disabled={disabled} placeholder="/uploads/… or /section-images/…" onChange={(e) => update({ src: e.target.value })} className={inputCls} />
+                <input value={item.alt} disabled={disabled} placeholder="Alt text — describe the image" onChange={(e) => update({ alt: e.target.value })} className={inputCls} />
+                <input value={item.caption} disabled={disabled} placeholder="Caption (optional)" onChange={(e) => update({ caption: e.target.value })} className={inputCls} />
+              </div>
+            )}
+          />
+        </div>
+      );
+    case "stickyCta":
+      return (
+        <div className="space-y-3">
+          <div><label className={labelCls}>Bar text</label><input value={section.text} disabled={disabled} placeholder="Free 15-page SEO audit — no obligation" onChange={(e) => onChange({ text: e.target.value })} className={inputCls} /></div>
+          <div className={grid}>
+            <div><label className={labelCls}>Button label</label><input value={section.ctaLabel} disabled={disabled} onChange={(e) => onChange({ ctaLabel: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>Button link</label><input value={section.ctaHref} disabled={disabled} onChange={(e) => onChange({ ctaHref: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>2nd button label (optional)</label><input value={section.cta2Label} disabled={disabled} onChange={(e) => onChange({ cta2Label: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>2nd button link</label><input value={section.cta2Href} disabled={disabled} onChange={(e) => onChange({ cta2Href: e.target.value })} className={inputCls} /></div>
+          </div>
+          <div>
+            <label className={labelCls}>Appears after scrolling (pixels)</label>
+            <input type="number" min={0} max={5000} step={50} value={section.showAfter} disabled={disabled} onChange={(e) => onChange({ showAfter: Number(e.target.value) || 0 })} className={inputCls} />
+            <p className="mt-1 text-[11px] text-stone-500">
+              Around 600 clears a typical hero. Showing it at 0 competes with the hero&rsquo;s own button.
+              Place this block anywhere — the bar is fixed to the viewport, not to its position on the page.
+            </p>
+          </div>
+        </div>
+      );
   }
 }
