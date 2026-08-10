@@ -22,6 +22,20 @@ model User {
   role          Role           @default(DEVELOPER)
   isActive      Boolean        @default(true)
   lastLoginAt   DateTime?
+  /// Team-member profile. Every field optional — the app must keep working
+  /// for an account that has filled in nothing but a name and an email.
+  photoUrl      String?
+  mobile        String?
+  whatsapp      String?
+  telegram      String?
+  /// Microsoft Teams handle or the deep-link id used to start a chat.
+  teamsId       String?
+  address       String?
+  city          String?
+  state         String?
+  country       String?
+  /// PIN / ZIP — kept as text: leading zeros are real in many countries.
+  postalCode    String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]

@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { UserPlus, KeyRound, Pencil, Trash2 } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/auth/rbac";
 import type { Role } from "@prisma/client";
-import EditUserDialog from "@/components/admin/EditUserDialog";
+import Image from "next/image";
+import EditUserDialog, { type UserProfileInput } from "@/components/admin/EditUserDialog";
 import PasswordDialog from "@/components/admin/PasswordDialog";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -20,6 +21,16 @@ type UserRow = {
   isActive: boolean;
   lastLoginAt: string | null;
   customRoleId: string | null;
+  photoUrl: string | null;
+  mobile: string | null;
+  whatsapp: string | null;
+  telegram: string | null;
+  teamsId: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  postalCode: string | null;
 };
 type CustomRole = { id: string; name: string };
 
@@ -97,7 +108,7 @@ export default function UsersManager({
     if (ok) setPwUser(null);
   }
 
-  async function saveEdit(v: { name: string; email: string }) {
+  async function saveEdit(v: UserProfileInput) {
     const ok = await call(`/api/users/${editUser!.id}`, {
       method: "PATCH",
       body: JSON.stringify(v),
@@ -198,15 +209,31 @@ export default function UsersManager({
                 className="border-b border-stone-100 last:border-0 dark:border-stone-800"
               >
                 <td className="px-5 py-3">
-                  <p className="font-medium">
-                    {u.name}
-                    {u.id === currentUserId && (
-                      <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-semibold text-orange-800 dark:bg-orange-950 dark:text-orange-300">
-                        you
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-stone-500 dark:text-stone-400">{u.email}</p>
+                  {/* The avatar is the only place the photo is visible, so the
+                      field has somewhere to pay off; initials stand in when
+                      there is none rather than a broken image. */}
+                  <div className="flex items-center gap-3">
+                    <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-stone-100 dark:bg-stone-800">
+                      {u.photoUrl ? (
+                        <Image src={withBase(u.photoUrl)} alt="" fill sizes="32px" className="object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-[11px] font-bold text-stone-500 dark:text-stone-400">
+                          {u.name.trim().slice(0, 1).toUpperCase() || "?"}
+                        </span>
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <p className="font-medium">
+                        {u.name}
+                        {u.id === currentUserId && (
+                          <span className="ml-2 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-semibold text-orange-800 dark:bg-orange-950 dark:text-orange-300">
+                            you
+                          </span>
+                        )}
+                      </p>
+                      <p className="truncate text-xs text-stone-500 dark:text-stone-400">{u.email}</p>
+                    </span>
+                  </div>
                 </td>
                 <td className="px-5 py-3">
                   <select

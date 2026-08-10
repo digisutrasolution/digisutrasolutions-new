@@ -17,6 +17,18 @@ const UpdateUserSchema = z
     /** Assign (or clear, with null) a custom role. Overrides the enum role's
         permissions for non-Super-Admin users. */
     customRoleId: z.string().nullable().optional(),
+    /* Profile fields. Nullable so the form can CLEAR one — an empty string
+       would store "" and read back as "set but blank". */
+    photoUrl: z.string().trim().max(400).nullable().optional(),
+    mobile: z.string().trim().max(120).nullable().optional(),
+    whatsapp: z.string().trim().max(120).nullable().optional(),
+    telegram: z.string().trim().max(120).nullable().optional(),
+    teamsId: z.string().trim().max(120).nullable().optional(),
+    address: z.string().trim().max(300).nullable().optional(),
+    city: z.string().trim().max(120).nullable().optional(),
+    state: z.string().trim().max(120).nullable().optional(),
+    country: z.string().trim().max(120).nullable().optional(),
+    postalCode: z.string().trim().max(120).nullable().optional(),
     password: z.string().min(10).max(200).optional(),
     /* Only meaningful when changing your OWN password — an admin resetting
        someone else's cannot know it. Verified below. */
@@ -103,6 +115,16 @@ export async function PATCH(req: Request, { params }: Params) {
   if (parsed.data.role !== undefined) data.role = parsed.data.role;
   if (parsed.data.customRoleId !== undefined) data.customRoleId = parsed.data.customRoleId;
   if (parsed.data.isActive !== undefined) data.isActive = parsed.data.isActive;
+  if (parsed.data.photoUrl !== undefined) data.photoUrl = parsed.data.photoUrl || null;
+  if (parsed.data.mobile !== undefined) data.mobile = parsed.data.mobile || null;
+  if (parsed.data.whatsapp !== undefined) data.whatsapp = parsed.data.whatsapp || null;
+  if (parsed.data.telegram !== undefined) data.telegram = parsed.data.telegram || null;
+  if (parsed.data.teamsId !== undefined) data.teamsId = parsed.data.teamsId || null;
+  if (parsed.data.address !== undefined) data.address = parsed.data.address || null;
+  if (parsed.data.city !== undefined) data.city = parsed.data.city || null;
+  if (parsed.data.state !== undefined) data.state = parsed.data.state || null;
+  if (parsed.data.country !== undefined) data.country = parsed.data.country || null;
+  if (parsed.data.postalCode !== undefined) data.postalCode = parsed.data.postalCode || null;
   if (parsed.data.password !== undefined) {
     data.passwordHash = await hashPassword(parsed.data.password);
   }
