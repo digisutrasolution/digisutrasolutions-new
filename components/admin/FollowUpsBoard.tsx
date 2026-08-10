@@ -20,7 +20,7 @@ import {
   type DueBucket,
 } from "@/lib/crm";
 
-type Assignee = { id: string; name: string };
+import AssigneePicker, { type Assignee } from "@/components/admin/AssigneePicker";
 type FollowUp = {
   id: string;
   type: string;
@@ -167,11 +167,14 @@ export default function FollowUpsBoard({
           <option value="ALL">All statuses</option>
         </select>
         {scope !== "mine" && (
-          <select value={assignee} onChange={(e) => setAssignee(e.target.value)} className={inputCls} aria-label="Owner">
-            <option value="ALL">Anyone</option>
-            <option value="unassigned">Unassigned</option>
-            {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
+          <AssigneePicker
+            assignees={assignees}
+            value={assignee}
+            onChange={setAssignee}
+            leading={[{ value: "ALL", label: "Anyone" }, { value: "unassigned", label: "Unassigned" }]}
+            label="Owner"
+            className="w-44"
+          />
         )}
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className={`${inputCls} min-w-40 flex-1`} />
         {canRunCron && (

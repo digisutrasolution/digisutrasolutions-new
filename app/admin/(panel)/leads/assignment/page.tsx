@@ -12,7 +12,12 @@ export default async function AssignmentRulesPage() {
 
   const [rules, assignees] = await Promise.all([
     db.assignmentRule.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] }),
-    db.user.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    db.user.findMany({
+      where: { isActive: true },
+      // Role + email disambiguate the shared mailboxes in the pool chips.
+      select: { id: true, name: true, email: true, role: true, customRole: { select: { name: true } } },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   const serialized = rules.map((r) => ({

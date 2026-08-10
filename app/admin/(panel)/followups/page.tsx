@@ -12,7 +12,14 @@ export default async function FollowUpsPage() {
 
   const assignees = await db.user.findMany({
     where: { isActive: true },
-    select: { id: true, name: true },
+    // Role + email disambiguate the shared mailboxes in the assignee UI.
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      customRole: { select: { name: true } },
+    },
     orderBy: { name: "asc" },
   });
 

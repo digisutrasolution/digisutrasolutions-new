@@ -29,6 +29,23 @@ export function assigneeRoleLabel(a: Assignee): string {
   return a.customRole?.name ?? ROLE_LABELS[a.role] ?? a.role;
 }
 
+/** A label that is unique within `all`, adding only as much as it takes:
+    bare name when nothing collides, name + role when the name repeats, name +
+    email when the role repeats too. For compact surfaces (chips, summaries)
+    where the picker's full two-line row does not fit. */
+export function disambiguate(a: Assignee, all: Assignee[]): string {
+  const sameName = all.filter((x) => x.name === a.name);
+  if (sameName.length < 2) return a.name;
+  const role = assigneeRoleLabel(a);
+  const sameRole = sameName.filter((x) => assigneeRoleLabel(x) === role);
+  return sameRole.length < 2 ? `${a.name} · ${role}` : `${a.name} · ${a.email}`;
+}
+
+/** Everything about a person, for a title attribute. */
+export function assigneeTitle(a: Assignee): string {
+  return `${a.name} — ${assigneeRoleLabel(a)} · ${a.email}`;
+}
+
 function matches(a: Assignee, tokens: string[]): boolean {
   if (tokens.length === 0) return true;
   const hay = `${a.name} ${a.email} ${assigneeRoleLabel(a)}`.toLowerCase();

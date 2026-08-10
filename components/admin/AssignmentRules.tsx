@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import {
+  assigneeTitle,
+  disambiguate,
+  type Assignee,
+} from "@/components/admin/AssigneePicker";
+import {
   LEAD_PRIORITIES,
   LEAD_SOURCES,
   PRIORITY_LABEL,
@@ -20,7 +25,6 @@ import {
   sourceLabel,
 } from "@/lib/crm";
 
-type Assignee = { id: string; name: string };
 type Rule = {
   id: string;
   name: string;
@@ -61,7 +65,12 @@ export default function AssignmentRules({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
-  const nameOf = (id: string) => assignees.find((a) => a.id === id)?.name ?? "—";
+  // Two people can share a name (shared mailboxes), so a rule summary that
+  // just says "Sales Team" does not tell you which pool member it means.
+  const nameOf = (id: string) => {
+    const a = assignees.find((x) => x.id === id);
+    return a ? disambiguate(a, assignees) : "—";
+  };
 
   async function reload() {
     const res = await fetch(withBase("/api/leads/assignment-rules"));
@@ -231,6 +240,17 @@ function RuleEditor({
   const [cities, setCities] = useState(csv(initial?.cities ?? []));
   const [keyword, setKeyword] = useState(initial?.keyword ?? "");
   const [targets, setTargets] = useState<string[]>(initial?.targetUserIds ?? []);
+  const [poolQuery, setPoolQuery] = useState("");
+
+  // Same token matching as the picker: order-independent, across all three
+  // fields. An already-selected person always stays visible, so filtering can
+  // never hide part of the pool you have built.
+  const poolTokens = poolQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const pool = assignees.filter(
+    (a) =>
+      targets.includes(a.id) ||
+      poolTokens.every((t) => assigneeTitle(a).toLowerCase().includes(t)),
+  );
 
   const toggleIn = (list: string[], setList: (v: string[]) => void, v: string) =>
     setList(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
@@ -287,10 +307,34 @@ function RuleEditor({
 
       <div>
         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500">Assign to (round-robin across the pool)</p>
+        {/* A filter only earns its space once the list is long enough to scan
+            badly; small teams just see the chips. */}
+        {assignees.length > 8 && (
+          <input
+            value={poolQuery}
+            onChange={(e) => setPoolQuery(e.target.value)}
+            placeholder="Filter by name, role or email…"
+            aria-label="Filter people"
+            className={`${inputCls} mb-2`}
+          />
+        )}
         <div className="flex flex-wrap gap-1.5">
-          {assignees.map((a) => (
-            <button key={a.id} type="button" onClick={() => toggleIn(targets, setTargets, a.id)} className={chip(targets.includes(a.id))}>{a.name}</button>
+          {pool.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              title={assigneeTitle(a)}
+              onClick={() => toggleIn(targets, setTargets, a.id)}
+              className={chip(targets.includes(a.id))}
+            >
+              {/* Bare name when it is unique; role, then email, only where it
+                  is not — so the common case stays uncluttered. */}
+              {disambiguate(a, assignees)}
+            </button>
           ))}
+          {pool.length === 0 && (
+            <p className="text-[11px] text-stone-500">No one matches “{poolQuery}”.</p>
+          )}
         </div>
         {targets.length === 0 && <p className="mt-1 text-[10px] text-red-500">Pick at least one person.</p>}
       </div>

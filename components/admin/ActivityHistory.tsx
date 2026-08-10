@@ -6,7 +6,7 @@ import { withBase } from "@/lib/base-path";
 import AdminPagination from "@/components/admin/AdminPagination";
 import { ACTIVITY_TYPES, activityLabel, activityStyle } from "@/lib/crm";
 
-type Assignee = { id: string; name: string };
+import AssigneePicker, { type Assignee } from "@/components/admin/AssigneePicker";
 type Activity = {
   id: string; type: string; message: string; userName: string | null;
   createdAt: string; lead: { id: string; name: string } | null;
@@ -73,11 +73,14 @@ export default function ActivityHistory({ assignees }: { assignees: Assignee[] }
           <option value="ALL">All types</option>
           {ACTIVITY_TYPES.map((t) => <option key={t} value={t}>{activityLabel(t)}</option>)}
         </select>
-        <select value={userId} onChange={(e) => onFilter(setUserId)(e.target.value)} className={inputCls} aria-label="User">
-          <option value="ALL">Anyone</option>
-          <option value="system">System</option>
-          {assignees.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-        </select>
+        <AssigneePicker
+          assignees={assignees}
+          value={userId}
+          onChange={onFilter(setUserId)}
+          leading={[{ value: "ALL", label: "Anyone" }, { value: "system", label: "System" }]}
+          label="User"
+          className="w-44"
+        />
         <label className="flex items-center gap-1 text-xs text-stone-400">From <input type="date" value={from} onChange={(e) => onFilter(setFrom)(e.target.value)} className={inputCls} /></label>
         <label className="flex items-center gap-1 text-xs text-stone-400">To <input type="date" value={to} onChange={(e) => onFilter(setTo)(e.target.value)} className={inputCls} /></label>
       </div>
