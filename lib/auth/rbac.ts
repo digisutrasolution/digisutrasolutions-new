@@ -58,6 +58,8 @@ export const PERMISSIONS = {
   "comms.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "faq.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "proof.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
+  // Social-follow offers: discount codes issued to leads.
+  "promos.manage": ["SUPER_ADMIN"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -233,6 +235,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "quotes.manage": { label: "Create & edit quotations", group: "Leads" },
   "quotes.approve": { label: "Approve quotations", group: "Leads" },
   "payments.manage": { label: "Record & manage payments", group: "Leads" },
+  "promos.manage": { label: "Manage social-follow offers", group: "Leads" },
   "comms.manage": { label: "Manage message templates", group: "Leads" },
   "pages.view": { label: "View pages", group: "Content" },
   "pages.create": { label: "Create pages", group: "Content" },

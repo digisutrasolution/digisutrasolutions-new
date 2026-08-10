@@ -11,6 +11,7 @@ import AssigneePicker, { type Assignee } from "@/components/admin/AssigneePicker
 import LeadComms from "@/components/admin/LeadComms";
 import Attachments from "@/components/admin/Attachments";
 import LeadInsights from "@/components/admin/LeadInsights";
+import OutreachLinkButton from "@/components/admin/OutreachLinkButton";
 import {
   LEAD_PRIORITIES,
   LEAD_STATUSES,
@@ -155,6 +156,8 @@ export default function LeadDetail({
               <FileText size={14} /> Quote
             </Link>
           )}
+          <OutreachLinkButton leadId={initial.id} kind="REVIEW" label="Review link" />
+          <OutreachLinkButton leadId={initial.id} kind="PROMO" label="Offer link" />
           <a
             href={`https://wa.me/${lead.whatsapp.replace(/[^\d]/g, "")}`}
             target="_blank"

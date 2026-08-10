@@ -15,6 +15,9 @@ export const RESERVED_PREFIXES = new Set([
   "uploads",
   "blog",
   "services",
+  // Tokenised outreach links — /r/<token> and /offer/<token>.
+  "r",
+  "offer",
 ]);
 
 export const RESERVED_SLUGS = new Set([

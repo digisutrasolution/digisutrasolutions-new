@@ -793,6 +793,9 @@ model Lead {
   comms           CommLog[]
   attachments     Attachment[]
   payments        Payment[]
+  outreachLinks   OutreachLink[]
+  testimonials    Testimonial[]
+  promoClaims     PromotionClaim[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -1066,6 +1069,10 @@ model Testimonial {
   id        String   @id @default(cuid())
   quote     String
   name      String
+  /// Set when a client submitted it themselves through an outreach link,
+  /// so "who said this" is answerable and it can be shown as verified.
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId    String?
   role      String   @default("")
   rating    Int      @default(5)
   order     Int      @default(0)
@@ -1074,6 +1081,81 @@ model Testimonial {
   updatedAt DateTime @updatedAt
 
   @@index([visible, order])
+  @@index([leadId])
+}
+
+/* One-time links sent to a lead. The token IS the authentication: it is long,
+   random and scoped to a single lead and purpose, so the recipient never has
+   to sign in to leave a review or claim an offer. Kept as rows rather than
+   signed strings because the point is to know who was asked, who opened it
+   and who followed through. */
+enum OutreachKind {
+  REVIEW
+  PROMO
+}
+
+/* A social-follow offer, managed entirely from the admin.
+
+   Honest about what it can and cannot do: there is no API on any platform
+   that tells you whether someone followed you. This does NOT verify a follow
+   and must not pretend to. What it buys over a public coupon code is a code
+   tied to one lead, a claim you can count, and a redemption you can mark —
+   which is the difference between a number and a guess. */
+model Promotion {
+  id            String   @id @default(cuid())
+  name          String
+  isActive      Boolean  @default(true)
+  /// PERCENT | AMOUNT — kept as text so adding a type is not a migration.
+  discountType  String   @default("PERCENT")
+  discountValue Float    @default(10)
+  currency      String   @default("INR")
+  headline      String   @default("")
+  body          String   @default("")
+  /// Keys from the socialLinks setting; empty means every profile.
+  channels      String[] @default([])
+  codePrefix    String   @default("SOCIAL")
+  startsAt      DateTime?
+  endsAt        DateTime?
+  /// null = unlimited.
+  maxClaims     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  claims        PromotionClaim[]
+
+  @@index([isActive])
+}
+
+model PromotionClaim {
+  id          String    @id @default(cuid())
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  promotionId String
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId      String
+  code        String    @unique
+  claimedAt   DateTime  @default(now())
+  redeemedAt  DateTime?
+  note        String?
+
+  /// One code per lead per promotion — reloading the page must not mint more.
+  @@unique([promotionId, leadId])
+  @@index([promotionId, claimedAt])
+}
+
+model OutreachLink {
+  id          String       @id @default(cuid())
+  token       String       @unique
+  kind        OutreachKind
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId      String
+  /// PROMO links point at the offer being made.
+  promotionId String?
+  expiresAt   DateTime?
+  openedAt    DateTime?
+  completedAt DateTime?
+  createdById String?
+  createdAt   DateTime     @default(now())
+
+  @@index([leadId, kind])
 }
 
 model ClientLogo {
