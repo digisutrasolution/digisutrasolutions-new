@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { PAGE_SLUG_REGEX, isReservedSlug } from "@/lib/cms/pages";
+import { PAGE_SLUG_REGEX, bustPage, isReservedSlug } from "@/lib/cms/pages";
 import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
@@ -102,6 +102,8 @@ export async function POST(req: Request, { params }: Params) {
     },
     select: { id: true, slug: true, kind: true },
   });
+
+  bustPage(clone.slug);
 
   audit({
     userId: user.id,

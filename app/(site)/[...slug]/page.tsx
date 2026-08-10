@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getPageBySlug, isLive, promoteDueScheduledPage } from "@/lib/cms/pages";
+import { getPageBySlug, isLive } from "@/lib/cms/pages";
 import { parseSections } from "@/lib/cms/sections";
 import { embedUrl } from "@/lib/cms/videos";
 import SectionRenderer from "@/components/sections/SectionRenderer";
@@ -54,7 +54,7 @@ export default async function CmsPage({
   const slug = slugParts.join("/");
   const { preview } = await searchParams;
 
-  let page = await getPageBySlug(slug);
+  const page = await getPageBySlug(slug);
   if (!page) {
     // Redirects manager: unmatched paths resolve here before 404.
     const rule = await db.redirect.findUnique({ where: { fromPath: `/${slug}` } });
@@ -68,8 +68,10 @@ export default async function CmsPage({
     notFound();
   }
 
-  page = await promoteDueScheduledPage(page);
-
+  /* No lazy promotion here any more: it mutated the database from a GET, and
+     the page lookup is cached now so it would not fire reliably anyway. The
+     follow-ups cron settles due SCHEDULED rows; isLive() already counts one as
+     live, so the page is correct from its scheduled minute regardless. */
   if (!isLive(page)) {
     // Drafts are visible only to signed-in team members with ?preview=1.
     const user = preview === "1" ? await getCurrentUser() : null;

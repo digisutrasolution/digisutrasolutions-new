@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
 import { userCan } from "@/lib/auth/rbac";
 import { notifyUsers } from "@/lib/notify";
+import { promoteScheduledPages } from "@/lib/cms/pages";
 
 /* Sweep of pending follow-ups:
    - REMINDER: due within the next hour (or already due) and not yet reminded
@@ -95,7 +96,14 @@ async function run() {
     });
   }
 
-  return { reminded: toRemind.length, escalated: escalatedCount };
+  /* Scheduled pages are promoted here rather than lazily on read. The old
+     code flipped the row during a GET of the public page, which both mutated
+     the database from a read and stops working the moment that read is
+     cached. isLive() already treats a due SCHEDULED page as live, so a page
+     is correct from its scheduled minute — this just settles the row. */
+  const published = await promoteScheduledPages();
+
+  return { reminded: toRemind.length, escalated: escalatedCount, published };
 }
 
 export async function POST(req: Request) {

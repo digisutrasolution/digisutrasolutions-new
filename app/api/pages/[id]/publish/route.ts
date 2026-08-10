@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { bustPage } from "@/lib/cms/pages";
 import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
@@ -78,6 +79,11 @@ export async function POST(req: Request, { params }: Params) {
     where: { id },
     data: { ...data, updatedById: user.id },
   });
+
+  // The page body is cached by slug — publishing has to show up at once, not
+  // after the TTL. Both slugs when the action somehow moved it.
+  bustPage(page.slug);
+  if (updated.slug !== page.slug) bustPage(updated.slug);
 
   audit({
     userId: user.id,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { bustPage } from "@/lib/cms/pages";
 import { requireUser } from "@/lib/auth/guards";
 import { userCan } from "@/lib/auth/rbac";
 import { PAGE_SLUG_REGEX, isReservedSlug } from "@/lib/cms/pages";
@@ -201,6 +202,12 @@ export async function PATCH(req: Request, { params }: Params) {
     return result;
   });
 
+  /* Drop the cached body so the edit shows on the public page and in preview
+     on the very next request. Both slugs on a rename, or the old URL keeps
+     serving the old content until its TTL runs out. */
+  bustPage(page.slug);
+  if (updated.slug !== page.slug) bustPage(updated.slug);
+
   audit({
     userId: user.id,
     action: "page.update",
@@ -237,6 +244,7 @@ export async function DELETE(req: Request, { params }: Params) {
     );
   }
   await db.page.delete({ where: { id } });
+  bustPage(page.slug);
   audit({
     userId: user.id,
     action: "page.delete",
