@@ -34,11 +34,21 @@ export async function getPageStats(
   const paths = pages.map((p) => `/${p.slug}`);
   const ids = pages.map((p) => p.id);
 
-  const [views, leads] = await Promise.all([
+  const [viewsById, viewsByPathRows, leads] = await Promise.all([
+    /* Two passes on purpose. pageId is exact and is the only way to tell an
+       A/B arm from its control, but rows written before it existed have none —
+       those still count by path, against the page owning that url. */
+    db.pageView
+      .groupBy({
+        by: ["pageId"],
+        where: { pageId: { in: ids }, createdAt: { gte: since } },
+        _count: { _all: true },
+      })
+      .catch(() => []),
     db.pageView
       .groupBy({
         by: ["path"],
-        where: { path: { in: paths }, createdAt: { gte: since } },
+        where: { path: { in: paths }, pageId: null, createdAt: { gte: since } },
         _count: { _all: true },
       })
       .catch(() => []),
@@ -57,13 +67,14 @@ export async function getPageStats(
       .catch(() => []),
   ]);
 
-  const viewsByPath = new Map(views.map((v) => [v.path, v._count._all]));
+  const byId = new Map(viewsById.map((v) => [v.pageId ?? "", v._count._all]));
+  const byPath = new Map(viewsByPathRows.map((v) => [v.path, v._count._all]));
   const leadsById = new Map(
     leads.map((l) => [l.landingPageId ?? "", l._count._all]),
   );
 
   for (const page of pages) {
-    const v = viewsByPath.get(`/${page.slug}`) ?? 0;
+    const v = (byId.get(page.id) ?? 0) + (byPath.get(`/${page.slug}`) ?? 0);
     const l = leadsById.get(page.id) ?? 0;
     out.set(page.id, {
       views: v,

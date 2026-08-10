@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { bustPage } from "@/lib/cms/pages";
+import { bustPage, bustPageTree } from "@/lib/cms/pages";
 import { requireUser } from "@/lib/auth/guards";
 import { userCan } from "@/lib/auth/rbac";
 import { PAGE_SLUG_REGEX, isReservedSlug } from "@/lib/cms/pages";
@@ -42,6 +42,7 @@ const UpdatePageSchema = z
     canonicalUrl: z.string().trim().url().max(400).nullable().optional(),
     ogImage: z.string().trim().max(400).nullable().optional(),
     kind: z.enum(["PAGE", "LANDING", "TEMPLATE"]).optional(),
+    variantWeight: z.number().int().min(0).max(100).optional(),
     noIndex: z.boolean().optional(),
     schemaJson: z.unknown().nullable().optional(),
     versionNote: z.string().trim().max(300).optional(),
@@ -150,6 +151,7 @@ export async function PATCH(req: Request, { params }: Params) {
     data.canonicalUrl = parsed.data.canonicalUrl;
   if (parsed.data.ogImage !== undefined) data.ogImage = parsed.data.ogImage;
   if (parsed.data.noIndex !== undefined) data.noIndex = parsed.data.noIndex;
+  if (parsed.data.variantWeight !== undefined) data.variantWeight = parsed.data.variantWeight;
   if (parsed.data.schemaJson !== undefined) {
     data.schemaJson =
       parsed.data.schemaJson === null
@@ -205,7 +207,7 @@ export async function PATCH(req: Request, { params }: Params) {
   /* Drop the cached body so the edit shows on the public page and in preview
      on the very next request. Both slugs on a rename, or the old URL keeps
      serving the old content until its TTL runs out. */
-  bustPage(page.slug);
+  bustPageTree(page);
   if (updated.slug !== page.slug) bustPage(updated.slug);
 
   audit({
@@ -244,7 +246,7 @@ export async function DELETE(req: Request, { params }: Params) {
     );
   }
   await db.page.delete({ where: { id } });
-  bustPage(page.slug);
+  bustPageTree(page);
   audit({
     userId: user.id,
     action: "page.delete",

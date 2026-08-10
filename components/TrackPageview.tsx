@@ -28,10 +28,15 @@ export default function TrackPageview() {
     } catch {
       sid = undefined;
     }
+    // The renderer marks which A/B arm produced this page; without it every
+    // variant view would be counted against its control.
+    const pageId =
+      document.querySelector<HTMLMetaElement>('meta[name="ds-page-id"]')?.content || undefined;
     const payload = JSON.stringify({
       path: pathname,
       referrer: document.referrer || undefined,
       sid,
+      pageId,
     });
     // sendBeacon survives navigation; fetch keepalive is the fallback.
     if (!navigator.sendBeacon?.(withBase("/api/track"), new Blob([payload], { type: "application/json" }))) {

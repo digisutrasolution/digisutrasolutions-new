@@ -32,6 +32,7 @@ export const AttributionSchema = z.object({
   msclkid: str(200),
   referrer: str(300),
   landingPath: str(300),
+  landingPageId: str(40),
 })
   // A structurally wrong attribution object degrades to nothing, for the same
   // reason: it must not take the enquiry down with it.
@@ -89,6 +90,19 @@ export async function resolveAttribution(
     // keep it in step rather than leaving two sources of truth.
     campaign: nn(input.utmCampaign),
   };
+
+  /* Prefer the id the renderer marked: it names the exact A/B arm, which the
+     url cannot. Still verified against the table — it arrives from the
+     client, so a made-up id must resolve to nothing rather than be stored. */
+  if (input.landingPageId) {
+    const marked = await db.page
+      .findUnique({ where: { id: input.landingPageId }, select: { id: true } })
+      .catch(() => null);
+    if (marked) {
+      fields.landingPageId = marked.id;
+      return fields;
+    }
+  }
 
   const path = fields.landingPath;
   if (path && path !== "/") {

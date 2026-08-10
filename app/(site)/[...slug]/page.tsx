@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getPageBySlug, isLive } from "@/lib/cms/pages";
+import { headers } from "next/headers";
+import { getPageBySlug, getPageVariants, isLive } from "@/lib/cms/pages";
+import { fingerprint, pickArm } from "@/lib/cms/variants";
 import { parseSections } from "@/lib/cms/sections";
 import { embedUrl } from "@/lib/cms/videos";
 import SectionRenderer from "@/components/sections/SectionRenderer";
@@ -81,7 +83,22 @@ export default async function CmsPage({
     notFound();
   }
 
-  const sections = parseSections(page.sections);
+  /* A/B split. The chosen arm supplies the CONTENT and the SEO fields, but
+     the URL stays the control's — a variant is a different version of one
+     offer, not a second address for it. A page that IS a variant (someone
+     opened its own slug) renders itself and never splits again. */
+  const arms = page.variantOfId ? [] : await getPageVariants(page.id);
+  let rendered = page;
+  if (arms.length > 0) {
+    const h = await headers();
+    const key = fingerprint(
+      h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local",
+      h.get("user-agent") ?? "",
+    );
+    rendered = pickArm([page, ...arms], key, page.id);
+  }
+
+  const sections = parseSections(rendered.sections);
 
   const faqItems = sections
     .filter((s) => s.type === "faq")
@@ -98,7 +115,9 @@ export default async function CmsPage({
       crumbs.push({ name: parent.title, item: `${SITE_URL}/${parent.slug}` });
     }
   }
-  crumbs.push({ name: page.title, item: `${SITE_URL}/${page.slug}` });
+  // Label from the rendered arm so the crumb matches the heading on screen;
+  // the URL stays the control's, which is the address being described.
+  crumbs.push({ name: rendered.title, item: `${SITE_URL}/${page.slug}` });
 
   const jsonLd: object[] = [
     {
@@ -123,8 +142,8 @@ export default async function CmsPage({
       })),
     });
   }
-  if (page.schemaJson && typeof page.schemaJson === "object") {
-    jsonLd.push(page.schemaJson as object);
+  if (rendered.schemaJson && typeof rendered.schemaJson === "object") {
+    jsonLd.push(rendered.schemaJson as object);
   }
 
   // VideoObject schema for embedded library videos.
@@ -161,6 +180,11 @@ export default async function CmsPage({
           Draft preview — this page is not publicly visible
         </div>
       )}
+      {/* Which arm actually rendered. TrackPageview and the attribution
+          capture read this, so a variant served at the control's URL still
+          gets its own views and its own leads — without it the test cannot
+          be measured at all. */}
+      <meta name="ds-page-id" content={rendered.id} />
       <SectionRenderer sections={sections} />
       {/* Bottom-padding floor so every CMS page ends with breathing room
           regardless of which block type it ends on */}

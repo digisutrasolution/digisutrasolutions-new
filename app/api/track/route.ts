@@ -10,6 +10,9 @@ const TrackSchema = z.object({
   referrer: z.string().trim().max(500).optional(),
   /** Ephemeral per-tab session key from sessionStorage — not a cookie. */
   sid: z.string().trim().max(64).optional(),
+  /** Which Page actually rendered — set for A/B arms, which are served at
+      their control url and would otherwise be invisible in the numbers. */
+  pageId: z.string().trim().max(40).optional(),
 });
 
 /**
@@ -77,7 +80,13 @@ export async function POST(req: Request) {
     }
   }
 
-  await db.pageView.create({ data: { path, referrer, sessionId } }).catch(() => {});
+  /* Unverified client input, so a bad id must not fail the beacon — the FK
+     is nulled rather than letting the whole insert reject. */
+  await db.pageView
+    .create({ data: { path, referrer, sessionId, pageId: parsed.data.pageId ?? null } })
+    .catch(async () => {
+      await db.pageView.create({ data: { path, referrer, sessionId } }).catch(() => {});
+    });
 
   return NextResponse.json({ ok: true });
 }

@@ -25,6 +25,10 @@ export type Attribution = {
   referrer?: string;
   /** Path of the first page seen this visit. */
   landingPath?: string;
+  /** Id of the Page that actually rendered it. Set for A/B arms, which are
+      served at their control url — resolving the path alone would credit the
+      control and the test would read as a tie forever. */
+  landingPageId?: string;
 };
 
 const PARAMS: [keyof Attribution, string][] = [
@@ -61,6 +65,8 @@ function fromLocation(): Attribution {
     }
   }
   out.landingPath = window.location.pathname.slice(0, 300);
+  const marked = document.querySelector<HTMLMetaElement>('meta[name="ds-page-id"]')?.content;
+  if (marked) out.landingPageId = marked.slice(0, 40);
   return out;
 }
 

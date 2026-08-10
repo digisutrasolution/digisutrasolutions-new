@@ -18,6 +18,8 @@ export default async function AdminPagesPage() {
       title: true,
       slug: true,
       kind: true,
+      variantOfId: true,
+      variantWeight: true,
       status: true,
       workflowStage: true,
       scheduledAt: true,

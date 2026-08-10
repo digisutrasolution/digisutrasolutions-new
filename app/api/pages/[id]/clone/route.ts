@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { PAGE_SLUG_REGEX, bustPage, isReservedSlug } from "@/lib/cms/pages";
+import { PAGE_SLUG_REGEX, bustPage, bustVariants, isReservedSlug } from "@/lib/cms/pages";
 import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
@@ -23,6 +23,8 @@ const CloneSchema = z.object({
     .regex(PAGE_SLUG_REGEX, "Slug segments may contain lowercase letters, numbers and hyphens, separated by /.")
     .optional(),
   kind: z.enum(["PAGE", "LANDING", "TEMPLATE"]).optional(),
+  /** Make the copy an A/B arm of the source rather than a standalone page. */
+  asVariant: z.boolean().optional(),
 });
 
 export async function POST(req: Request, { params }: Params) {
@@ -50,6 +52,13 @@ export async function POST(req: Request, { params }: Params) {
      otherwise "new from template" would quietly breed templates. */
   const kind =
     parsed.data.kind ?? (source.kind === "TEMPLATE" ? "LANDING" : source.kind);
+
+  /* An arm always hangs off the CONTROL. Adding an arm while looking at an
+     existing variant attaches it as a sibling rather than nesting, so the
+     tree can only ever be one level deep. */
+  const variantOfId = parsed.data.asVariant
+    ? (source.variantOfId ?? source.id)
+    : null;
   const title = parsed.data.title?.trim() || `${source.title} (copy)`;
 
   let slug = parsed.data.slug ?? `${source.slug}-copy`;
@@ -79,6 +88,7 @@ export async function POST(req: Request, { params }: Params) {
       title,
       slug,
       kind,
+      variantOfId,
       status: "DRAFT",
       sections,
       seoTitle: source.seoTitle,
@@ -101,10 +111,11 @@ export async function POST(req: Request, { params }: Params) {
         },
       },
     },
-    select: { id: true, slug: true, kind: true },
+    select: { id: true, slug: true, kind: true, variantOfId: true },
   });
 
   bustPage(clone.slug);
+  if (variantOfId) bustVariants(variantOfId);
 
   audit({
     userId: user.id,

@@ -105,6 +105,14 @@ model Page {
   title          String
   slug           String        @unique
   kind           PageKind      @default(PAGE)
+  /// A/B testing. A variant is a full Page pointing at its control; the
+  /// control has variantOfId null. Variants render at the CONTROL url, so
+  /// they are never a second indexable address for the same offer.
+  variantOf      Page?         @relation("PageVariants", fields: [variantOfId], references: [id], onDelete: Cascade)
+  variantOfId    String?
+  variants       Page[]        @relation("PageVariants")
+  /// Relative share of traffic against its siblings AND the control.
+  variantWeight  Int           @default(50)
   status         PageStatus    @default(DRAFT)
   sections       Json          @default("[]")
   seoTitle       String?
@@ -124,11 +132,13 @@ model Page {
   workflowStage  WorkflowStage @default(DRAFT)
   versions       PageVersion[]
   leads          Lead[]        @relation("LeadLandingPage")
+  pageViews      PageView[]
   transitions    WorkflowTransition[]
   comments       PageComment[]
   bugs           BugReport[]
 
   @@index([kind, status])
+  @@index([variantOfId])
   @@index([status, publishedAt])
   @@index([workflowStage])
 }
@@ -311,6 +321,11 @@ model SearchQuery {
 model PageView {
   id        String   @id @default(cuid())
   path      String
+  /// Which Page actually rendered. Needed because an A/B variant is served
+  /// at its control's path — without this every variant's views would be
+  /// counted against the control and the test could not be read.
+  page      Page?    @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  pageId    String?
   referrer  String?
   createdAt DateTime @default(now())
   session   Session? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -318,6 +333,7 @@ model PageView {
 
   @@index([createdAt])
   @@index([path, createdAt])
+  @@index([pageId, createdAt])
   @@index([sessionId])
 }
 

@@ -120,6 +120,44 @@ export const getPageBySlug = cache(async (slug: string): Promise<Page | null> =>
   return hydrate(await load());
 });
 
+/** Cache tag for a control's list of A/B arms. */
+export const variantsTag = (controlId: string) => `cms-variants:${controlId}`;
+
+/** Drop a control's cached arm list — weights or membership changed. */
+export function bustVariants(controlId: string): void {
+  revalidateTag(variantsTag(controlId), { expire: 0 });
+}
+
+/**
+ * The live A/B arms belonging to a control, in creation order.
+ *
+ * Only PUBLISHED variants are served: a half-written arm must never reach a
+ * visitor, and an unpublished one is how you pause a test without deleting it.
+ */
+export const getPageVariants = cache(async (controlId: string): Promise<Page[]> => {
+  const load = unstable_cache(
+    async () =>
+      db.page.findMany({
+        where: { variantOfId: controlId, status: "PUBLISHED" },
+        orderBy: { createdAt: "asc" },
+      }),
+    ["cms-variants", controlId],
+    { revalidate: PAGE_TTL_SEC, tags: [variantsTag(controlId)] },
+  );
+  return (await load()).map(hydrate).filter((p): p is Page => p !== null);
+});
+
+/** Bust a page AND the arm list it belongs to. Editing any arm changes what
+    the control may serve, so both caches have to go. */
+export function bustPageTree(page: {
+  id: string;
+  slug: string;
+  variantOfId: string | null;
+}): void {
+  bustPage(page.slug);
+  bustVariants(page.variantOfId ?? page.id);
+}
+
 /**
  * Settle every SCHEDULED page whose time has passed. Called from the
  * follow-ups cron, not from a page render: promoting on read meant a GET

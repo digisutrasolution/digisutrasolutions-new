@@ -5,7 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, ExternalLink, FilePlus2, LayoutTemplate, Pencil } from "lucide-react";
+import { Copy, ExternalLink, FilePlus2, LayoutTemplate, Pencil, Split } from "lucide-react";
 import type { PageKind, PageStatus, WorkflowStage } from "@prisma/client";
 import { STAGE_LABELS } from "@/lib/cms/workflow";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
@@ -16,6 +16,8 @@ type PageRow = {
   title: string;
   slug: string;
   kind: PageKind;
+  variantOfId: string | null;
+  variantWeight: number;
   status: PageStatus;
   workflowStage: WorkflowStage;
   scheduledAt: string | null;
@@ -335,6 +337,14 @@ export default function PagesList({
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex flex-wrap gap-1.5">
+                    {p.variantOfId && (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-950 dark:text-sky-300"
+                        title={`A/B arm of "${pages.find((c) => c.id === p.variantOfId)?.title ?? "another page"}", weight ${p.variantWeight}`}
+                      >
+                        <Split size={11} aria-hidden /> Arm · {p.variantWeight}
+                      </span>
+                    )}
                     {KIND_STYLE[p.kind] && (
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${KIND_STYLE[p.kind]}`}>
                         {KIND_LABEL[p.kind]}
@@ -407,6 +417,25 @@ export default function PagesList({
                         className="cursor-pointer rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-500"
                       >
                         Use template
+                      </button>
+                    )}
+                    {canCreate && p.kind === "LANDING" && (
+                      <button
+                        onClick={() =>
+                          void call(`/api/pages/${p.id}/clone`, {
+                            method: "POST",
+                            body: JSON.stringify({
+                              asVariant: true,
+                              title: `${p.title} — arm ${String.fromCharCode(66 + pages.filter((x) => x.variantOfId === (p.variantOfId ?? p.id)).length)}`,
+                            }),
+                          })
+                        }
+                        disabled={busy}
+                        aria-label={`Add an A/B arm to ${p.title}`}
+                        title="Add an A/B arm"
+                        className="cursor-pointer rounded-lg p-2 text-stone-500 transition-colors hover:bg-sky-50 hover:text-sky-700 dark:hover:bg-stone-800"
+                      >
+                        <Split size={15} aria-hidden />
                       </button>
                     )}
                     {canCreate && p.kind !== "TEMPLATE" && (
