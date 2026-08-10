@@ -5,6 +5,12 @@ import Reveal from "@/components/Reveal";
 import CountriesBlock from "@/components/sections/CountriesBlock";
 import FormEmbed from "@/components/sections/FormEmbed";
 import IndustriesBlock from "@/components/sections/IndustriesBlock";
+import {
+  CaseStudiesBlock,
+  LogosBlock,
+  PricingBlock,
+  TestimonialsBlock,
+} from "@/components/sections/LibraryBlocks";
 import SpotlightCard from "@/components/sections/SpotlightCard";
 import VideoBlock from "@/components/sections/VideoBlock";
 import { withBase } from "@/lib/base-path";
@@ -427,6 +433,14 @@ export default function SectionRenderer({ sections }: { sections: Section[] }) {
             return (
               <VideoBlock key={i} slug={section.videoSlug} heading={section.heading} />
             );
+          case "testimonials":
+            return <TestimonialsBlock key={i} s={section} />;
+          case "logos":
+            return <LogosBlock key={i} s={section} />;
+          case "caseStudies":
+            return <CaseStudiesBlock key={i} s={section} />;
+          case "pricing":
+            return <PricingBlock key={i} s={section} />;
         }
       })}
     </>

@@ -174,6 +174,52 @@ export const VideoSectionSchema = z.object({
   videoSlug: z.string().max(120).default(""),
 });
 
+/* ---------------------------------------------------------------------------
+   Library-backed blocks.
+
+   Testimonials, client logos, case studies and pricing plans are already
+   maintained as their own admin sections, so these blocks REFERENCE those
+   records rather than asking the marketing team to retype them onto every
+   landing page. Editing a testimonial once updates every page showing it.
+
+   `ids` empty means "every visible record" — the common case, and what a new
+   block does before anyone touches it. Picking ids narrows it. Either way the
+   library's own `order` decides the sequence, so reordering happens in one
+   place instead of per page.
+--------------------------------------------------------------------------- */
+
+const libraryIds = z.array(z.string().max(40)).max(24).default([]);
+
+export const TestimonialsSectionSchema = z.object({
+  type: z.literal("testimonials"),
+  heading: z.string().max(160).default("What clients say"),
+  ids: libraryIds,
+  limit: z.number().int().min(1).max(24).default(6),
+});
+
+export const LogosSectionSchema = z.object({
+  type: z.literal("logos"),
+  heading: z.string().max(160).default(""),
+  ids: libraryIds,
+  limit: z.number().int().min(1).max(24).default(12),
+});
+
+export const CaseStudiesSectionSchema = z.object({
+  type: z.literal("caseStudies"),
+  heading: z.string().max(160).default("Selected work"),
+  ids: libraryIds,
+  limit: z.number().int().min(1).max(12).default(3),
+});
+
+export const PricingSectionSchema = z.object({
+  type: z.literal("pricing"),
+  heading: z.string().max(160).default("Pricing"),
+  copy: z.string().max(400).default(""),
+  /* No limit here — a price table shows the plans you chose, and a truncated
+     one misrepresents the offer. */
+  ids: libraryIds,
+});
+
 export const SectionSchema = z.discriminatedUnion("type", [
   HeroSectionSchema,
   RichTextSectionSchema,
@@ -185,6 +231,10 @@ export const SectionSchema = z.discriminatedUnion("type", [
   CtaSectionSchema,
   FormSectionSchema,
   VideoSectionSchema,
+  TestimonialsSectionSchema,
+  LogosSectionSchema,
+  CaseStudiesSectionSchema,
+  PricingSectionSchema,
 ]);
 
 export const SectionsSchema = z.array(SectionSchema).max(40);
@@ -206,6 +256,10 @@ export const SECTION_DEFS: Record<
   cta: { label: "CTA band", description: "Dark call-to-action strip" },
   form: { label: "Form", description: "Embed a form from the form builder" },
   video: { label: "Video", description: "Embed a video from the video library" },
+  testimonials: { label: "Testimonials", description: "Quotes from the testimonials library" },
+  logos: { label: "Client logos", description: "Logo wall from the clients library" },
+  caseStudies: { label: "Case studies", description: "Cards from the case-studies library" },
+  pricing: { label: "Pricing", description: "Plan cards from the pricing library" },
 };
 
 export function defaultSection(type: SectionType): Section {
@@ -242,6 +296,14 @@ export function defaultSection(type: SectionType): Section {
       return FormSectionSchema.parse({ type });
     case "video":
       return VideoSectionSchema.parse({ type });
+    case "testimonials":
+      return TestimonialsSectionSchema.parse({ type });
+    case "logos":
+      return LogosSectionSchema.parse({ type });
+    case "caseStudies":
+      return CaseStudiesSectionSchema.parse({ type });
+    case "pricing":
+      return PricingSectionSchema.parse({ type });
   }
 }
 

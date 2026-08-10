@@ -56,6 +56,83 @@ type VersionRow = {
 const inputCls =
   "w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
 const labelCls = "mb-1 block text-xs font-semibold";
+
+/* The admin libraries a section can point at, passed down from the server so
+   the editor can offer real records instead of asking for ids by hand. */
+export type LibraryItem = { id: string; label: string; sub?: string };
+export type Library = {
+  testimonials: LibraryItem[];
+  logos: LibraryItem[];
+  caseStudies: LibraryItem[];
+  pricing: LibraryItem[];
+};
+
+/* Toggle chips over a library. Nothing selected means "all of them", which is
+   what an untouched block does — so the empty state has to say so out loud,
+   otherwise it reads as "nothing will show". */
+function LibraryPicker({
+  items,
+  selected,
+  disabled,
+  onChange,
+  emptyHint,
+}: {
+  items: LibraryItem[];
+  selected: string[];
+  disabled: boolean;
+  onChange: (ids: string[]) => void;
+  emptyHint: string;
+}) {
+  if (items.length === 0) {
+    return (
+      <p className="rounded-xl border border-dashed border-stone-300 px-3 py-2.5 text-xs text-stone-500 dark:border-stone-700">
+        {emptyHint}
+      </p>
+    );
+  }
+  const toggle = (id: string) =>
+    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((it) => {
+          const on = selected.includes(it.id);
+          return (
+            <button
+              key={it.id}
+              type="button"
+              disabled={disabled}
+              onClick={() => toggle(it.id)}
+              title={it.sub}
+              className={`cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 ${
+                on
+                  ? "border-orange-500 bg-orange-500 text-white"
+                  : "border-stone-300 text-stone-500 hover:border-orange-400 dark:border-stone-700 dark:text-stone-400"
+              }`}
+            >
+              {it.label}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-1.5 text-[11px] text-stone-500">
+        {selected.length === 0
+          ? `Nothing picked — every visible record shows, in library order (${items.length} available).`
+          : `${selected.length} picked. Clear all to show every visible record.`}
+        {selected.length > 0 && (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange([])}
+            className="ml-2 cursor-pointer font-semibold text-orange-700 hover:underline disabled:opacity-50 dark:text-orange-400"
+          >
+            Clear
+          </button>
+        )}
+      </p>
+    </div>
+  );
+}
 const cardCls =
   "rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900";
 
@@ -69,9 +146,11 @@ const STATUS_STYLE: Record<PageStatus, string> = {
 export default function PageEditor({
   page,
   permissions,
+  library,
 }: {
   page: EditorPage;
   permissions: Permissions;
+  library: Library;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"content" | "workflow" | "seo" | "versions">(
@@ -379,6 +458,7 @@ export default function PageEditor({
                 )}
               </div>
               <SectionFields
+                library={library}
                 section={section}
                 disabled={!permissions.edit}
                 onChange={(patch) => updateSection(i, patch)}
@@ -555,10 +635,12 @@ function SectionFields({
   section,
   disabled,
   onChange,
+  library,
 }: {
   section: Section;
   disabled: boolean;
   onChange: (patch: Partial<Section>) => void;
+  library: Library;
 }) {
   const grid = "grid grid-cols-1 gap-3 sm:grid-cols-2";
 
@@ -739,6 +821,80 @@ function SectionFields({
         <div className={grid}>
           <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>Video slug (from the video library)</label><input value={section.videoSlug} disabled={disabled} placeholder="agency-showreel" onChange={(e) => onChange({ videoSlug: e.target.value })} className={inputCls} /></div>
+        </div>
+      );
+    case "testimonials":
+      return (
+        <div className="space-y-3">
+          <div className={grid}>
+            <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>Show at most</label><input type="number" min={1} max={24} value={section.limit} disabled={disabled} onChange={(e) => onChange({ limit: Number(e.target.value) || 1 })} className={inputCls} /></div>
+          </div>
+          <div>
+            <label className={labelCls}>Which testimonials</label>
+            <LibraryPicker
+              items={library.testimonials}
+              selected={section.ids}
+              disabled={disabled}
+              onChange={(ids) => onChange({ ids })}
+              emptyHint="No testimonials yet — add them under Proof, then pick them here."
+            />
+          </div>
+        </div>
+      );
+    case "logos":
+      return (
+        <div className="space-y-3">
+          <div className={grid}>
+            <div><label className={labelCls}>Heading (optional)</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} placeholder="Trusted by" /></div>
+            <div><label className={labelCls}>Show at most</label><input type="number" min={1} max={24} value={section.limit} disabled={disabled} onChange={(e) => onChange({ limit: Number(e.target.value) || 1 })} className={inputCls} /></div>
+          </div>
+          <div>
+            <label className={labelCls}>Which clients</label>
+            <LibraryPicker
+              items={library.logos}
+              selected={section.ids}
+              disabled={disabled}
+              onChange={(ids) => onChange({ ids })}
+              emptyHint="No client logos yet — add them under Proof, then pick them here."
+            />
+          </div>
+        </div>
+      );
+    case "caseStudies":
+      return (
+        <div className="space-y-3">
+          <div className={grid}>
+            <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+            <div><label className={labelCls}>Show at most</label><input type="number" min={1} max={12} value={section.limit} disabled={disabled} onChange={(e) => onChange({ limit: Number(e.target.value) || 1 })} className={inputCls} /></div>
+          </div>
+          <div>
+            <label className={labelCls}>Which case studies</label>
+            <LibraryPicker
+              items={library.caseStudies}
+              selected={section.ids}
+              disabled={disabled}
+              onChange={(ids) => onChange({ ids })}
+              emptyHint="No case studies yet — add them under Proof, then pick them here."
+            />
+          </div>
+        </div>
+      );
+    case "pricing":
+      return (
+        <div className="space-y-3">
+          <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
+          <div><label className={labelCls}>Intro copy (optional)</label><textarea rows={2} value={section.copy} disabled={disabled} onChange={(e) => onChange({ copy: e.target.value })} className={inputCls} /></div>
+          <div>
+            <label className={labelCls}>Which plans</label>
+            <LibraryPicker
+              items={library.pricing}
+              selected={section.ids}
+              disabled={disabled}
+              onChange={(ids) => onChange({ ids })}
+              emptyHint="No pricing plans yet — add them under Pricing, then pick them here."
+            />
+          </div>
         </div>
       );
   }
