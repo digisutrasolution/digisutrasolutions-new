@@ -88,7 +88,12 @@ export async function POST(req: Request) {
 
   const whatsapp = d.whatsapp.replace(/[\s-]/g, "");
   const duplicate = await db.lead.findFirst({
-    where: { whatsapp, createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+    // A deleted lead is not a duplicate to warn about.
+    where: {
+      whatsapp,
+      deletedAt: null,
+      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    },
     select: { id: true },
   });
 

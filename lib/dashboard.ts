@@ -43,14 +43,21 @@ export type DayPoint = { date: string; value: number };
 
 /* Daily buckets come from SQL: one round trip instead of N counts, and
    date_trunc keeps the grouping in the database's timezone consistently. */
+/* Leads are SOFT-deleted, so every count has to say so. Without it the
+   dashboard keeps reporting leads the team has already binned, and the number
+   quietly disagrees with the Leads list. */
+const LIVE = { deletedAt: null } as const;
+
 async function dailySeries(
   table: "Lead" | "PageView",
   since: Date,
   days: number,
 ): Promise<DayPoint[]> {
+  // Only Lead is soft-deletable; PageView has no such column.
+  const liveOnly = table === "Lead" ? 'AND "deletedAt" IS NULL' : "";
   const rows = await db.$queryRawUnsafe<{ day: Date; n: bigint }[]>(
     `SELECT date_trunc('day', "createdAt") AS day, COUNT(*)::bigint AS n
-     FROM "${table}" WHERE "createdAt" >= $1
+     FROM "${table}" WHERE "createdAt" >= $1 ${liveOnly}
      GROUP BY 1 ORDER BY 1`,
     since,
   ).catch(() => []);
@@ -93,8 +100,8 @@ export async function getDashboard(days: RangeDays) {
     openBugs,
     activeSessions,
   ] = await Promise.all([
-    db.lead.count({ where: { createdAt: { gte: since } } }),
-    db.lead.count({ where: { createdAt: { gte: prevSince, lt: since } } }),
+    db.lead.count({ where: { ...LIVE, createdAt: { gte: since } } }),
+    db.lead.count({ where: { ...LIVE, createdAt: { gte: prevSince, lt: since } } }),
     db.pageView.count({ where: { createdAt: { gte: since } } }),
     db.pageView.count({ where: { createdAt: { gte: prevSince, lt: since } } }),
     db.newsletterSubscriber.count({ where: { createdAt: { gte: since } } }),
@@ -105,16 +112,16 @@ export async function getDashboard(days: RangeDays) {
     dailySeries("PageView", since, days),
     db.lead.groupBy({
       by: ["source"],
-      where: { createdAt: { gte: since } },
+      where: { ...LIVE, createdAt: { gte: since } },
       _count: { _all: true },
     }),
     db.lead.groupBy({
       by: ["status"],
-      where: { createdAt: { gte: since } },
+      where: { ...LIVE, createdAt: { gte: since } },
       _count: { _all: true },
     }),
     db.lead.findMany({
-      where: { createdAt: { gte: since } },
+      where: { ...LIVE, createdAt: { gte: since } },
       orderBy: { createdAt: "desc" },
       take: 6,
       select: {
@@ -141,7 +148,7 @@ export async function getDashboard(days: RangeDays) {
       take: 6,
     }),
     db.lead.findMany({
-      where: { createdAt: { gte: since }, heardFrom: { not: null } },
+      where: { ...LIVE, createdAt: { gte: since }, heardFrom: { not: null } },
       select: { heardFrom: true },
     }),
     db.adBanner.aggregate({ _sum: { impressions: true, clicks: true } }),
@@ -157,7 +164,7 @@ export async function getDashboard(days: RangeDays) {
      than in SQL — the row count is small enough that it does not matter. */
   const serviceTally = new Map<string, number>();
   const leadRows = await db.lead.findMany({
-    where: { createdAt: { gte: since } },
+    where: { ...LIVE, createdAt: { gte: since } },
     select: { services: true },
   });
   for (const row of leadRows) {

@@ -16,7 +16,11 @@ export async function GET() {
 
   const [newLeads, pendingComments, dueFollowups, brokenLinks] = await Promise.all([
     userCan(user, "leads.manage")
-      ? db.lead.count({ where: { status: "NEW", ...leadScopeWhere(user) } })
+      ? db.lead.count({
+          // deletedAt matters: leads are soft-deleted, so without this the
+          // badge keeps counting a lead the list no longer shows.
+          where: { status: "NEW", deletedAt: null, ...leadScopeWhere(user) },
+        })
       : Promise.resolve(0),
     userCan(user, "comments.moderate")
       ? db.blogComment.count({ where: { status: "PENDING" } })
