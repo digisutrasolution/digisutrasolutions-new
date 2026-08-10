@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
 import { userCan } from "@/lib/auth/rbac";
 import PagesList from "@/components/admin/PagesList";
+import { STATS_WINDOW_DAYS, getPageStats } from "@/lib/cms/page-stats";
 
 export const metadata = { title: "Pages" };
 
@@ -25,6 +26,9 @@ export default async function AdminPagesPage() {
     },
   });
 
+  // Two aggregates for the whole list, not one query per row.
+  const stats = await getPageStats(pages);
+
   return (
     <div>
       <h1 className="font-display text-2xl font-extrabold tracking-tight">
@@ -40,7 +44,9 @@ export default async function AdminPagesPage() {
             scheduledAt: p.scheduledAt?.toISOString() ?? null,
             updatedAt: p.updatedAt.toISOString(),
             updatedByName: p.updatedBy?.name ?? null,
+            stats: stats.get(p.id) ?? { views: 0, leads: 0, conversion: null },
           }))}
+          statsDays={STATS_WINDOW_DAYS}
           canCreate={userCan(user, "pages.create")}
           canPublish={userCan(user, "pages.publish")}
         />

@@ -21,6 +21,7 @@ type PageRow = {
   scheduledAt: string | null;
   updatedAt: string;
   updatedByName: string | null;
+  stats: { views: number; leads: number; conversion: number | null };
 };
 
 const STATUS_STYLE: Record<PageStatus, string> = {
@@ -51,6 +52,47 @@ const KIND_TABS = [
 const inputCls =
   "w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
 
+/* Views / leads / conversion for one row.
+
+   A template has no public URL, so its zeros would be noise rather than
+   information — it gets dashes. A page with no views yet shows a dash for
+   conversion too: 0% reads as "converts badly" when the truth is "nobody has
+   been there". */
+function StatCells({ row }: { row: PageRow }) {
+  const cell = "px-4 py-3 text-right text-xs tabular-nums";
+  if (row.kind === "TEMPLATE") {
+    return (
+      <>
+        <td className={`${cell} text-stone-300 dark:text-stone-600`}>—</td>
+        <td className={`${cell} text-stone-300 dark:text-stone-600`}>—</td>
+        <td className={`${cell} text-stone-300 dark:text-stone-600`}>—</td>
+      </>
+    );
+  }
+  const { views, leads, conversion } = row.stats;
+  return (
+    <>
+      <td className={`${cell} text-stone-500 dark:text-stone-400`}>
+        {views ? views.toLocaleString("en-IN") : <span className="text-stone-300 dark:text-stone-600">0</span>}
+      </td>
+      <td className={`${cell} ${leads ? "font-semibold text-stone-800 dark:text-stone-100" : "text-stone-300 dark:text-stone-600"}`}>
+        {leads ? leads.toLocaleString("en-IN") : "0"}
+      </td>
+      <td className={cell}>
+        {conversion === null ? (
+          <span className="text-stone-300 dark:text-stone-600">—</span>
+        ) : (
+          <span className={conversion > 0 ? "font-semibold text-[#F26419]" : "text-stone-400"}>
+            {/* A decimal matters below 10% — 2.3% and 2.9% are different
+                pages — but "0.0%" is just noise for a page with no leads. */}
+            {conversion === 0 ? "0" : (conversion * 100).toFixed(conversion >= 0.1 ? 0 : 1)}%
+          </span>
+        )}
+      </td>
+    </>
+  );
+}
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -62,10 +104,12 @@ export default function PagesList({
   pages,
   canCreate,
   canPublish,
+  statsDays,
 }: {
   pages: PageRow[];
   canCreate: boolean;
   canPublish: boolean;
+  statsDays: number;
 }) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
@@ -246,12 +290,22 @@ export default function PagesList({
         />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+      <p className="mt-2 text-[11px] text-stone-500 dark:text-stone-400">
+        Views, leads and conversion cover the last {statsDays} days. A lead
+        counts against the page the visitor <strong>landed on</strong>, not the
+        page they submitted from — so an ad landing page keeps the credit for an
+        enquiry finished on the contact page. Spam is excluded.
+      </p>
+
+      <div className="mt-2 overflow-x-auto rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-stone-200 text-xs uppercase tracking-wide text-stone-500 dark:border-stone-800 dark:text-stone-400">
               <th className="px-5 py-3 font-semibold">Page</th>
               <th className="px-5 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 text-right font-semibold" title={`Page views in the last ${statsDays} days`}>Views</th>
+              <th className="px-4 py-3 text-right font-semibold" title={`Leads whose visit STARTED on this page, last ${statsDays} days`}>Leads</th>
+              <th className="px-4 py-3 text-right font-semibold">Conv.</th>
               <th className="px-5 py-3 font-semibold">Updated</th>
               <th className="px-5 py-3 text-right font-semibold">Actions</th>
             </tr>
@@ -259,14 +313,14 @@ export default function PagesList({
           <tbody>
             {grandTotal === 0 && (
               <tr>
-                <td colSpan={4} className="px-5 py-10 text-center text-sm text-stone-500">
+                <td colSpan={7} className="px-5 py-10 text-center text-sm text-stone-500">
                   No pages yet — create your first page above.
                 </td>
               </tr>
             )}
             {grandTotal > 0 && total === 0 && (
               <tr>
-                <td colSpan={4} className="px-5 py-10 text-center text-sm text-stone-500">
+                <td colSpan={7} className="px-5 py-10 text-center text-sm text-stone-500">
                   No pages match your search.
                 </td>
               </tr>
@@ -296,6 +350,7 @@ export default function PagesList({
                     </span>
                   </div>
                 </td>
+                <StatCells row={p} />
                 <td className="px-5 py-3 text-xs text-stone-500 dark:text-stone-400">
                   {new Date(p.updatedAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}
                   {p.updatedByName ? ` · ${p.updatedByName}` : ""}
