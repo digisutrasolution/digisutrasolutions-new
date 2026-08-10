@@ -55,8 +55,21 @@ export default async function CmsPage({
   const { preview } = await searchParams;
 
   const page = await getPageBySlug(slug);
-  if (!page) {
-    // Redirects manager: unmatched paths resolve here before 404.
+
+  /* No lazy promotion here any more: it mutated the database from a GET, and
+     the page lookup is cached now so it would not fire reliably anyway. The
+     follow-ups cron settles due SCHEDULED rows; isLive() already counts one as
+     live, so the page is correct from its scheduled minute regardless. */
+
+  // Drafts are visible only to signed-in team members with ?preview=1.
+  const previewing =
+    !!page && !isLive(page) && preview === "1" && (await getCurrentUser()) !== null;
+
+  if (!page || (!isLive(page) && !previewing)) {
+    /* A redirect rule applies to ANY dead URL — one that never existed, and
+       equally one that has been archived or unpublished. This used to run only
+       when no row was found at all, so a redirect created for an archived page
+       was silently ignored and the old URL just 404'd. */
     const rule = await db.redirect.findUnique({ where: { fromPath: `/${slug}` } });
     if (rule?.isActive) {
       db.redirect
@@ -66,16 +79,6 @@ export default async function CmsPage({
       redirect(rule.toPath);
     }
     notFound();
-  }
-
-  /* No lazy promotion here any more: it mutated the database from a GET, and
-     the page lookup is cached now so it would not fire reliably anyway. The
-     follow-ups cron settles due SCHEDULED rows; isLive() already counts one as
-     live, so the page is correct from its scheduled minute regardless. */
-  if (!isLive(page)) {
-    // Drafts are visible only to signed-in team members with ?preview=1.
-    const user = preview === "1" ? await getCurrentUser() : null;
-    if (!user) notFound();
   }
 
   const sections = parseSections(page.sections);

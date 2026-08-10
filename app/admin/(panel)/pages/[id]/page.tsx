@@ -42,6 +42,7 @@ export default async function AdminPageEditorPage({
         id: page.id,
         title: page.title,
         slug: page.slug,
+        kind: page.kind,
         status: page.status,
         workflowStage: page.workflowStage,
         sections: parseSections(page.sections),

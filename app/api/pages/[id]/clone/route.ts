@@ -84,7 +84,8 @@ export async function POST(req: Request, { params }: Params) {
       seoTitle: source.seoTitle,
       seoDescription: source.seoDescription,
       ogImage: source.ogImage,
-      noIndex: source.noIndex,
+      // A landing page made from a template has not been reviewed yet.
+      noIndex: source.noIndex || (kind === "LANDING" && source.kind === "TEMPLATE"),
       schemaJson: source.schemaJson ?? undefined,
       createdById: user.id,
       updatedById: user.id,

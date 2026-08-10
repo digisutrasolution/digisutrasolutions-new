@@ -81,6 +81,10 @@ export async function POST(req: Request) {
       title: parsed.data.title,
       slug: parsed.data.slug,
       kind: parsed.data.kind ?? "PAGE",
+      /* Landing pages start noindexed. Programmatic city/trade pages are the
+         doorway-page pattern Google demotes, so nothing gets crawled before a
+         human has signed it off — reaching APPROVED clears this. */
+      noIndex: parsed.data.kind === "LANDING",
       sections,
       createdById: user.id,
       updatedById: user.id,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { bustPage } from "@/lib/cms/pages";
 import { requireUser } from "@/lib/auth/guards";
 import { userCan } from "@/lib/auth/rbac";
 import {
@@ -122,22 +123,37 @@ export async function POST(req: Request, { params }: Params) {
     );
   }
 
+  /* Reaching APPROVED is the human sign-off that lifts the landing-page
+     noindex default. Recorded in the transition note so nobody has to wonder
+     later why the flag changed. */
+  const liftsNoIndex = rule.to === "APPROVED" && page.kind === "LANDING" && page.noIndex;
+
   const [updated] = await db.$transaction([
     db.page.update({
       where: { id },
-      data: { workflowStage: rule.to, updatedById: user.id },
+      data: {
+        workflowStage: rule.to,
+        updatedById: user.id,
+        ...(liftsNoIndex ? { noIndex: false } : {}),
+      },
     }),
     db.workflowTransition.create({
       data: {
         pageId: id,
         from: page.workflowStage,
         to: rule.to,
-        note: parsed.data.note,
+        note: [parsed.data.note, liftsNoIndex ? "Approved — search engines may now index this page." : null]
+          .filter(Boolean)
+          .join(" ") || undefined,
         byId: user.id,
         byName: user.name,
       },
     }),
   ]);
+
+  // Approving lifts noIndex, which the page emits in its robots meta — drop
+  // the cached body so the change is not invisible for the TTL.
+  if (liftsNoIndex) bustPage(page.slug);
 
   const link = `/admin/pages/${id}`;
   const note = parsed.data.note;

@@ -15,7 +15,7 @@ import {
   Save,
   Trash2,
 } from "lucide-react";
-import type { PageStatus, WorkflowStage } from "@prisma/client";
+import type { PageKind, PageStatus, WorkflowStage } from "@prisma/client";
 import {
   INDUSTRY_ICON_KEYS,
   SECTION_DEFS,
@@ -31,6 +31,7 @@ type EditorPage = {
   id: string;
   title: string;
   slug: string;
+  kind: PageKind;
   status: PageStatus;
   workflowStage: WorkflowStage;
   sections: Section[];
@@ -55,6 +56,21 @@ type VersionRow = {
 
 const inputCls =
   "w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-sm outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200 disabled:opacity-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
+/* Rough word count across whatever text the sections carry, used only to warn
+   about thin content. Walks the block objects rather than naming fields, so a
+   new section kind is counted without touching this. */
+const MIN_WORDS = 300;
+function countWords(sections: Section[]): number {
+  const text: string[] = [];
+  const walk = (v: unknown) => {
+    if (typeof v === "string") text.push(v);
+    else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === "object") Object.values(v).forEach(walk);
+  };
+  walk(sections);
+  return text.join(" ").trim().split(/\s+/).filter(Boolean).length;
+}
+
 const labelCls = "mb-1 block text-xs font-semibold";
 
 /* The admin libraries a section can point at, passed down from the server so
@@ -524,6 +540,28 @@ export default function PageEditor({
             />
             Hide from search engines (noindex)
           </label>
+          {page.kind === "LANDING" && seo.noIndex && (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-snug text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+              Landing pages start hidden from search on purpose — a batch of
+              near-identical city or trade pages is the pattern Google demotes.
+              Approving the page in the Workflow tab lifts this automatically,
+              or untick it here once the content is final.
+            </p>
+          )}
+          {/* Thin content is the other half of the same risk, and word count is
+              the one signal available without calling anything external. */}
+          {(() => {
+            const words = countWords(sections);
+            if (words >= MIN_WORDS) return null;
+            return (
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-snug text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                Only <strong>{words}</strong> words of unique copy on this page
+                (aiming for {MIN_WORDS}+). Thin pages rarely rank and can drag
+                down the ones that do. If this is one of several near-identical
+                pages, point the canonical URL above at the main service page.
+              </p>
+            );
+          })()}
           {!permissions.seo && (
             <p className="text-xs text-stone-400">
               SEO fields are managed by the SEO Manager role.
