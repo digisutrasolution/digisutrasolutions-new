@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
 import { PromotionSchema } from "@/app/api/promotions/route";
+import { commercialEditBlocked, resetsReview } from "@/lib/promotions-workflow";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -20,8 +21,41 @@ export async function PATCH(req: Request, { params }: Params) {
     );
   }
 
+  const current = await db.promotion.findUnique({
+    where: { id },
+    select: { status: true, maxClaims: true, endsAt: true },
+  });
+  if (!current) {
+    return NextResponse.json({ ok: false, error: "Offer not found." }, { status: 404 });
+  }
+
+  /* The workflow has to be enforced here, not only in the UI. Hiding a field
+     stops honest mistakes; this stops the request that skips the screen. */
+  const blocked = commercialEditBlocked(current.status, current, parsed.data);
+  if (blocked) {
+    return NextResponse.json({ ok: false, error: blocked }, { status: 409 });
+  }
+
+  /* Changing the terms of something under review invalidates the review it is
+     under — the same rule that resets a page's workflow stage when its content
+     changes. Approving a draft someone quietly re-priced afterwards is exactly
+     the failure the gate exists to prevent. */
+  const reset = resetsReview(current.status, parsed.data);
+
   const updated = await db.promotion
-    .update({ where: { id }, data: parsed.data, select: { id: true, name: true } })
+    .update({
+      where: { id },
+      data: {
+        ...parsed.data,
+        ...(reset
+          ? {
+              status: "DRAFT" as const,
+              statusNote: "Returned to draft automatically — the terms changed during review.",
+            }
+          : {}),
+      },
+      select: { id: true, name: true, status: true },
+    })
     .catch(() => null);
   if (!updated) {
     return NextResponse.json({ ok: false, error: "Offer not found." }, { status: 404 });
@@ -32,7 +66,7 @@ export async function PATCH(req: Request, { params }: Params) {
     action: "promotion.update",
     entity: "promotion",
     entityId: id,
-    meta: { fields: Object.keys(parsed.data) },
+    meta: { fields: Object.keys(parsed.data), ...(reset ? { reviewReset: true } : {}) },
     ip: clientIp(req),
   });
 

@@ -2,8 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { PromotionStatus } from "@prisma/client";
 import { Plus, Trash2, X } from "lucide-react";
 import { withBase } from "@/lib/base-path";
+import {
+  PROMOTION_RULES,
+  PROMOTION_STATUS_LABEL,
+  PROMOTION_STATUS_STYLE,
+  availablePromotionActions,
+  type PromotionAction,
+} from "@/lib/promotions-workflow";
 
 /* Social-follow offers.
 
@@ -14,7 +22,10 @@ import { withBase } from "@/lib/base-path";
 export type PromotionRow = {
   id: string;
   name: string;
-  isActive: boolean;
+  status: PromotionStatus;
+  statusNote: string | null;
+  createdById: string | null;
+  startsAt: string | null;
   discountType: string;
   discountValue: number;
   currency: string;
@@ -35,14 +46,42 @@ const labelCls = "mb-1 block text-xs font-semibold";
 export default function PromotionsManager({
   promotions,
   socials,
+  canApprove,
+  currentUserId,
 }: {
   promotions: PromotionRow[];
   socials: { key: string; label: string }[];
+  canApprove: boolean;
+  currentUserId: string;
 }) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /* Notes are collected with prompt() rather than a bespoke modal.
+     Deliberate: the note is mandatory on exactly three actions, and the
+     alternative is a dialog component that exists only to hold one textarea.
+     Worth revisiting if the workflow grows more note-taking steps. */
+  async function transition(p: PromotionRow, action: PromotionAction) {
+    const rule = PROMOTION_RULES[action];
+    let note = "";
+    if (rule.requiresNote) {
+      const answer = window.prompt(`${rule.label} — why? This is kept on the offer.`);
+      if (answer === null) return; // cancelled
+      note = answer.trim();
+      if (!note) {
+        setError("A note is required for that action.");
+        return;
+      }
+    } else if (action === "approve") {
+      if (!window.confirm(`Approve “${p.name}”? ${rule.hint ?? ""}`)) return;
+    }
+    await call(`/api/promotions/${p.id}/transition`, {
+      method: "POST",
+      body: JSON.stringify({ action, ...(note ? { note } : {}) }),
+    });
+  }
 
   async function call(path: string, init: RequestInit): Promise<boolean> {
     setError(null);
@@ -181,7 +220,8 @@ export default function PromotionsManager({
               <th className="px-5 py-3 font-semibold">Discount</th>
               <th className="px-4 py-3 text-right font-semibold" title="Codes issued">Claimed</th>
               <th className="px-4 py-3 text-right font-semibold" title="Codes actually used on a quote">Redeemed</th>
-              <th className="px-5 py-3 font-semibold">Live</th>
+              <th className="px-5 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 text-right font-semibold">Workflow</th>
               <th className="px-5 py-3 text-right font-semibold">Actions</th>
             </tr>
           </thead>
@@ -216,22 +256,50 @@ export default function PromotionsManager({
                   </span>
                 </td>
                 <td className="px-5 py-3">
-                  <button
-                    onClick={() =>
-                      void call(`/api/promotions/${p.id}`, {
-                        method: "PATCH",
-                        body: JSON.stringify({ isActive: !p.isActive }),
-                      })
-                    }
-                    disabled={busy}
-                    className={`cursor-pointer rounded-full px-3 py-1 text-xs font-semibold ${
-                      p.isActive
-                        ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300"
-                        : "bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400"
-                    }`}
+                  <span
+                    className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${PROMOTION_STATUS_STYLE[p.status]}`}
                   >
-                    {p.isActive ? "Live" : "Off"}
-                  </button>
+                    {PROMOTION_STATUS_LABEL[p.status]}
+                  </span>
+                  {p.statusNote && (
+                    <p className="mt-1 max-w-56 text-[11px] leading-snug text-stone-500" title={p.statusNote}>
+                      {p.statusNote}
+                    </p>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap justify-end gap-1.5">
+                    {availablePromotionActions(p.status, {
+                      can: (perm) => (perm === "promos.approve" ? canApprove : true),
+                      isAuthor: p.createdById === currentUserId,
+                    }).map((action) => {
+                      const rule = PROMOTION_RULES[action];
+                      return (
+                        <button
+                          key={action}
+                          onClick={() => void transition(p, action)}
+                          disabled={busy}
+                          title={rule.hint}
+                          className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                            action === "approve"
+                              ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                              : action === "submit"
+                                ? "bg-[#F26419] text-white hover:bg-orange-600"
+                                : "border border-stone-300 text-stone-600 hover:border-stone-400 dark:border-stone-700 dark:text-stone-300"
+                          }`}
+                        >
+                          {rule.label}
+                        </button>
+                      );
+                    })}
+                    {/* Only reason the author sees nothing on their own draft in
+                        review — say so instead of showing an empty cell. */}
+                    {p.status === "IN_REVIEW" && p.createdById === currentUserId && (
+                      <span className="text-[11px] text-stone-400">
+                        Waiting on someone else to approve
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-5 py-3 text-right">
                   <button

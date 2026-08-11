@@ -46,6 +46,9 @@ model User {
   pushSubs      PushSubscription[]
   assignedLeads Lead[]         @relation("LeadAssignee")
   followUps     FollowUp[]     @relation("FollowUpOwner")
+  promosCreated  Promotion[]      @relation("PromotionAuthor")
+  promosApproved Promotion[]      @relation("PromotionApprover")
+  codesRedeemed  PromotionClaim[] @relation("ClaimRedeemer")
   /** Optional custom role — when set, its permission set overrides the enum
       role's (except Super Admin, who is always all-powerful). */
   customRole    CustomRole?    @relation("UserCustomRole", fields: [customRoleId], references: [id], onDelete: SetNull)
@@ -1101,10 +1104,36 @@ enum OutreachKind {
    and must not pretend to. What it buys over a public coupon code is a code
    tied to one lead, a claim you can count, and a redemption you can mark —
    which is the difference between a number and a guess. */
+/// Lifecycle of a discount. Mirrors the editorial pipeline pages already use,
+/// because a discount costs real margin and deserves at least as much review
+/// as a blog post.
+///
+/// PAUSED is the state the old isActive boolean could not express: stop
+/// ISSUING new codes without invalidating the ones already out there.
+enum PromotionStatus {
+  DRAFT
+  IN_REVIEW
+  SCHEDULED
+  LIVE
+  PAUSED
+  ENDED
+}
+
 model Promotion {
   id            String   @id @default(cuid())
   name          String
-  isActive      Boolean  @default(true)
+  /// Replaces the old isActive boolean — one source of truth, not two.
+  status        PromotionStatus @default(DRAFT)
+  /// Why it was sent back, paused or ended. Required on those transitions.
+  statusNote    String?
+  /// Author and approver are tracked so the two can be required to differ.
+  /// promos.manage is Super Admin only today, so a role check alone would gate
+  /// nothing — four eyes has to mean two people, not two roles.
+  createdBy     User?    @relation("PromotionAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById   String?
+  approvedBy    User?    @relation("PromotionApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedById  String?
+  approvedAt    DateTime?
   /// PERCENT | AMOUNT — kept as text so adding a type is not a migration.
   discountType  String   @default("PERCENT")
   discountValue Float    @default(10)
@@ -1122,7 +1151,7 @@ model Promotion {
   updatedAt     DateTime @updatedAt
   claims        PromotionClaim[]
 
-  @@index([isActive])
+  @@index([status])
 }
 
 model PromotionClaim {
@@ -1133,7 +1162,12 @@ model PromotionClaim {
   leadId      String
   code        String    @unique
   claimedAt   DateTime  @default(now())
+  /// Set when the discount is actually applied to a paying job. Was read in
+  /// two places and written by nothing, which pinned every redemption figure
+  /// at zero; there is now an endpoint and an admin action behind it.
   redeemedAt  DateTime?
+  redeemedBy   User?    @relation("ClaimRedeemer", fields: [redeemedById], references: [id], onDelete: SetNull)
+  redeemedById String?
   note        String?
 
   /// One code per lead per promotion — reloading the page must not mint more.

@@ -5,9 +5,13 @@ import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
 
+/* Note what is NOT here: `status`. A promotion's state changes only through
+   POST /api/promotions/[id]/transition, where the transition is checked
+   against the current state, the permission is verified, the author cannot
+   approve their own offer and the move is audited. Allowing status through
+   this schema would let a PATCH walk straight past all four. */
 export const PromotionSchema = z.object({
   name: z.string().trim().min(2).max(120),
-  isActive: z.boolean().optional(),
   discountType: z.enum(["PERCENT", "AMOUNT"]).optional(),
   discountValue: z.number().min(0).max(1_000_000).optional(),
   currency: z.string().trim().min(3).max(3).optional(),
@@ -67,8 +71,12 @@ export async function POST(req: Request) {
   }
 
   const promotion = await db.promotion.create({
-    data: { ...parsed.data },
-    select: { id: true, name: true },
+    // Author is stamped here and never accepted from the client — it is what
+    // the approve step checks against, so it has to come from the session.
+    // Status is left at its DRAFT default: nothing reaches the public offers
+    // page without going through review.
+    data: { ...parsed.data, createdById: user.id },
+    select: { id: true, name: true, status: true },
   });
 
   audit({

@@ -42,10 +42,15 @@ export default async function AdminPromotionsPage() {
 
       <div className="mt-6">
         <PromotionsManager
+          canApprove={userCan(user, "promos.approve")}
+          currentUserId={user.id}
           promotions={promotions.map((p) => ({
             id: p.id,
             name: p.name,
-            isActive: p.isActive,
+            status: p.status,
+            statusNote: p.statusNote,
+            createdById: p.createdById,
+            startsAt: p.startsAt?.toISOString() ?? null,
             discountType: p.discountType,
             discountValue: p.discountValue,
             currency: p.currency,

@@ -5,9 +5,20 @@ import type { Promotion } from "@prisma/client";
 /* Promotion lookups shared by the offer page and the claim endpoint, so the
    two can never disagree about whether an offer is live. */
 
-/** Is this promotion running right now? */
+/**
+ * Is this promotion issuing codes right now?
+ *
+ * Status AND dates, both. The dates are still checked at read time rather
+ * than by a cron, so a SCHEDULED offer opens on its own minute and a LIVE one
+ * closes on its own — nobody has to be awake for either.
+ *
+ * PAUSED returns false here, which is exactly the point: it stops new claims
+ * while leaving every code already issued valid. The old isActive boolean
+ * could not say that, so pausing an offer silently broke a promise to
+ * everyone holding a code.
+ */
 export function isPromotionLive(p: Promotion, now = new Date()): boolean {
-  if (!p.isActive) return false;
+  if (p.status !== "LIVE" && p.status !== "SCHEDULED") return false;
   if (p.startsAt && p.startsAt > now) return false;
   if (p.endsAt && p.endsAt <= now) return false;
   return true;
@@ -27,7 +38,7 @@ export async function activePromotion(
     return named && isPromotionLive(named, now) ? named : null;
   }
   const live = await db.promotion
-    .findMany({ where: { isActive: true }, orderBy: { createdAt: "desc" }, take: 10 })
+    .findMany({ where: { status: { in: ["LIVE", "SCHEDULED"] } }, orderBy: { createdAt: "desc" }, take: 10 })
     .catch(() => []);
   return live.find((p) => isPromotionLive(p, now)) ?? null;
 }
@@ -51,7 +62,7 @@ export async function livePromotions(): Promise<LiveOffer[]> {
   const now = new Date();
   const rows = await db.promotion
     .findMany({
-      where: { isActive: true },
+      where: { status: { in: ["LIVE", "SCHEDULED"] } },
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { claims: true } } },
     })

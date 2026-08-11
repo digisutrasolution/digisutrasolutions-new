@@ -60,6 +60,12 @@ export const PERMISSIONS = {
   "proof.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   // Social-follow offers: discount codes issued to leads.
   "promos.manage": ["SUPER_ADMIN"],
+  /* Sign a discount off before it reaches the public offers page. Split from
+     promos.manage so the two CAN be held by different people; today both are
+     Super Admin, so the real separation is enforced author-vs-approver in
+     lib/promotions-workflow.ts rather than by role. Widening promos.manage
+     later turns this into a proper role gate with no further work. */
+  "promos.approve": ["SUPER_ADMIN"],
   // Permanently destroy an archived page, its versions and its history.
   "pages.delete": ["SUPER_ADMIN"],
 } as const satisfies Record<string, readonly Role[]>;
@@ -238,6 +244,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "quotes.approve": { label: "Approve quotations", group: "Leads" },
   "payments.manage": { label: "Record & manage payments", group: "Leads" },
   "promos.manage": { label: "Manage social-follow offers", group: "Leads" },
+  "promos.approve": { label: "Approve offers before they go live", group: "Leads" },
   "pages.delete": { label: "Delete pages (permanent)", group: "Content" },
   "comms.manage": { label: "Manage message templates", group: "Leads" },
   "pages.view": { label: "View pages", group: "Content" },
