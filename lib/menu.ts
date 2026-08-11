@@ -137,10 +137,15 @@ export const DEFAULT_NAV: NavNode[] = [
       { label: "Podcasts & Interviews", href: "/news-media/podcasts", icon: "micVocal" },
       { label: "Events & Webinars", href: "/news-media/events", icon: "calendarDays" },
       { label: "Awards & Recognition", href: "/news-media/awards", icon: "award" },
-      { label: "Offers & Discounts", href: "/offers", icon: "ticket" },
     ],
   },
   { label: "Pricing", href: "/pricing" },
+  /* Top level, immediately after Pricing: an offers page is commercial, not
+     editorial, and someone hunting a discount looks next to the price. It is
+     deliberately NOT a child of Pricing — a node with children opens the
+     full-width mega panel, and a full-bleed band holding two links looks
+     broken. */
+  { label: "Offers", href: "/offers" },
   { label: "Career", href: "/careers" },
   { label: "Referral", href: "/referral-program" },
 ];
