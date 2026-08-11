@@ -190,6 +190,17 @@ export default function PagesList({
             Read-only view for your role.
           </p>
         )}
+        {/* Only offered while the Templates tab is empty — once there are
+            templates this is clutter, and the action is idempotent anyway. */}
+        {canCreate && pages.filter((p) => p.kind === "TEMPLATE").length === 0 && (
+          <button
+            onClick={() => void call("/api/pages/starter-templates", { method: "POST" })}
+            disabled={busy}
+            className="flex cursor-pointer items-center gap-2 rounded-full border border-stone-300 px-4 py-2 text-xs font-semibold text-stone-600 transition-colors hover:border-orange-400 hover:text-orange-700 disabled:opacity-60 dark:border-stone-700 dark:text-stone-300"
+          >
+            <LayoutTemplate size={14} aria-hidden /> Load starter templates
+          </button>
+        )}
         {error && (
           <p role="alert" className="text-sm font-medium text-red-700 dark:text-red-400">
             {error}
