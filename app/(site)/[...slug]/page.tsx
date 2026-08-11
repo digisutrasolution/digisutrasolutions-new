@@ -198,7 +198,12 @@ export default async function CmsPage({
           in the very first HTML the browser parses, so the site header never
           flashes the way a client-side check would let it. */}
       {bare && <div data-lp-bare hidden />}
-      {bare && <LandingHeader phone={contact?.mainPhone ?? ""} />}
+      {bare && (
+        <LandingHeader
+          phone={contact?.mainPhone ?? ""}
+          usPhone={contact?.usaTollFree ?? ""}
+        />
+      )}
       <SectionRenderer sections={sections} />
       {/* Bottom-padding floor so every CMS page ends with breathing room
           regardless of which block type it ends on */}

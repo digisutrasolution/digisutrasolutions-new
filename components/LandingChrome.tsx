@@ -19,7 +19,44 @@ import { telDigits } from "@/lib/footer";
      collects data to link a privacy policy, and pages have been disapproved
      for its absence. Stripping the footer entirely would take it with it. */
 
-export function LandingHeader({ phone }: { phone: string }) {
+/* Module level, not defined inside LandingHeader: a component created during
+   render is a fresh type on every pass and remounts its subtree. */
+function TelLink({
+  label,
+  short,
+  number,
+}: {
+  label: string;
+  short: string;
+  number: string;
+}) {
+  return (
+    <a
+      /* Leading + like Footer.tsx does — telDigits strips it, and without it
+         a dialler reads the number as local. That matters more here than
+         anywhere: the whole point of the US line is overseas callers. */
+      href={`tel:+${telDigits(number)}`}
+      aria-label={`Call our ${label} number, ${number}`}
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-stone-800 transition-colors hover:text-orange-700"
+    >
+      <Phone size={14} aria-hidden />
+      <span className="hidden sm:inline">
+        <span className="font-normal text-stone-400">{label}</span> {number}
+      </span>
+      {/* Both numbers still fit on a phone as country codes; two full numbers
+          would wrap and shove the logo out of the row. */}
+      <span className="sm:hidden">{short}</span>
+    </a>
+  );
+}
+
+export function LandingHeader({
+  phone,
+  usPhone,
+}: {
+  phone: string;
+  usPhone?: string;
+}) {
   return (
     <header className="border-b border-stone-200 bg-[#FFFBF7]">
       <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-6 py-4">
@@ -32,18 +69,10 @@ export function LandingHeader({ phone }: { phone: string }) {
           priority
           className="h-9 w-auto"
         />
-        {phone && (
-          <a
-            /* Leading + like Footer.tsx does — telDigits strips it, and
-               without it a dialler reads the number as local. */
-            href={`tel:+${telDigits(phone)}`}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-stone-800 transition-colors hover:text-orange-700"
-          >
-            <Phone size={15} aria-hidden />
-            <span className="hidden sm:inline">{phone}</span>
-            <span className="sm:hidden">Call us</span>
-          </a>
-        )}
+        <div className="flex items-center gap-3.5 sm:gap-6">
+          {phone && <TelLink label="India" short="IN" number={phone} />}
+          {usPhone && <TelLink label="USA" short="US" number={usPhone} />}
+        </div>
       </div>
     </header>
   );

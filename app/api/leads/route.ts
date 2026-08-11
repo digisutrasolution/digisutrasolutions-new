@@ -21,6 +21,8 @@ import { sourceLabel } from "@/lib/crm";
 import { spamNote } from "@/lib/spam";
 import { assessSubmission } from "@/lib/spam-server";
 import { AttributionSchema, resolveAttribution } from "@/lib/attribution-server";
+import { isChannel, leadIdsForChannel } from "@/lib/lead-channel-server";
+import { deriveChannel, sourceFromChannel } from "@/lib/lead-channel";
 
 const LeadSchema = z.object({
   name: z.string().trim().min(2).max(90),
@@ -114,7 +116,14 @@ export async function POST(req: Request) {
         .join("\n\n") || null,
       department: d.department ?? null,
       heardFrom: d.heardFrom ?? null,
-      source: d.source ?? "CONTACT",
+      /* Where they came FROM beats which form they filled in. A Google Ads
+         click that converts on the contact form used to be filed as CONTACT,
+         which also meant scoring's 15-point paidIntent signal could never
+         fire for any lead. Falls back to the intake value when attribution
+         says nothing — see sourceFromChannel for why only paid channels
+         override. */
+      source:
+        sourceFromChannel(deriveChannel(attribution)) ?? d.source ?? "CONTACT",
       ...(quarantined ? { status: "SPAM" as const } : {}),
       notes:
         [
@@ -301,6 +310,17 @@ export async function GET(req: Request) {
   // assigned leads — this overrides any assignee filter above.
   Object.assign(where, leadScopeWhere(user));
 
+  /* Channel is derived from the attribution columns, not stored, so it cannot
+     be a where-clause. Resolve it to a set of ids first and let the normal
+     query paginate those — that keeps one implementation of the rule (see
+     lib/lead-channel-server) instead of a second one written in SQL.
+     Applied last so it composes with every filter above, including scope. */
+  const channel = p.get("channel");
+  if (isChannel(channel)) {
+    const { ids } = await leadIdsForChannel({ ...where }, channel);
+    where.id = { in: ids };
+  }
+
   const isCsv = p.get("format") === "csv";
   // Kanban needs the whole pipeline at once (not a 25-row page).
   const board = p.get("view") === "board";
@@ -318,15 +338,19 @@ export async function GET(req: Request) {
   if (isCsv) {
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const rows = [
-      ["Created", "Name", "Company", "WhatsApp", "Email", "Website", "Source", "Status", "Priority", "Score", "Assigned to", "Country", "City", "Services", "Budget", "Message", "Notes"].join(","),
-      ...leads.map((l) =>
-        [
+      // Channel/Platform/Campaign sit next to Source so a spreadsheet pivot can
+      // separate "which ad brought them" from "which form they filled in".
+      ["Created", "Name", "Company", "WhatsApp", "Email", "Website", "Channel", "Platform", "Campaign", "Captured by", "Status", "Priority", "Score", "Assigned to", "Country", "City", "Services", "Budget", "Message", "Notes"].join(","),
+      ...leads.map((l) => {
+        const d = deriveChannel(l);
+        return [
           l.createdAt.toISOString(),
           l.name, l.company, l.whatsapp, l.email, l.website,
+          d.channel, d.platform, d.campaign,
           l.source, l.status, l.priority, l.score, l.assignedTo?.name,
           l.country, l.city, l.services.join("; "), l.budget, l.message, l.notes,
-        ].map(esc).join(","),
-      ),
+        ].map(esc).join(",");
+      }),
     ].join("\n");
     return new Response(rows, {
       headers: {

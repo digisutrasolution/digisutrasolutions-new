@@ -11,6 +11,7 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { spamNote } from "@/lib/spam";
 import { assessSubmission } from "@/lib/spam-server";
 import { AttributionSchema, resolveAttribution } from "@/lib/attribution-server";
+import { deriveChannel, sourceFromChannel } from "@/lib/lead-channel";
 import { issueChallenge, type IssueChallenge } from "@/lib/otp";
 
 const SubmitSchema = z.object({
@@ -95,10 +96,11 @@ export async function POST(req: Request) {
 
   if (form.destination === "lead") {
     const lead = mapped;
+    const attribution = await resolveAttribution(parsed.data.attribution);
     const created = await db.lead
       .create({
         data: {
-          ...(await resolveAttribution(parsed.data.attribution)),
+          ...attribution,
           name: lead.name,
           whatsapp: lead.whatsapp,
           email: lead.email || null,
@@ -106,7 +108,8 @@ export async function POST(req: Request) {
           budget: lead.budget || null,
           timeline: lead.timeline || null,
           heardFrom: lead.heardFrom || null,
-          source: "FORM",
+          // Paid traffic overrides the intake label — see /api/leads for why.
+          source: sourceFromChannel(deriveChannel(attribution)) ?? "FORM",
           ...(quarantined ? { status: "SPAM" as const } : {}),
           notes: [`Via form: ${form.name}`, spamNote(spam)].filter(Boolean).join(" "),
         },

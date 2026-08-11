@@ -9,6 +9,7 @@ import { alertEmail, emailUrl, thankYouEmail } from "@/lib/email-templates";
 import { getSmtp, smtpReady } from "@/lib/smtp";
 import { spamNote } from "@/lib/spam";
 import { AttributionSchema, resolveAttribution } from "@/lib/attribution-server";
+import { deriveChannel, sourceFromChannel } from "@/lib/lead-channel";
 import { assessSubmission } from "@/lib/spam-server";
 import { issueChallenge, type IssueChallenge } from "@/lib/otp";
 
@@ -112,10 +113,13 @@ export async function POST(req: Request) {
   // via a synthesised placeholder so nothing is ever silently dropped.
   let leadSaved = false;
   let leadId: string | null = null;
+  const attribution = await resolveAttribution(
+    AttributionSchema.safeParse(body.attribution).data,
+  );
   try {
     const lead = await db.lead.create({
       data: {
-        ...(await resolveAttribution(AttributionSchema.safeParse(body.attribution).data)),
+        ...attribution,
         name,
         whatsapp: whatsapp ? whatsapp.replace(/[\s-]/g, "") : "—",
         email: email || null,
@@ -123,7 +127,8 @@ export async function POST(req: Request) {
         services: body.service ? [body.service.trim().slice(0, 80)] : [],
         budget: (body.budget ?? "").trim().slice(0, 60) || null,
         message,
-        source: "AUDIT",
+        // Paid traffic overrides the intake label — see /api/leads for why.
+        source: sourceFromChannel(deriveChannel(attribution)) ?? "AUDIT",
         ...(quarantined ? { status: "SPAM" as const } : {}),
         notes: spamNote(spam),
         ipHash: createHash("sha256").update(ip).digest("hex").slice(0, 24),

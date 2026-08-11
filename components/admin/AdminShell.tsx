@@ -9,6 +9,7 @@ import {
   BadgeCheck,
   BookOpen,
   CalendarClock,
+  Route,
   ChartBar,
   ChevronDown,
   CircleHelp,
@@ -65,6 +66,7 @@ const NAV_GROUPS = [
     items: [
       { label: "Overview", href: "/admin/crm", icon: LayoutDashboard, permission: "leads.manage" },
       { label: "Leads", href: "/admin/leads", icon: Inbox, permission: "leads.manage", badge: "newLeads" },
+      { label: "Channels", href: "/admin/leads/channels", icon: Route, permission: "leads.manage" },
       { label: "Follow-ups", href: "/admin/followups", icon: CalendarClock, permission: "leads.manage", badge: "dueFollowups" },
       { label: "Quotations", href: "/admin/quotations", icon: ReceiptText, permission: "quotes.manage" },
       { label: "Payments", href: "/admin/payments", icon: IndianRupee, permission: "payments.manage" },

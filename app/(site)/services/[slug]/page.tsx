@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { createElement } from "react";
 import { ArrowLeft, ArrowRight, Check, FileSearch } from "lucide-react";
 import AdSlot from "@/components/blog/AdSlot";
@@ -9,7 +10,9 @@ import { navIcon } from "@/components/nav-icons";
 import ServiceRail from "@/components/services/ServiceRail";
 import { withBase } from "@/lib/base-path";
 import { slugifyHeading } from "@/lib/blog";
-import { getLiveService, getLiveServices } from "@/lib/services";
+import { getLiveService, getLiveServices, localizeServices } from "@/lib/services";
+import { currencyForCountry, visitorCountry } from "@/lib/geo";
+import { USD_RATE } from "@/lib/currency";
 import { SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 
@@ -70,9 +73,19 @@ export default async function ServiceCategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [service, all] = await Promise.all([getLiveService(slug), getLiveServices()]);
-  if (!service) notFound();
-  const others = all.filter((s) => s.slug !== service.slug);
+  const [found, allRaw, h] = await Promise.all([
+    getLiveService(slug),
+    getLiveServices(),
+    headers(),
+  ]);
+  if (!found) notFound();
+  // India sees rupees, everyone else approximate dollars. Resolved from the
+  // Cloudflare edge header, so it is right before the first byte is sent.
+  const currency = currencyForCountry(visitorCountry(h));
+  const [service] = localizeServices([found], currency);
+  const others = localizeServices(allRaw, currency).filter(
+    (s) => s.slug !== service.slug,
+  );
 
   const sections = service.offers.map((o) => ({
     ...o,
@@ -171,6 +184,14 @@ export default async function ServiceCategoryPage({
                 <b className="font-bold text-emerald-400">{service.priceFrom}</b>
                 {service.marketNote && (
                   <span className="text-stone-500"> · {service.marketNote}</span>
+                )}
+                {/* Same disclosure PricingMatrix makes: the dollar figure is a
+                    converted approximation, and the invoice is the real one. */}
+                {currency === "USD" && (
+                  <span className="text-stone-500">
+                    {" "}
+                    · approx. (₹{USD_RATE}/$)
+                  </span>
                 )}
               </span>
             )}

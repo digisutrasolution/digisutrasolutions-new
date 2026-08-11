@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+import { inrToUsdDisplay } from "@/lib/currency";
+import type { Currency } from "@/lib/geo";
 
 /* Dynamic service catalog. Admin edits DB rows directly (visible toggle
    gates the public site); these defaults seed the DB on first admin load
@@ -235,4 +237,39 @@ export async function getLiveServices(): Promise<LiveService[]> {
 export async function getLiveService(slug: string): Promise<LiveService | null> {
   const all = await getLiveServices();
   return all.find((s) => s.slug === slug) ?? null;
+}
+
+/* Prices for a visitor outside India.
+   Done on the server so the markup ships already in the right currency —
+   converting in the browser would flash rupees first and risk a hydration
+   mismatch on a page that is otherwise fully static.
+
+   Two rules borrowed from PricingMatrix, which has been doing this longer:
+
+   - every ₹ figure converts, including the ones buried in prose. A visitor
+     reading "$170/mo" beside a paragraph quoting "₹75,000" is worse off than
+     one who saw rupees throughout.
+   - marketNote is dropped, not converted. It benchmarks against the Indian
+     market ("the market runs ₹20,000–₹50,000"), which says nothing useful
+     once the figure is in dollars. */
+export function localizeServices(
+  services: LiveService[],
+  currency: Currency,
+): LiveService[] {
+  if (currency !== "USD") return services;
+  const c = (v?: string) => (v ? inrToUsdDisplay(v) : v);
+  return services.map((s) => ({
+    ...s,
+    blurb: inrToUsdDisplay(s.blurb),
+    intro: inrToUsdDisplay(s.intro),
+    priceFrom: c(s.priceFrom),
+    marketNote: undefined,
+    offers: s.offers.map((o) => ({
+      ...o,
+      blurb: c(o.blurb),
+      description: c(o.description),
+      priceNote: c(o.priceNote),
+      features: o.features?.map((f) => inrToUsdDisplay(f)),
+    })),
+  }));
 }

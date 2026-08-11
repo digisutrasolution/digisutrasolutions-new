@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { headers } from "next/headers";
 import ServicesIndex from "@/components/services/ServicesIndex";
-import { getLiveServices } from "@/lib/services";
+import { getLiveServices, localizeServices } from "@/lib/services";
+import { currencyForCountry, visitorCountry } from "@/lib/geo";
 import { SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 
@@ -16,7 +18,11 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-  const services = await getLiveServices();
+  // India sees rupees, everyone else approximate dollars — converted here so
+  // the client component below never has to know a currency exists.
+  const [raw, h] = await Promise.all([getLiveServices(), headers()]);
+  const currency = currencyForCountry(visitorCountry(h));
+  const services = localizeServices(raw, currency);
   const totalOffers = services.reduce((n, s) => n + s.offers.length, 0);
 
   const jsonLd = {
@@ -66,7 +72,7 @@ export default async function ServicesPage() {
         </p>
       </div>
 
-      <ServicesIndex services={services} />
+      <ServicesIndex services={services} usdNote={currency === "USD"} />
 
       <div className="mt-12 flex flex-col items-center gap-3 rounded-[2rem] bg-[#FFF6EF] px-6 py-10 text-center">
         <h2 className="font-display text-2xl font-extrabold text-stone-900">

@@ -6,12 +6,21 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowRight } from "lucide-react";
 import { navIcon } from "@/components/nav-icons";
 import { withBase } from "@/lib/base-path";
+import { USD_RATE } from "@/lib/currency";
 import type { LiveService } from "@/lib/services";
 
 /* PRO MAX editorial index: numbered rows; the active row expands into a dark
    spotlight with offer chips, an outcome stat and CTA. First row starts
    active; hover/focus moves it. Collapsed rows stay fully crawlable. */
-export default function ServicesIndex({ services }: { services: LiveService[] }) {
+export default function ServicesIndex({
+  services,
+  usdNote = false,
+}: {
+  services: LiveService[];
+  /* Prices arrive already converted; this only says so. The conversion
+     itself happens on the server — see localizeServices. */
+  usdNote?: boolean;
+}) {
   const [active, setActive] = useState(0);
 
   return (
@@ -71,6 +80,7 @@ export default function ServicesIndex({ services }: { services: LiveService[] })
                       <p className="mt-4 text-xs text-stone-500">
                         <span className="font-bold text-emerald-400">{s.priceFrom}</span>
                         {s.marketNote && <> · {s.marketNote}</>}
+                        {usdNote && <> · approx. (₹{USD_RATE}/$)</>}
                       </p>
                     )}
                   </div>

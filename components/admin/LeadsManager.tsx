@@ -17,6 +17,12 @@ import {
   sourceLabel,
 } from "@/lib/crm";
 import {
+  CHANNELS,
+  CHANNEL_CLASS,
+  deriveChannel,
+  sourceFromChannel,
+} from "@/lib/lead-channel";
+import {
   BAND_LABEL,
   BAND_STYLE,
   SCORE_BANDS,
@@ -39,10 +45,53 @@ type Lead = {
   verified: boolean;
   createdAt: string;
   assignedTo: { id: string; name: string } | null;
+  /* Attribution. The list endpoint already returns every Lead scalar, so the
+     channel is derived here rather than shipped as an extra field — one rule,
+     in one file, used by the list and the report alike. */
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  gclid: string | null;
+  fbclid: string | null;
+  msclkid: string | null;
+  referrer: string | null;
 };
 
 const inputCls =
   "rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs outline-none transition-colors focus:border-orange-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
+
+/* Where the lead came from, in one cell: the traffic channel as a chip, then
+   the campaign, then which form they actually filled in. Three different
+   questions that used to be conflated into one enum. Module level so the
+   component identity is stable across renders. */
+function ChannelCell({ lead }: { lead: Lead }) {
+  const d = deriveChannel(lead);
+  /* For a paid lead, intake overwrote `source` with the channel itself (that
+     is what repairs the scoring signal), so "via Google Ads" under a Google
+     Ads chip would just say the same thing twice. Only show the line when it
+     still carries the intake form — which is the only case it is news. */
+  const viaIsIntake = sourceFromChannel(d) !== lead.source;
+  return (
+    <div className="min-w-32">
+      <span
+        className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold ${CHANNEL_CLASS[d.channel]}`}
+        /* The basis makes a surprising row explainable — "Direct" because
+           nothing was tagged reads very differently from "Direct" as a bug. */
+        title={`Identified from ${d.basis === "none" ? "no attribution data" : d.basis}${d.platform ? ` · ${d.platform}` : ""}`}
+      >
+        {d.channel}
+      </span>
+      {d.campaign && (
+        <div className="mt-1 max-w-40 truncate text-[11px] text-stone-500" title={d.campaign}>
+          {d.campaign}
+        </div>
+      )}
+      {viaIsIntake && (
+        <div className="mt-0.5 text-[11px] text-stone-400">via {sourceLabel(lead.source)}</div>
+      )}
+    </div>
+  );
+}
 
 export default function LeadsManager({
   assignees,
@@ -55,6 +104,7 @@ export default function LeadsManager({
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("ALL");
   const [source, setSource] = useState("ALL");
+  const [channel, setChannel] = useState("ALL");
   const [priority, setPriority] = useState("ALL");
   const [assignee, setAssignee] = useState("ALL");
   const [band, setBand] = useState("ALL");
@@ -75,11 +125,12 @@ export default function LeadsManager({
     if (q) sp.set("q", q);
     if (status !== "ALL") sp.set("status", status);
     if (source !== "ALL") sp.set("source", source);
+    if (channel !== "ALL") sp.set("channel", channel);
     if (priority !== "ALL") sp.set("priority", priority);
     if (assignee !== "ALL") sp.set("assignedTo", assignee);
     if (band !== "ALL") sp.set("band", band);
     return sp;
-  }, [page, pageSize, q, status, source, priority, assignee, band]);
+  }, [page, pageSize, q, status, source, channel, priority, assignee, band]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -187,8 +238,15 @@ export default function LeadsManager({
           <option value="ALL">All statuses</option>
           {LEAD_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </select>
-        <select value={source} onChange={(e) => onFilter(setSource)(e.target.value)} className={inputCls} aria-label="Source">
-          <option value="ALL">All sources</option>
+        <select value={channel} onChange={(e) => onFilter(setChannel)(e.target.value)} className={inputCls} aria-label="Channel">
+          <option value="ALL">All channels</option>
+          {CHANNELS.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        {/* Intake form is a different question from traffic channel — someone
+            can arrive from Google Ads and fill in the contact form. Both
+            filters stay, and they compose. */}
+        <select value={source} onChange={(e) => onFilter(setSource)(e.target.value)} className={inputCls} aria-label="Captured by">
+          <option value="ALL">Any form</option>
           {LEAD_SOURCES.map((s) => <option key={s} value={s}>{SOURCE_LABEL[s]}</option>)}
         </select>
         <select value={priority} onChange={(e) => onFilter(setPriority)(e.target.value)} className={inputCls} aria-label="Priority">
@@ -301,7 +359,9 @@ export default function LeadsManager({
                     {l.company ? `${l.company} · ` : ""}{l.whatsapp}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-xs text-stone-500">{sourceLabel(l.source)}</td>
+                <td className="px-4 py-3">
+                  <ChannelCell lead={l} />
+                </td>
                 <td className="px-4 py-3">
                   <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLE[l.status as keyof typeof STATUS_STYLE] ?? ""}`}>
                     {STATUS_LABEL[l.status as keyof typeof STATUS_LABEL] ?? l.status}
