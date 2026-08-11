@@ -5,7 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, ExternalLink, FilePlus2, LayoutTemplate, Pencil, Split, X } from "lucide-react";
+import { Copy, ExternalLink, FilePlus2, LayoutTemplate, Pencil, Split, Trash2, X } from "lucide-react";
 import type { PageKind, PageStatus, WorkflowStage } from "@prisma/client";
 import { STAGE_LABELS } from "@/lib/cms/workflow";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
@@ -106,11 +106,13 @@ export default function PagesList({
   pages,
   canCreate,
   canPublish,
+  canDelete,
   statsDays,
 }: {
   pages: PageRow[];
   canCreate: boolean;
   canPublish: boolean;
+  canDelete: boolean;
   statsDays: number;
 }) {
   const router = useRouter();
@@ -483,6 +485,27 @@ export default function PagesList({
                         className="cursor-pointer rounded-full border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-700 transition-colors hover:border-orange-500 hover:text-orange-700 dark:border-stone-700 dark:text-stone-300"
                       >
                         Unpublish
+                      </button>
+                    )}
+                    {/* Only on archived rows: archive is the recycle bin, and the
+                        API refuses anything else regardless of what shows here. */}
+                    {canDelete && p.status === "ARCHIVED" && (
+                      <button
+                        onClick={() => {
+                          if (
+                            !window.confirm(
+                              `Permanently delete “${p.title}” and its version history? This cannot be undone.`,
+                            )
+                          )
+                            return;
+                          void call(`/api/pages/${p.id}`, { method: "DELETE" });
+                        }}
+                        disabled={busy}
+                        aria-label={`Delete ${p.title}`}
+                        title="Delete permanently"
+                        className="cursor-pointer rounded-lg p-2 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-stone-800"
+                      >
+                        <Trash2 size={15} aria-hidden />
                       </button>
                     )}
                   </div>

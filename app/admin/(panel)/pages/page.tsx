@@ -51,6 +51,7 @@ export default async function AdminPagesPage() {
           statsDays={STATS_WINDOW_DAYS}
           canCreate={userCan(user, "pages.create")}
           canPublish={userCan(user, "pages.publish")}
+          canDelete={userCan(user, "pages.delete")}
         />
       </div>
     </div>

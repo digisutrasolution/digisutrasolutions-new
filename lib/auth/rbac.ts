@@ -60,6 +60,8 @@ export const PERMISSIONS = {
   "proof.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   // Social-follow offers: discount codes issued to leads.
   "promos.manage": ["SUPER_ADMIN"],
+  // Permanently destroy an archived page, its versions and its history.
+  "pages.delete": ["SUPER_ADMIN"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -236,6 +238,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "quotes.approve": { label: "Approve quotations", group: "Leads" },
   "payments.manage": { label: "Record & manage payments", group: "Leads" },
   "promos.manage": { label: "Manage social-follow offers", group: "Leads" },
+  "pages.delete": { label: "Delete pages (permanent)", group: "Content" },
   "comms.manage": { label: "Manage message templates", group: "Leads" },
   "pages.view": { label: "View pages", group: "Content" },
   "pages.create": { label: "Create pages", group: "Content" },

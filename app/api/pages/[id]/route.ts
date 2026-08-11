@@ -225,7 +225,9 @@ export async function PATCH(req: Request, { params }: Params) {
 export async function DELETE(req: Request, { params }: Params) {
   const { user, error } = await requireUser();
   if (error) return error;
-  if (!userCan(user, "pages.edit")) {
+  /* Its own permission, not pages.edit. Deleting is permanent and takes the
+     version history with it, so it is not the same authority as editing. */
+  if (!userCan(user, "pages.delete")) {
     return NextResponse.json(
       { ok: false, error: "Your role cannot delete pages." },
       { status: 403 },
@@ -239,12 +241,36 @@ export async function DELETE(req: Request, { params }: Params) {
       { status: 404 },
     );
   }
-  if (page.status === "PUBLISHED") {
+
+  /* Archive is the recycle bin: a page has to be put there deliberately
+     before it can be destroyed. Enforced here and not only in the UI — a
+     hidden button is not a rule. */
+  if (page.status !== "ARCHIVED") {
     return NextResponse.json(
-      { ok: false, error: "Unpublish or archive the page before deleting it." },
+      {
+        ok: false,
+        error:
+          page.status === "PUBLISHED"
+            ? "Unpublish and archive the page before deleting it."
+            : "Archive the page before deleting it.",
+      },
       { status: 409 },
     );
   }
+
+  /* A control cascades its A/B arms. Deleting one page and silently losing
+     two more reads as data loss, so it is refused until the arms are gone. */
+  const arms = await db.page.count({ where: { variantOfId: id } });
+  if (arms > 0) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `This page has ${arms} A/B arm${arms === 1 ? "" : "s"}, which would be deleted with it. Delete ${arms === 1 ? "it" : "them"} first.`,
+      },
+      { status: 409 },
+    );
+  }
+
   await db.page.delete({ where: { id } });
   bustPageTree(page);
   audit({
