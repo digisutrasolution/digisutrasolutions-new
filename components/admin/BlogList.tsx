@@ -5,7 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Archive, ExternalLink, FilePlus2, Pencil, Trash2 } from "lucide-react";
+import { Archive, ExternalLink, FilePlus2, Pencil, Trash2, X } from "lucide-react";
 import type { PageStatus } from "@prisma/client";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
 import AdminPagination from "@/components/admin/AdminPagination";
@@ -126,7 +126,7 @@ export default function BlogList({
           onClick={() => setShowCreate(!showCreate)}
           className="flex cursor-pointer items-center gap-2 rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
         >
-          <FilePlus2 size={15} aria-hidden />
+          {showCreate ? <X size={15} aria-hidden /> : <FilePlus2 size={15} aria-hidden />}
           {showCreate ? "Close" : "New article"}
         </button>
         {error && (

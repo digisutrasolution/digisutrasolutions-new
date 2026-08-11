@@ -4,7 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Code2, Copy, Plus, Star, Trash2 } from "lucide-react";
+import { Code2, Copy, Plus, Star, Trash2, X } from "lucide-react";
 import type { VideoProvider } from "@prisma/client";
 import UploadButton from "@/components/admin/UploadButton";
 import { embedUrl } from "@/lib/cms/videos";
@@ -112,7 +112,7 @@ export default function VideosManager({
             onClick={() => setShowCreate(!showCreate)}
             className="flex cursor-pointer items-center gap-2 rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
           >
-            <Plus size={15} aria-hidden />
+            {showCreate ? <X size={15} aria-hidden /> : <Plus size={15} aria-hidden />}
             {showCreate ? "Close" : "Add video"}
           </button>
         ) : (

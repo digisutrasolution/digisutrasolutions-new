@@ -4,7 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, KeyRound, Pencil, Trash2 } from "lucide-react";
+import { KeyRound, Pencil, Trash2, UserPlus, X } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/auth/rbac";
 import type { Role } from "@prisma/client";
 import Image from "next/image";
@@ -128,7 +128,7 @@ export default function UsersManager({
           onClick={() => setShowCreate(!showCreate)}
           className="flex cursor-pointer items-center gap-2 rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
         >
-          <UserPlus size={15} aria-hidden />
+          {showCreate ? <X size={15} aria-hidden /> : <UserPlus size={15} aria-hidden />}
           {showCreate ? "Close" : "Add user"}
         </button>
         {error && (

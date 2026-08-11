@@ -5,7 +5,7 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, ExternalLink, FilePlus2, LayoutTemplate, Pencil, Split } from "lucide-react";
+import { Copy, ExternalLink, FilePlus2, LayoutTemplate, Pencil, Split, X } from "lucide-react";
 import type { PageKind, PageStatus, WorkflowStage } from "@prisma/client";
 import { STAGE_LABELS } from "@/lib/cms/workflow";
 import { useAdminList, AdminSearch } from "@/components/admin/useAdminList";
@@ -180,7 +180,7 @@ export default function PagesList({
             onClick={() => setShowCreate(!showCreate)}
             className="flex cursor-pointer items-center gap-2 rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-500"
           >
-            <FilePlus2 size={15} aria-hidden />
+            {showCreate ? <X size={15} aria-hidden /> : <FilePlus2 size={15} aria-hidden />}
             {showCreate ? "Close" : "New page"}
           </button>
         ) : (
