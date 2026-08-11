@@ -137,6 +137,7 @@ export const DEFAULT_NAV: NavNode[] = [
       { label: "Podcasts & Interviews", href: "/news-media/podcasts", icon: "micVocal" },
       { label: "Events & Webinars", href: "/news-media/events", icon: "calendarDays" },
       { label: "Awards & Recognition", href: "/news-media/awards", icon: "award" },
+      { label: "Offers & Discounts", href: "/offers", icon: "ticket" },
     ],
   },
   { label: "Pricing", href: "/pricing" },
