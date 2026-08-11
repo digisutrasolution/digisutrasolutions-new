@@ -32,6 +32,41 @@ export async function activePromotion(
   return live.find((p) => isPromotionLive(p, now)) ?? null;
 }
 
+export type LiveOffer = Promotion & {
+  /** How many codes have gone out. */
+  claimed: number;
+  /** null when maxClaims is null — unlimited, so there is nothing to run out. */
+  remaining: number | null;
+};
+
+/**
+ * Every promotion running right now, for the public /offers page.
+ *
+ * An offer whose codes have all gone is dropped rather than shown greyed out:
+ * the page exists to be claimed from, and a wall of dead cards makes the live
+ * ones harder to find. isPromotionLive still owns the date/active logic so
+ * this can never disagree with the single-offer page.
+ */
+export async function livePromotions(): Promise<LiveOffer[]> {
+  const now = new Date();
+  const rows = await db.promotion
+    .findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      include: { _count: { select: { claims: true } } },
+    })
+    .catch(() => []);
+
+  return rows
+    .filter((p) => isPromotionLive(p, now))
+    .map(({ _count, ...p }) => ({
+      ...p,
+      claimed: _count.claims,
+      remaining: p.maxClaims === null ? null : Math.max(0, p.maxClaims - _count.claims),
+    }))
+    .filter((p) => p.remaining === null || p.remaining > 0);
+}
+
 /** Human-readable discount, e.g. "10% off" or "₹5,000 off". */
 export function discountLabel(p: Pick<Promotion, "discountType" | "discountValue" | "currency">): string {
   if (p.discountType === "AMOUNT") {
@@ -40,4 +75,27 @@ export function discountLabel(p: Pick<Promotion, "discountType" | "discountValue
   }
   // Trim a pointless ".0" — "10% off" reads better than "10.0% off".
   return `${Number.isInteger(p.discountValue) ? p.discountValue : p.discountValue.toFixed(1)}% off`;
+}
+
+/**
+ * The same discount split for display at poster size, e.g. {"15", "% off"}.
+ *
+ * Separate from discountLabel because the offer card sets the number huge and
+ * the unit small beside it; reformatting the joined string with a regex to get
+ * there would be a second, fragile way of saying the same thing.
+ */
+export function discountParts(
+  p: Pick<Promotion, "discountType" | "discountValue" | "currency">,
+): { value: string; unit: string } {
+  const n = Number.isInteger(p.discountValue)
+    ? String(p.discountValue)
+    : p.discountValue.toFixed(1);
+  if (p.discountType === "AMOUNT") {
+    const symbol = p.currency === "INR" ? "₹" : p.currency === "USD" ? "$" : "";
+    return {
+      value: `${symbol}${Number(n).toLocaleString("en-IN")}`,
+      unit: symbol ? "off" : `${p.currency} off`,
+    };
+  }
+  return { value: n, unit: "% off" };
 }

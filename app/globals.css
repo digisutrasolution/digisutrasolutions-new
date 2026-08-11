@@ -858,3 +858,79 @@ body:has([data-lp-bare]) [data-site-chrome] {
 body:has([data-lp-bare]) [data-site-main] {
   padding-top: 0;
 }
+
+/* ---------------------------------------------------------------------------
+   Offers page (/offers)
+--------------------------------------------------------------------------- */
+
+/* The notch in an offer card's side. Two radial gradients punched out of the
+   card with a mask, rather than pseudo-element circles painted in the page
+   background colour — the mask stays correct over the hero glow and over any
+   band we later put behind the grid, which a colour-matched circle would not. */
+.offer-ticket {
+  --notch: 15px;
+  -webkit-mask-image:
+    radial-gradient(var(--notch) at left var(--perf-y, 50%), transparent 99%, #000 100%),
+    radial-gradient(var(--notch) at right var(--perf-y, 50%), transparent 99%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(var(--notch) at left var(--perf-y, 50%), transparent 99%, #000 100%),
+    radial-gradient(var(--notch) at right var(--perf-y, 50%), transparent 99%, #000 100%);
+  mask-composite: intersect;
+}
+
+/* The dashed tear line the notches sit on. */
+.offer-perf {
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    var(--color-stone-300) 0 8px,
+    transparent 8px 16px
+  );
+  background-size: 16px 1px;
+}
+
+/* Ambient shapes behind the hero. Transform/opacity only, so they composite on
+   the GPU and never trigger layout. */
+@keyframes offerFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--spin, 0deg));
+  }
+  50% {
+    transform: translate3d(0, -26px, 0) rotate(calc(var(--spin, 0deg) + 6deg));
+  }
+}
+.offer-float {
+  animation: offerFloat 14s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Staggered card entrance. The delay is set inline per card. */
+@keyframes offerRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.offer-ticket {
+  animation: offerRise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* MANDATORY per the house rule: any hidden initial state must be reset here or
+   the content stays invisible for anyone with reduced motion turned on. */
+@media (prefers-reduced-motion: reduce) {
+  .offer-float {
+    animation: none;
+  }
+  .offer-ticket {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

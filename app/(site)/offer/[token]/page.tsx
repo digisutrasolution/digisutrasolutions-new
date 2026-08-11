@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import OfferClaim from "@/components/OfferClaim";
@@ -57,20 +58,33 @@ export default async function OfferPage({
     .catch(() => null);
 
   return (
-    <section className="mx-auto max-w-3xl px-6 pb-20 pt-16 sm:pb-24 sm:pt-20">
-      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
-        {firstName ? `For ${firstName}` : "For you"}
-      </p>
-      <h1 className="font-display mt-3 text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
-        {promo.headline || `Follow us and take ${discountLabel(promo)}`}
-      </h1>
-      {promo.body && (
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-stone-600 sm:text-base">
-          {promo.body}
+    /* max-w-[1280px] is the site container — the same one the header aligns to.
+       This page used to be max-w-3xl, which left a wide empty gutter on either
+       side on any normal desktop. The two columns then keep the claim card in
+       view without scrolling past the pitch to reach it. */
+    <section className="mx-auto grid max-w-[1280px] gap-10 px-6 pb-20 pt-16 sm:pb-24 sm:pt-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-16">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
+          {firstName ? `For ${firstName}` : "For you"}
         </p>
-      )}
+        <h1 className="font-display mt-3 text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
+          {promo.headline || `Follow us and take ${discountLabel(promo)}`}
+        </h1>
+        {promo.body && (
+          <p className="mt-4 max-w-prose text-sm leading-relaxed text-stone-600 sm:text-base">
+            {promo.body}
+          </p>
+        )}
+        <p className="mt-6 text-sm text-stone-500">
+          Every offer we&rsquo;re running is on the{" "}
+          <Link href="/offers" className="font-semibold text-orange-700 underline-offset-2 hover:underline">
+            offers page
+          </Link>
+          .
+        </p>
+      </div>
 
-      <div className="mt-8 rounded-3xl border border-stone-200 bg-white p-6">
+      <div className="rounded-3xl border border-stone-200 bg-white p-6 lg:sticky lg:top-28">
         <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
           Step one — follow us
         </p>

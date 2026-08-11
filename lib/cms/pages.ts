@@ -18,6 +18,9 @@ export const RESERVED_PREFIXES = new Set([
   // Tokenised outreach links — /r/<token> and /offer/<token>.
   "r",
   "offer",
+  // The public offers listing — a real route, so a CMS page here would be
+  // permanently unreachable.
+  "offers",
 ]);
 
 export const RESERVED_SLUGS = new Set([
