@@ -8,6 +8,8 @@ import { fingerprint, pickArm } from "@/lib/cms/variants";
 import { parseSections } from "@/lib/cms/sections";
 import { embedUrl } from "@/lib/cms/videos";
 import SectionRenderer from "@/components/sections/SectionRenderer";
+import { LandingFooter, LandingHeader } from "@/components/LandingChrome";
+import { getContactConfig } from "@/lib/contact-config-server";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +100,13 @@ export default async function CmsPage({
     rendered = pickArm([page, ...arms], key, page.id);
   }
 
+  /* A LANDING page drops the site header and footer: every nav link is a way
+     out of the one action the page exists for. It keeps a minimal header and a
+     legal footer instead — see components/LandingChrome.tsx for why those two
+     stay. Driven off kind, so it needs no per-page setting. */
+  const bare = page.kind === "LANDING";
+  const contact = bare ? await getContactConfig() : null;
+
   const sections = parseSections(rendered.sections);
 
   const faqItems = sections
@@ -185,10 +194,16 @@ export default async function CmsPage({
           gets its own views and its own leads — without it the test cannot
           be measured at all. */}
       <meta name="ds-page-id" content={rendered.id} />
+      {/* The marker the globals.css :has() rules key off. Hidden, but present
+          in the very first HTML the browser parses, so the site header never
+          flashes the way a client-side check would let it. */}
+      {bare && <div data-lp-bare hidden />}
+      {bare && <LandingHeader phone={contact?.mainPhone ?? ""} />}
       <SectionRenderer sections={sections} />
       {/* Bottom-padding floor so every CMS page ends with breathing room
           regardless of which block type it ends on */}
       <div className="pb-16 sm:pb-20" />
+      {bare && <LandingFooter />}
     </>
   );
 }

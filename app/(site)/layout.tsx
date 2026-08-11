@@ -105,14 +105,18 @@ export default async function SiteLayout({
       />
       <Analytics settings={analytics} />
       <TrackPageview />
-      <Navbar nav={nav} featuredPost={featuredPost} />
-      <main
-        className="flex-1"
-        style={{ paddingTop: "calc(var(--topbar-h) + 68px)" }}
-      >
+      {/* data-site-chrome marks what a bare landing page hides. The padding
+          moved to globals.css so the bare rule can override it without
+          fighting an inline style. */}
+      <div data-site-chrome>
+        <Navbar nav={nav} featuredPost={featuredPost} />
+      </div>
+      <main data-site-main className="flex-1 pt-[calc(var(--topbar-h)+68px)]">
         {children}
       </main>
-      <Footer />
+      <div data-site-chrome>
+        <Footer />
+      </div>
       {/* WhatsAppFab is intentionally unmounted — WhatsApp now lives inside
           the bot panel, the footer contact tiles and the contact page.
           The remaining floating widgets are code-split and mounted on idle /

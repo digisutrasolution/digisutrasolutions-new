@@ -838,3 +838,23 @@ body {
 }
 .settings-reveal { animation: settingsReveal 0.28s ease; }
 @media (prefers-reduced-motion: reduce) { .settings-reveal { animation: none; } }
+
+/* ---------------------------------------------------------------------------
+   Bare landing pages.
+
+   An ad landing page has one job, so the site header and footer — whose whole
+   purpose is sending people elsewhere — come off. The page itself renders
+   [data-lp-bare] plus its own minimal chrome (components/LandingChrome.tsx);
+   these rules take the site chrome away around it.
+
+   Done in CSS rather than by branching the layout because a layout cannot see
+   which nested page is rendering. :has() resolves during the initial paint, so
+   there is no flash of the full header the way a client-side check would give.
+--------------------------------------------------------------------------- */
+body:has([data-lp-bare]) [data-site-chrome] {
+  display: none;
+}
+/* The offset only exists to clear the fixed header, which is now gone. */
+body:has([data-lp-bare]) [data-site-main] {
+  padding-top: 0;
+}
