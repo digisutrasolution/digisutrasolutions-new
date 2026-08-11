@@ -5,6 +5,8 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Pencil, Plus, Trash2, X } from "lucide-react";
+import ReviewSettings from "@/components/admin/ReviewSettings";
+import type { ReviewsConfig } from "@/lib/reviews-config";
 
 export type TestimonialRow = {
   id: string;
@@ -46,7 +48,7 @@ const labelCls =
 const btnCls =
   "flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-orange-700 disabled:opacity-60";
 
-type Kind = "testimonials" | "clients" | "cases";
+type Kind = "testimonials" | "clients" | "cases" | "reviews";
 
 function metricsToText(v: unknown): string {
   if (!Array.isArray(v)) return "";
@@ -70,10 +72,12 @@ export default function ProofManager({
   testimonials,
   clients,
   cases,
+  reviews,
 }: {
   testimonials: TestimonialRow[];
   clients: ClientRow[];
   cases: CaseRow[];
+  reviews: ReviewsConfig;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Kind>("testimonials");
@@ -176,7 +180,15 @@ export default function ProofManager({
     </div>
   );
 
-  const TABS: { key: Kind; label: string; count: number; live: number }[] = [
+  const TABS: {
+    key: Kind;
+    label: string;
+    count?: number;
+    live?: number;
+    /* Settings tabs have nothing to count, so they show state instead — an
+       unset Place ID means no Google button, which is worth seeing from here. */
+    chip?: string;
+  }[] = [
     {
       key: "testimonials",
       label: "Testimonials",
@@ -194,6 +206,11 @@ export default function ProofManager({
       label: "Case studies",
       count: cases.length,
       live: cases.filter((c) => c.visible).length,
+    },
+    {
+      key: "reviews",
+      label: "Review requests",
+      chip: reviews.placeId.trim() ? "Google on" : "No Place ID",
     },
   ];
 
@@ -213,7 +230,7 @@ export default function ProofManager({
           >
             {t.label}
             <span className="ml-1.5 text-stone-400">
-              {t.live}/{t.count}
+              {t.chip ?? `${t.live}/${t.count}`}
             </span>
           </button>
         ))}
@@ -224,6 +241,8 @@ export default function ProofManager({
           {error}
         </p>
       )}
+
+      {tab === "reviews" && <ReviewSettings initial={reviews} />}
 
       {tab === "testimonials" && (
         <div>

@@ -48,21 +48,24 @@ export default function ReviewSettings({ initial }: { initial: ReviewsConfig }) 
   const placeId = cfg.placeId.trim();
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
-      <h2 className="font-display text-base font-bold">Review requests</h2>
-      <p className="mt-1 max-w-3xl text-sm text-stone-500 dark:text-stone-400">
+    /* Matches its sibling tabs: a short intro, then content — no second card
+       and no heading, since the tab already names this. Fields are capped at a
+       reading width; stretched across a wide monitor a one-line input is a
+       hundred characters long and hard to scan. */
+    <div className="max-w-3xl">
+      <p className="mb-3 text-xs text-stone-500 dark:text-stone-400">
         The page a client lands on from a <strong>Review link</strong>. They can
-        leave a testimonial (it arrives here, hidden, for you to approve) and,
-        if a Place ID is set, review you on Google.
+        leave a testimonial — it arrives in the Testimonials tab, hidden, for you
+        to approve — and, if a Place ID is set, review you on Google.
       </p>
-      <p className="mt-2 max-w-3xl rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-snug text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+      <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-snug text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
         Everyone who opens the link is asked for both, whatever they are about
         to say. Showing the Google button only to happy clients is review
         gating — Google&rsquo;s policy prohibits it and reviews collected that
         way get removed.
       </p>
 
-      <div className="mt-4 space-y-3">
+      <div className="space-y-3">
         <div>
           <label htmlFor="rv-place" className={labelCls}>
             Google Place ID
