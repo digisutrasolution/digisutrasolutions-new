@@ -4,7 +4,7 @@ import { withBase } from "@/lib/base-path";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Inbox, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, GripVertical, Inbox, Plus, Trash2, X } from "lucide-react";
 import type { FormDestination, FormField } from "@/lib/cms/forms";
 
 type FormRow = {
@@ -51,13 +51,70 @@ function FieldRows({
   function update(i: number, patch: Partial<FormField>) {
     onChange(fields.map((f, k) => (k === i ? { ...f, ...patch } : f)));
   }
+
+  /* Native HTML5 drag rather than a dependency, and the same shape the page
+     section editor already uses — one reorder interaction to learn, not two.
+     The up/down buttons stay: dragging is pointer-only, and WCAG 2.5.7 wants a
+     single-pointer alternative for any drag operation. */
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  function reorder(from: number, to: number) {
+    if (from === to || to < 0 || to >= fields.length) return;
+    const next = [...fields];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange(next);
+  }
+
+  const cols = "grid-cols-[22px_1fr_1fr_110px_52px_1fr_84px]";
+
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[1fr_1fr_110px_70px_1fr_28px] gap-2 text-[11px] font-semibold text-stone-500">
-        <span>Key</span><span>Label</span><span>Type</span><span>Req.</span><span>Options (select)</span><span />
+      <div className={`grid ${cols} gap-2 text-[11px] font-semibold text-stone-500`}>
+        <span /><span>Key</span><span>Label</span><span>Type</span><span className="text-center">Req.</span><span>Options (select)</span><span />
       </div>
       {fields.map((f, i) => (
-        <div key={i} className="grid grid-cols-[1fr_1fr_110px_70px_1fr_28px] items-center gap-2">
+        <div
+          key={i}
+          /* The whole row is the drop target; only the handle starts a drag, so
+             selecting text inside the inputs still works. */
+          onDragOver={(e) => {
+            if (dragIndex === null) return;
+            e.preventDefault();
+            setOverIndex(i);
+          }}
+          onDrop={(e) => {
+            if (dragIndex === null) return;
+            e.preventDefault();
+            reorder(dragIndex, i);
+            setDragIndex(null);
+            setOverIndex(null);
+          }}
+          className={[
+            "grid items-center gap-2 rounded-lg transition-opacity",
+            cols,
+            dragIndex === i ? "opacity-40" : "",
+            overIndex === i && dragIndex !== null && dragIndex !== i
+              ? "ring-2 ring-orange-400"
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          <span
+            draggable
+            onDragStart={() => setDragIndex(i)}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setOverIndex(null);
+            }}
+            title="Drag to reorder"
+            aria-hidden
+            className="cursor-grab text-stone-400 active:cursor-grabbing"
+          >
+            <GripVertical size={14} />
+          </span>
           <input value={f.key} placeholder="full_name" aria-label={`Field ${i + 1} key`} onChange={(e) => update(i, { key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })} className={inputCls} />
           <input value={f.label} placeholder="Full name" aria-label={`Field ${i + 1} label`} onChange={(e) => update(i, { label: e.target.value })} className={inputCls} />
           <select value={f.type} aria-label={`Field ${i + 1} type`} onChange={(e) => update(i, { type: e.target.value as FormField["type"] })} className={inputCls}>
@@ -79,13 +136,34 @@ function FieldRows({
             onChange={(e) => update(i, { options: e.target.value.split(",").map((o) => o.trim()).filter(Boolean) })}
             className={`${inputCls} disabled:opacity-40`}
           />
-          <button
-            onClick={() => onChange(fields.filter((_, k) => k !== i))}
-            aria-label={`Remove field ${i + 1}`}
-            className="cursor-pointer rounded p-1 text-stone-400 hover:text-red-600"
-          >
-            <Trash2 size={13} aria-hidden />
-          </button>
+          {/* Keyboard- and screen-reader-reachable equivalent of the drag
+              handle. The labels name the field, not just the row number, so
+              "Move Email up" is what gets announced. */}
+          <div className="flex items-center justify-end gap-0.5">
+            <button
+              onClick={() => reorder(i, i - 1)}
+              disabled={i === 0}
+              aria-label={`Move ${f.label || f.key || `field ${i + 1}`} up`}
+              className="cursor-pointer rounded p-1 text-stone-400 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-25"
+            >
+              <ArrowUp size={13} aria-hidden />
+            </button>
+            <button
+              onClick={() => reorder(i, i + 1)}
+              disabled={i === fields.length - 1}
+              aria-label={`Move ${f.label || f.key || `field ${i + 1}`} down`}
+              className="cursor-pointer rounded p-1 text-stone-400 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-25"
+            >
+              <ArrowDown size={13} aria-hidden />
+            </button>
+            <button
+              onClick={() => onChange(fields.filter((_, k) => k !== i))}
+              aria-label={`Remove ${f.label || f.key || `field ${i + 1}`}`}
+              className="cursor-pointer rounded p-1 text-stone-400 hover:text-red-600"
+            >
+              <Trash2 size={13} aria-hidden />
+            </button>
+          </div>
         </div>
       ))}
       <button
