@@ -187,7 +187,10 @@ async function main() {
         { key: "name", label: "Name", type: "text", required: true, options: [] },
         { key: "email", label: "Email", type: "email", required: true, options: [] },
         { key: "phone", label: "Phone Number", type: "tel", required: true, options: [] },
-        { key: "service", label: "Service", type: "select", required: false, options: ["Digital marketing", "Development", "AI solutions"] },
+        /* Multi-select, because an enquiry is rarely about exactly one thing —
+           "SEO and a new website" is the normal shape of it. Picked values
+           land on Lead.services as an array via leadFromSubmission. */
+        { key: "service", label: "Services you need", type: "multiselect", required: false, options: ["SEO & AI Search", "Google Ads / PPC", "Social media", "Content marketing", "Website development", "Mobile app development", "E-commerce", "AI automation", "Branding & UI/UX"] },
         /* Optional on purpose. A required free-text box is the field people
            abandon on, and this form's job is to capture an ad click — name,
            email and phone are enough to call someone back. */

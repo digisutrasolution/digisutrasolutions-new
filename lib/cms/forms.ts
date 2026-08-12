@@ -6,6 +6,11 @@ export const FIELD_TYPES = [
   "tel",
   "textarea",
   "select",
+  /* Searchable, pick-many version of `select`. Added as its own type rather
+     than a flag on `select`, because it changes the stored value from one
+     option to a comma-joined list — flipping that under existing forms would
+     silently change what their past submissions mean. */
+  "multiselect",
   "checkbox",
   "number",
   "date",
@@ -81,6 +86,7 @@ export function leadFromSubmission(clean: Record<string, string>): {
   budget: string;
   timeline: string;
   heardFrom: string;
+  services: string[];
 } {
   const find = (aliases: string[]): string => {
     for (const key of Object.keys(clean)) {
@@ -97,5 +103,14 @@ export function leadFromSubmission(clean: Record<string, string>): {
     budget: find(["budget"]),
     timeline: find(["timeline", "deadline"]),
     heardFrom: find(["heardfrom", "howdidyou", "referral", "source"]),
+    /* Split back into the array Lead.services expects. A multiselect stores a
+       comma-joined list, and a plain select stores one value — both land here
+       correctly, because splitting a single value yields a one-item array.
+       Until now nothing mapped this at all, so what someone picked stayed
+       buried in the raw submission and never reached the lead record. */
+    services: find(["service", "interested", "looking"])
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
   };
 }

@@ -20,11 +20,23 @@ export default function ServicePicker({
   value,
   onChange,
   invalid,
+  /* Defaulted to the contact form's wording so that page is untouched. The
+     CMS form builder passes the field's own label through instead — same
+     control, two callers, rather than a second combobox to keep in step. */
+  label = "I’m interested in",
+  required = true,
+  placeholder,
+  inputId,
 }: {
   options: ServiceOption[];
   value: string[];
   onChange: (next: string[]) => void;
   invalid?: boolean;
+  label?: string;
+  required?: boolean;
+  placeholder?: string;
+  /** Lets a caller's own <label htmlFor> point at the text input. */
+  inputId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -134,7 +146,8 @@ export default function ServicePicker({
     <div ref={rootRef} className="relative">
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
-          I&rsquo;m interested in *
+          {label}
+          {required && " *"}
         </span>
         {value.length > 0 && (
           <button
@@ -195,7 +208,12 @@ export default function ServicePicker({
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder={value.length === 0 ? "Pick one or more services…" : "Add another…"}
+          id={inputId}
+          placeholder={
+            value.length === 0
+              ? (placeholder ?? "Pick one or more services…")
+              : "Add another…"
+          }
           className="min-w-32 flex-1 bg-transparent px-1 py-1 text-sm text-stone-900 outline-none placeholder:text-stone-300"
         />
         <ChevronDown

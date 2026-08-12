@@ -6,6 +6,7 @@ import { readAttribution } from "@/lib/attribution";
 import { useEffect, useRef, useState } from "react";
 import type { FormField } from "@/lib/cms/forms";
 import OtpVerify, { type Challenge } from "@/components/OtpVerify";
+import ServicePicker from "@/components/contact/ServicePicker";
 import { makeSpamToken } from "@/lib/spam";
 
 const inputCls =
@@ -19,6 +20,10 @@ export default function FormEmbed({ slug }: { slug: string }) {
   const [busy, setBusy] = useState(false);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [sentContact, setSentContact] = useState({ email: "", phone: "" });
+  /* Multiselect values by field key. Held here rather than in the DOM because
+     ServicePicker is a combobox, not a native control; a hidden input mirrors
+     each one so FormData still sees it. */
+  const [multi, setMulti] = useState<Record<string, string[]>>({});
   const startedAt = useRef<number>(0);
   const jsToken = useRef<string>("");
 
@@ -154,6 +159,26 @@ export default function FormEmbed({ slug }: { slug: string }) {
               <div key={field.key} className="sm:col-span-2">
                 {label}
                 <textarea id={id} name={field.key} rows={4} required={field.required} className={inputCls} />
+              </div>
+            );
+          }
+          /* Searchable pick-many, reusing the contact form's combobox rather
+             than a second one. It is not a native control, so a hidden input
+             carries the joined value and the existing FormData collection
+             above keeps working untouched. */
+          if (field.type === "multiselect") {
+            const picked = multi[field.key] ?? [];
+            return (
+              <div key={field.key} className="sm:col-span-2">
+                <ServicePicker
+                  label={field.label}
+                  required={field.required}
+                  inputId={id}
+                  options={field.options.map((name) => ({ name }))}
+                  value={picked}
+                  onChange={(next) => setMulti((m) => ({ ...m, [field.key]: next }))}
+                />
+                <input type="hidden" name={field.key} value={picked.join(", ")} />
               </div>
             );
           }

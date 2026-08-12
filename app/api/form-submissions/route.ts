@@ -108,6 +108,9 @@ export async function POST(req: Request) {
           budget: lead.budget || null,
           timeline: lead.timeline || null,
           heardFrom: lead.heardFrom || null,
+          // What they picked, so sales sees it on the lead rather than having
+          // to open the raw submission.
+          services: lead.services,
           // Paid traffic overrides the intake label — see /api/leads for why.
           source: sourceFromChannel(deriveChannel(attribution)) ?? "FORM",
           ...(quarantined ? { status: "SPAM" as const } : {}),

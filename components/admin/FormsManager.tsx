@@ -72,7 +72,7 @@ function FieldRows({
   return (
     <div className="space-y-2">
       <div className={`grid ${cols} gap-2 text-[11px] font-semibold text-stone-500`}>
-        <span /><span>Key</span><span>Label</span><span>Type</span><span className="text-center">Req.</span><span>Options (select)</span><span />
+        <span /><span>Key</span><span>Label</span><span>Type</span><span className="text-center">Req.</span><span>Options (select / multi)</span><span />
       </div>
       {fields.map((f, i) => (
         <div
@@ -124,13 +124,15 @@ function FieldRows({
             <option value="number">Number</option>
             <option value="date">Date</option>
             <option value="textarea">Textarea</option>
-            <option value="select">Select</option>
+            <option value="select">Select (one)</option>
+            <option value="multiselect">Multi-select (searchable)</option>
             <option value="checkbox">Checkbox</option>
           </select>
           <input type="checkbox" checked={f.required} aria-label={`Field ${i + 1} required`} onChange={(e) => update(i, { required: e.target.checked })} className="h-4 w-4 justify-self-center accent-orange-600" />
           <input
             value={f.options.join(", ")}
-            disabled={f.type !== "select"}
+            // Both option-driven types need this column, not just `select`.
+            disabled={f.type !== "select" && f.type !== "multiselect"}
             placeholder="Option A, Option B"
             aria-label={`Field ${i + 1} options`}
             onChange={(e) => update(i, { options: e.target.value.split(",").map((o) => o.trim()).filter(Boolean) })}
