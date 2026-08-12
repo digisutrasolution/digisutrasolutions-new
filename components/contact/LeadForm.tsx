@@ -18,6 +18,28 @@ import CountrySelect from "@/components/contact/CountrySelect";
 import ServicePicker, { type ServiceOption } from "@/components/contact/ServicePicker";
 import OtpVerify, { type Challenge } from "@/components/OtpVerify";
 import { HEARD_FROM } from "@/lib/contact-channels";
+
+/* What to say when a submission fails.
+
+   The old code printed `e.message` straight out, which for a network-level
+   failure is the browser's own "Failed to fetch" — jargon that tells the
+   person nothing, offers no way forward, and (worst of all) sounds final when
+   the request may simply never have left their machine.
+
+   A TypeError from fetch means the request did not complete: no server, no
+   status, nothing written. Anything else came back from our API and already
+   carries a message written for a human, so that one is passed through. */
+function submitErrorMessage(e: unknown): string {
+  const networkLevel =
+    e instanceof TypeError ||
+    (e instanceof Error && /fetch|network|load failed/i.test(e.message));
+  if (networkLevel) {
+    return "We couldn’t reach our server — that’s usually the connection, not you. Please try again, or WhatsApp us on +91 99539 00123 and we’ll pick it up straight away.";
+  }
+  return e instanceof Error && e.message
+    ? e.message
+    : "Something went wrong — please try again, or WhatsApp us instead.";
+}
 import { makeSpamToken } from "@/lib/spam";
 import type { ContactConfig, DeskIcon } from "@/lib/contact-config";
 
@@ -211,15 +233,38 @@ export default function LeadForm({
         setStatus("verify");
         return;
       }
-      /* A distinct URL is what makes the completion measurable — an inline
-         success state produces no pageview, so no analytics tool can count
-         it as a conversion. */
-      router.push("/thank-you");
+      /* NOTE the ordering: everything that can fail from here on is OUTSIDE
+         the try, because the enquiry is already saved.
+
+         router.push does a client-side RSC fetch for the destination. It used
+         to sit inside the try, so a failed navigation — a deploy mid-session,
+         a dropped connection, an extension blocking the request — surfaced as
+         "Failed to fetch" on a submission that had actually SUCCEEDED. The
+         person then resubmits and we get the same lead twice. */
+      goToThankYou();
+      return;
     } catch (e) {
-      setErrMsg(e instanceof Error ? e.message : "Something went wrong — try WhatsApp instead.");
+      setErrMsg(submitErrorMessage(e));
       setStatus("error");
     }
   };
+
+  /* A distinct URL is what makes the completion measurable — an inline success
+     state produces no pageview, so no analytics tool can count it as a
+     conversion. If the soft navigation cannot happen, fall back to a full page
+     load rather than leaving someone on a filled-in form wondering. */
+  function goToThankYou() {
+    router.push("/thank-you");
+    /* router.push is fire-and-forget — it returns void, so a failed RSC fetch
+       throws nowhere a try/catch could see it and simply leaves the person
+       sitting on the form. If we are still here a moment later, take the
+       reliable route. The timer dies with the page when the push works. */
+    window.setTimeout(() => {
+      if (!window.location.pathname.replace(/\/$/, "").endsWith("/thank-you")) {
+        window.location.assign(withBase("/thank-you"));
+      }
+    }, 1500);
+  }
 
   return (
     <div className="grid overflow-hidden rounded-[2rem] border border-stone-200 bg-stone-900 shadow-[0_16px_48px_rgba(28,25,23,0.08)] lg:grid-cols-[0.85fr_1.15fr]">
