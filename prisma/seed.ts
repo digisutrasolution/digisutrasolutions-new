@@ -179,11 +179,19 @@ async function main() {
     create: {
       name: "Lead form",
       slug: "lead-form",
+      /* "lead", not the model's "submission" default: this form exists to feed
+         the CRM, and a submission-only form stores a row that never becomes a
+         Lead — an enquiry nobody is assigned or notified about. */
+      destination: "lead",
       fields: [
         { key: "name", label: "Name", type: "text", required: true, options: [] },
         { key: "email", label: "Email", type: "email", required: true, options: [] },
+        { key: "phone", label: "Phone Number", type: "tel", required: true, options: [] },
         { key: "service", label: "Service", type: "select", required: false, options: ["Digital marketing", "Development", "AI solutions"] },
-        { key: "message", label: "Message", type: "textarea", required: true, options: [] },
+        /* Optional on purpose. A required free-text box is the field people
+           abandon on, and this form's job is to capture an ad click — name,
+           email and phone are enough to call someone back. */
+        { key: "message", label: "Message", type: "textarea", required: false, options: [] },
       ],
     },
   });

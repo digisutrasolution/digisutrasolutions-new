@@ -49,6 +49,15 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         cta2Label: "Talk to someone first",
         cta2Href: "/contact",
       },
+      /* The form sits second, immediately under the hero. A free audit is a
+         low-risk yes, so the ask goes where the intent is highest rather than
+         making someone scroll for it. Every other CTA on the page links away
+         to /free-audit — this is the one that converts in place. */
+      {
+        type: "form",
+        heading: "Request your free audit",
+        formSlug: "lead-form",
+      },
       { type: "logos", heading: "Trusted by", ids: [], limit: 8 },
       {
         type: "cards",
@@ -115,6 +124,13 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         ctaHref: "/free-audit",
         cta2Label: "Talk to us",
         cta2Href: "/contact",
+      },
+      // Same reasoning as the audit template: a free account review is a low
+      // -risk yes, so the form goes high rather than at the end.
+      {
+        type: "form",
+        heading: "Get your free account review",
+        formSlug: "lead-form",
       },
       { type: "logos", heading: "", ids: [], limit: 8 },
       {
@@ -250,6 +266,15 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           { q: "Do we need new content?", a: "Usually some. Often the bigger win is restructuring what you already have so it answers the question first." },
         ],
       },
+      /* Late, unlike the audit templates. AEO/GEO is a category most buyers
+         have no language for yet — the argument has to land before the ask, or
+         the form reads as noise. It sits before the closing CTA so the page
+         still ends on a clear next step. */
+      {
+        type: "form",
+        heading: "See where you stand in AI answers",
+        formSlug: "lead-form",
+      },
       {
         type: "cta",
         heading: "See where you actually stand",
@@ -337,6 +362,13 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           { q: "Will we lose our rankings?", a: "Not if the migration is done properly. Redirect mapping is part of every build, not an extra." },
           { q: "Can we edit it ourselves?", a: "Yes. Every build ships with a CMS your team is trained on before handover." },
         ],
+      },
+      /* Late, like the AEO template. Nobody commissions a build off a headline
+         — the work, the price and the comparison have to come first. */
+      {
+        type: "form",
+        heading: "Tell us what you're building",
+        formSlug: "lead-form",
       },
       {
         type: "cta",
