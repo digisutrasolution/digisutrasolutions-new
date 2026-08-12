@@ -27,6 +27,7 @@ export default function ServicePicker({
   required = true,
   placeholder,
   inputId,
+  hideLabel = false,
 }: {
   options: ServiceOption[];
   value: string[];
@@ -37,6 +38,10 @@ export default function ServicePicker({
   placeholder?: string;
   /** Lets a caller's own <label htmlFor> point at the text input. */
   inputId?: string;
+  /* Suppress the built-in label so a host form can render its own and keep
+     every field in that form looking the same. The Clear button still shows —
+     it belongs to the control, not the label. */
+  hideLabel?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -144,21 +149,30 @@ export default function ServicePicker({
 
   return (
     <div ref={rootRef} className="relative">
-      <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
-          {label}
-          {required && " *"}
-        </span>
-        {value.length > 0 && (
-          <button
-            type="button"
-            onClick={() => onChange([])}
-            className="cursor-pointer text-xs font-semibold text-stone-400 transition-colors hover:text-orange-700"
-          >
-            Clear {value.length}
-          </button>
-        )}
-      </div>
+      {/* Skipped entirely when the host renders its own label AND there is
+          nothing to clear — an empty flex row is a div that exists only to
+          collapse, and one day it collects a margin and nobody knows why. */}
+      {(!hideLabel || value.length > 0) && (
+        <div className="mb-1.5 flex items-baseline justify-between gap-2">
+          {hideLabel ? (
+            <span />
+          ) : (
+            <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
+              {label}
+              {required && " *"}
+            </span>
+          )}
+          {value.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onChange([])}
+              className="cursor-pointer text-xs font-semibold text-stone-400 transition-colors hover:text-orange-700"
+            >
+              Clear {value.length}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Field */}
       <div

@@ -4,13 +4,51 @@ import { withBase } from "@/lib/base-path";
 import { readAttribution } from "@/lib/attribution";
 
 import { useEffect, useRef, useState } from "react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import type { FormField } from "@/lib/cms/forms";
 import OtpVerify, { type Challenge } from "@/components/OtpVerify";
 import ServicePicker from "@/components/contact/ServicePicker";
 import { makeSpamToken } from "@/lib/spam";
 
-const inputCls =
-  "w-full rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 outline-none transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-200";
+/* One field style for the whole form.
+   h-11 (44px) is the WCAG 2.5.5 touch-target floor AND matches ServicePicker's
+   min-h-11, so the combobox lines up with the plain inputs instead of sitting
+   a few pixels short of them.
+   The focus ring is a wide, low-opacity brand halo rather than a hard outline:
+   visible enough to satisfy 2.4.7, quiet enough not to look like an error. */
+const fieldBase =
+  "w-full rounded-xl border border-stone-300 bg-white text-sm text-stone-900 placeholder:text-stone-400 outline-none transition-[border-color,box-shadow] duration-150 focus:border-[#F26419] focus:ring-4 focus:ring-[#F26419]/12";
+const inputCls = `${fieldBase} h-11 px-4`;
+const areaCls = `${fieldBase} px-4 py-3 leading-relaxed`;
+
+/* Labels: one style, every field. The picker used to bring its own uppercase
+   grey label, so "SERVICE" shouted next to a quiet "Name" — the host form owns
+   the label now and the control just renders the control. */
+const labelCls = "mb-1.5 block text-[13px] font-semibold text-stone-800";
+
+function FieldLabel({
+  htmlFor,
+  children,
+  required,
+}: {
+  htmlFor: string;
+  children: React.ReactNode;
+  required?: boolean;
+}) {
+  return (
+    <label htmlFor={htmlFor} className={labelCls}>
+      {children}
+      {/* Coloured, and carrying a text alternative — an asterisk alone is
+          colour-and-glyph only, which a screen reader reads as "star". */}
+      {required && (
+        <span className="text-[#F26419]" aria-hidden>
+          {" *"}
+        </span>
+      )}
+      {required && <span className="sr-only"> (required)</span>}
+    </label>
+  );
+}
 
 export default function FormEmbed({ slug }: { slug: string }) {
   const [fields, setFields] = useState<FormField[] | null>(null);
@@ -142,23 +180,22 @@ export default function FormEmbed({ slug }: { slug: string }) {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="rounded-3xl border border-stone-200 bg-white p-7"
+      className="rounded-3xl border border-stone-200 bg-white p-6 shadow-[0_18px_44px_-32px_rgba(28,25,23,0.4)] sm:p-9"
     >
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
         {fields.map((field) => {
           const id = `f-${slug}-${field.key}`;
           const label = (
-            <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-stone-700">
+            <FieldLabel htmlFor={id} required={field.required}>
               {field.label}
-              {field.required && " *"}
-            </label>
+            </FieldLabel>
           );
           if (field.type === "textarea") {
             return (
               <div key={field.key} className="sm:col-span-2">
                 {label}
-                <textarea id={id} name={field.key} rows={4} required={field.required} className={inputCls} />
+                <textarea id={id} name={field.key} rows={4} required={field.required} className={areaCls} />
               </div>
             );
           }
@@ -170,10 +207,13 @@ export default function FormEmbed({ slug }: { slug: string }) {
             const picked = multi[field.key] ?? [];
             return (
               <div key={field.key} className="sm:col-span-2">
+                {/* The form owns the label so this field reads like the rest of
+                    them; the picker renders only the control. */}
+                {label}
                 <ServicePicker
-                  label={field.label}
-                  required={field.required}
+                  hideLabel
                   inputId={id}
+                  placeholder="Search or pick from the list…"
                   options={field.options.map((name) => ({ name }))}
                   value={picked}
                   onChange={(next) => setMulti((m) => ({ ...m, [field.key]: next }))}
@@ -186,7 +226,7 @@ export default function FormEmbed({ slug }: { slug: string }) {
             return (
               <div key={field.key}>
                 {label}
-                <select id={id} name={field.key} required={field.required} className={inputCls}>
+                <select id={id} name={field.key} required={field.required} className={`${inputCls} cursor-pointer appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2378716C%22 stroke-width=%222%22 stroke-linecap=%22round%22><path d=%22M6 9l6 6 6-6%22/></svg>')] bg-[length:16px] bg-[right_0.9rem_center] bg-no-repeat pr-10`}>
                   <option value="">Choose…</option>
                   {field.options.map((o) => (
                     <option key={o} value={o}>{o}</option>
@@ -198,18 +238,28 @@ export default function FormEmbed({ slug }: { slug: string }) {
           if (field.type === "checkbox") {
             return (
               <div key={field.key} className="sm:col-span-2">
-                <label htmlFor={id} className="flex items-start gap-2.5 text-sm text-stone-700">
+                {/* A whole tappable row, not a 16px box: the label is part of
+                    the hit area, which is what gets this over the 44px
+                    target on a phone. */}
+                <label
+                  htmlFor={id}
+                  className="flex cursor-pointer items-start gap-3 rounded-xl border border-stone-200 p-3 text-sm text-stone-700 transition-colors hover:border-stone-300 hover:bg-stone-50 has-[:focus-visible]:border-[#F26419] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[#F26419]/12"
+                >
                   <input
                     id={id}
                     name={field.key}
                     type="checkbox"
                     value="Yes"
                     required={field.required}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-orange-600"
+                    className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#F26419]"
                   />
                   <span>
                     {field.label}
-                    {field.required && " *"}
+                    {field.required && (
+                      <span className="text-[#F26419]" aria-hidden>
+                        {" *"}
+                      </span>
+                    )}
                   </span>
                 </label>
               </div>
@@ -231,15 +281,31 @@ export default function FormEmbed({ slug }: { slug: string }) {
         })}
       </div>
       {error && (
-        <p role="alert" className="mt-3 text-sm font-medium text-red-700">{error}</p>
+        <p
+          role="alert"
+          className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-800"
+        >
+          <AlertCircle size={15} className="mt-0.5 shrink-0" aria-hidden />
+          {error}
+        </p>
       )}
-      <button
-        type="submit"
-        disabled={busy}
-        className="animate-shimmer mt-5 w-full cursor-pointer rounded-full bg-[linear-gradient(120deg,#EA580C,#FB923C,#EA580C)] py-3.5 text-sm font-semibold text-white transition-transform duration-300 hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:px-10"
-      >
-        {busy ? "Sending…" : "Submit ↗"}
-      </button>
+
+      <div className="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="submit"
+          disabled={busy}
+          className="animate-shimmer inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[linear-gradient(120deg,#EA580C,#FB923C,#EA580C)] text-sm font-bold text-white transition-transform duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:px-10"
+        >
+          {busy && <Loader2 size={15} className="animate-spin" aria-hidden />}
+          {busy ? "Sending…" : "Submit ↗"}
+        </button>
+        {/* Answers the two questions people actually hesitate on, at the exact
+            moment they hesitate — beside the button, not buried in a policy. */}
+        <p className="text-xs leading-relaxed text-stone-400 sm:text-right">
+          Replies within one business day.
+          <br className="hidden sm:block" /> No spam, and your details stay with us.
+        </p>
+      </div>
     </form>
   );
 }
