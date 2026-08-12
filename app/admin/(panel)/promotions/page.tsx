@@ -51,6 +51,8 @@ export default async function AdminPromotionsPage() {
             statusNote: p.statusNote,
             createdById: p.createdById,
             startsAt: p.startsAt?.toISOString() ?? null,
+            offerType: p.offerType,
+            occasion: p.occasion,
             discountType: p.discountType,
             discountValue: p.discountValue,
             currency: p.currency,

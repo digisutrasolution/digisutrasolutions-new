@@ -51,7 +51,15 @@ export default async function OffersPage() {
     return {
       id: p.id,
       name: p.name,
-      headline: p.headline || `Follow us and take ${discountLabel(p)}`,
+      offerType: p.offerType,
+      occasion: p.occasion,
+      // The default headline has to match the mechanic — "Follow us and take
+      // 15% off" on an offer with no follow requirement is just wrong.
+      headline:
+        p.headline ||
+        (p.offerType === "SOCIAL_FOLLOW"
+          ? `Follow us and take ${discountLabel(p)}`
+          : `Take ${discountLabel(p)}`),
       body: p.body,
       discountValue: parts.value,
       discountUnit: parts.unit,

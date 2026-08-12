@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import OfferClaim from "@/components/OfferClaim";
 import { getFooterSocials } from "@/lib/footer";
 import { activePromotion, discountLabel } from "@/lib/promotions-server";
+import { OFFER_TYPE_REQUIREMENT, offerType } from "@/lib/offer-kinds";
 import { markOpened, resolveOutreachToken } from "@/lib/outreach-server";
 
 /* Offer page, reached only by a tokenised link we sent to one lead. */
@@ -48,6 +49,7 @@ export default async function OfferPage({
   const shown = promo.channels.length
     ? socials.filter((s) => promo.channels.includes(s.key))
     : socials;
+  const kind = offerType(promo.offerType);
 
   // Already claimed? Show the code rather than asking again.
   const existing = await db.promotionClaim
@@ -85,32 +87,44 @@ export default async function OfferPage({
       </div>
 
       <div className="rounded-3xl border border-stone-200 bg-white p-6 lg:sticky lg:top-28">
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-          Step one — follow us
-        </p>
-        {shown.length > 0 ? (
-          <ul className="mt-3 flex list-none flex-wrap gap-2">
-            {shown.map((s) => (
-              <li key={s.key}>
-                <a
-                  href={s.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-800 transition-colors hover:border-orange-400 hover:text-orange-700"
-                >
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-2 text-sm text-stone-500">
-            Our profiles are linked in the footer of the site.
-          </p>
+        {/* Same rule as the public card: only ask for something the offer
+            actually requires. An open festival offer has no step one. */}
+        {kind.requirementLabel && (
+          <>
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+              {kind.showsChannels ? "Step one — follow us" : kind.requirementLabel}
+            </p>
+            {kind.showsChannels ? (
+              shown.length > 0 ? (
+                <ul className="mt-3 flex list-none flex-wrap gap-2">
+                  {shown.map((s) => (
+                    <li key={s.key}>
+                      <a
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex rounded-full border border-stone-300 px-5 py-2.5 text-sm font-semibold text-stone-800 transition-colors hover:border-orange-400 hover:text-orange-700"
+                      >
+                        {s.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-stone-500">
+                  Our profiles are linked in the footer of the site.
+                </p>
+              )
+            ) : (
+              <p className="mt-2 text-sm text-stone-600">
+                {OFFER_TYPE_REQUIREMENT[kind.key] ?? ""}
+              </p>
+            )}
+          </>
         )}
 
-        <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-stone-500">
-          Step two — claim {discountLabel(promo)}
+        <p className={`text-xs font-semibold uppercase tracking-wide text-stone-500 ${kind.requirementLabel ? "mt-6" : ""}`}>
+          {kind.requirementLabel ? "Step two — claim" : "Claim"} {discountLabel(promo)}
         </p>
         <div className="mt-3">
           {existing ? (

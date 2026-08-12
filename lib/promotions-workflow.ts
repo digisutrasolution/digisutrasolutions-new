@@ -172,6 +172,11 @@ export const COMMERCIAL_FIELDS = [
   "currency",
   "startsAt",
   "codePrefix",
+  /* offerType is in here because it IS a term, not a label: switching a live
+     offer from "open to everyone" to "follow us first" adds a condition to a
+     deal people already accepted. `occasion` is deliberately absent — it is
+     presentation, and relabelling a running offer harms nobody. */
+  "offerType",
 ] as const;
 
 /**

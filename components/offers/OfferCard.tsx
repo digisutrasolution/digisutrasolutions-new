@@ -4,6 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { Check, Copy, Loader2, Ticket } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import { hasAttribution, readAttribution } from "@/lib/attribution";
+import { OFFER_TYPE_REQUIREMENT, occasion, offerType } from "@/lib/offer-kinds";
 
 /* One offer, as a ticket.
 
@@ -15,6 +16,8 @@ import { hasAttribution, readAttribution } from "@/lib/attribution";
 export type OfferView = {
   id: string;
   name: string;
+  offerType: string;
+  occasion: string | null;
   headline: string;
   body: string;
   discountValue: string;
@@ -78,6 +81,9 @@ export default function OfferCard({ offer, index }: { offer: OfferView; index: n
     [offer.endsAt, minute],
   );
 
+  const kind = offerType(offer.offerType);
+  const occ = occasion(offer.occasion);
+
   const pctGone =
     offer.maxClaims && offer.maxClaims > 0
       ? Math.min(100, Math.round((offer.claimed / offer.maxClaims) * 100))
@@ -118,6 +124,15 @@ export default function OfferCard({ offer, index }: { offer: OfferView; index: n
       className="offer-ticket group relative flex flex-col rounded-3xl border border-stone-200 bg-white p-6 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-28px_rgba(28,25,23,0.45)] sm:p-7"
       style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
     >
+      {/* Occasion ribbon — why this offer is running, when it is worth saying. */}
+      {occ && (
+        <span
+          className={`mb-3 inline-block self-start rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ${occ.className}`}
+        >
+          {occ.ribbon}
+        </span>
+      )}
+
       {/* ---- discount, at poster size ---- */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-baseline gap-1.5">
@@ -142,26 +157,35 @@ export default function OfferCard({ offer, index }: { offer: OfferView; index: n
         <p className="mt-2 text-sm leading-relaxed text-stone-600">{offer.body}</p>
       )}
 
-      {/* ---- what you have to do ---- */}
-      {offer.channels.length > 0 && (
+      {/* ---- what you have to do, if anything ----
+           Driven by the offer's type. An "open to everyone" festival offer
+           showing a Follow us on block would be asking for something it does
+           not actually require. */}
+      {kind.requirementLabel && (kind.showsChannels ? offer.channels.length > 0 : true) && (
         <div className="mt-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-stone-400">
-            Follow us on
+            {kind.requirementLabel}
           </p>
-          <ul className="mt-2.5 flex list-none flex-wrap gap-2">
-            {offer.channels.map((c) => (
-              <li key={c.key}>
-                <a
-                  href={c.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center rounded-full border border-stone-300 px-4 text-[13px] font-semibold text-stone-700 transition-colors hover:border-[#F26419] hover:bg-orange-50 hover:text-orange-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F26419]"
-                >
-                  {c.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+          {kind.showsChannels ? (
+            <ul className="mt-2.5 flex list-none flex-wrap gap-2">
+              {offer.channels.map((c) => (
+                <li key={c.key}>
+                  <a
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center rounded-full border border-stone-300 px-4 text-[13px] font-semibold text-stone-700 transition-colors hover:border-[#F26419] hover:bg-orange-50 hover:text-orange-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#F26419]"
+                  >
+                    {c.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1.5 text-sm text-stone-600">
+              {OFFER_TYPE_REQUIREMENT[kind.key] ?? ""}
+            </p>
+          )}
         </div>
       )}
 
@@ -290,9 +314,11 @@ export default function OfferCard({ offer, index }: { offer: OfferView; index: n
               {state === "busy" && <Loader2 size={15} className="animate-spin" aria-hidden />}
               {state === "busy" ? "Getting your code…" : "Get my code"}
             </button>
+            {/* The promise matches the mechanic — telling someone claiming an
+                open festival offer that we cannot verify their follow would be
+                nonsense. */}
             <p className="text-center text-[11px] leading-relaxed text-stone-400">
-              One code per person. We take your word on the follow — we can&rsquo;t see who
-              follows us.
+              {kind.claimNote}
             </p>
           </form>
         )}

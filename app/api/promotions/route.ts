@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
+import { OCCASION_KEYS, OFFER_TYPE_KEYS } from "@/lib/offer-kinds";
 
 /* Note what is NOT here: `status`. A promotion's state changes only through
    POST /api/promotions/[id]/transition, where the transition is checked
@@ -13,6 +14,16 @@ import { clientIp } from "@/lib/rate-limit";
 export const PromotionSchema = z.object({
   name: z.string().trim().min(2).max(120),
   discountType: z.enum(["PERCENT", "AMOUNT"]).optional(),
+  /* Validated against the catalog so a typo cannot silently create an offer
+     type nothing knows how to render — but the column stays TEXT, so widening
+     the catalog is a code change, not a migration. */
+  offerType: z.enum(OFFER_TYPE_KEYS as [string, ...string[]]).optional(),
+  occasion: z
+    .enum(OCCASION_KEYS as [string, ...string[]])
+    .nullable()
+    .optional()
+    // The picker's "no label" option posts "", which means null here.
+    .or(z.literal("").transform(() => null)),
   discountValue: z.number().min(0).max(1_000_000).optional(),
   currency: z.string().trim().min(3).max(3).optional(),
   headline: z.string().trim().max(160).optional(),

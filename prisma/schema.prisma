@@ -1136,6 +1136,20 @@ model Promotion {
   approvedAt    DateTime?
   /// PERCENT | AMOUNT — kept as text so adding a type is not a migration.
   discountType  String   @default("PERCENT")
+  /// What a person must DO to earn the code — SOCIAL_FOLLOW | OPEN | REFERRAL
+  /// | FIRST_TIME. This one is functional: it decides what the claim card asks
+  /// for. See lib/offer-kinds.ts.
+  offerType     String   @default("SOCIAL_FOLLOW")
+  /// WHY it is running — FESTIVAL | SEASONAL | SPECIAL_DAY | FLASH | LAUNCH |
+  /// CLEARANCE | EVERGREEN. Presentation and reporting only; null = unlabelled.
+  ///
+  /// Deliberately separate from offerType: "a Diwali offer open to everyone"
+  /// and "a Diwali offer for followers" are both real, and one combined field
+  /// could not say either. Both are text rather than enums — unlike `status`,
+  /// which drives a state machine and must be constrained, these are labels
+  /// the owner will want to extend, and text keeps that off the migration path
+  /// (same reasoning as discountType above).
+  occasion      String?
   discountValue Float    @default(10)
   currency      String   @default("INR")
   headline      String   @default("")
