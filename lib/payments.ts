@@ -222,6 +222,39 @@ export async function getPublicPayments(): Promise<PublicPayments> {
   };
 }
 
+/**
+ * Does this free-text note say anything the structured rows do not?
+ *
+ * Before the structured fields existed the whole account block was typed into
+ * one note box, so a live site has notes like "Name: DIGISUTRA SOLUTIONS
+ * Account No: 925020051423432 IFSC Code: UTIB0003431 …". Rendered beneath the
+ * structured rows that now hold the same values, it reads as a duplicate and
+ * makes a client-facing quotation look unfinished.
+ *
+ * The test is deliberately narrow — it fires only on IDENTIFIER-like values:
+ * six characters or more AND containing a digit. That matches an account
+ * number, IFSC or SWIFT code and nothing else. Length alone was not enough:
+ * "Axis Bank" and "Current" are also row values, so a real note reading
+ * "Transfer to our Axis Bank account" would have been thrown away. Requiring a
+ * digit keeps ordinary words out of it.
+ *
+ * Whitespace and hyphens are stripped from both sides, so an account number
+ * written 9250-2005-1423432 in the note still counts as the same value.
+ */
+export function noteAddsSomething(
+  note: string,
+  rows: { value: string }[],
+): boolean {
+  const n = note.trim();
+  if (!n) return false;
+  const flatten = (v: string) => v.replace(/[\s\-]/g, "").toLowerCase();
+  const flat = flatten(n);
+  return !rows.some((r) => {
+    const v = flatten(r.value);
+    return v.length >= 6 && /\d/.test(v) && flat.includes(v);
+  });
+}
+
 /** Label/value pairs to print, skipping blanks. Shared by the public page and
     the quotation so the two never show a different set of fields. */
 export function detailRows(

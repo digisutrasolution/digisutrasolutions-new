@@ -4,7 +4,7 @@ import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { getContactConfig } from "@/lib/contact-config-server";
-import { getPayments } from "@/lib/payments";
+import { detailRows, getPayments, noteAddsSomething } from "@/lib/payments";
 import PrintButton from "@/components/admin/PrintButton";
 import {
   computeTotals,
@@ -44,45 +44,60 @@ export default async function QuotationPrintPage({
      than leaving one of them stale. Rows with no value are dropped, and a
      method with nothing filled in produces no block at all — an empty "Bank
      transfer" heading on a client-facing PDF is worse than its absence. */
-  const row = (label: string, value: string) => (value.trim() ? [{ label, value: value.trim() }] : []);
+  type PayBlock = { title: string; rows: { label: string; value: string }[]; note: string };
+
+  /* Rows are built once and the note is judged against them: it only survives
+     if it says something the rows do not (see noteAddsSomething). Legacy notes
+     hold the entire account block as one run-on line, which printed as a
+     duplicate directly beneath the tidy rows. */
+  const block = (
+    show: boolean,
+    title: string,
+    pairs: [string, string | undefined][],
+    note: string,
+  ): PayBlock | null => {
+    if (!show) return null;
+    const rows = detailRows(pairs);
+    if (rows.length === 0) return null;
+    return { title, rows, note: noteAddsSomething(note, rows) ? note.trim() : "" };
+  };
+
   const payBlocks = [
-    pay.upi.enabled && pay.upi.upiId.trim()
-      ? {
-          title: "UPI (India)",
-          rows: [...row("UPI ID", pay.upi.upiId), ...row("Name", pay.upi.payeeName)],
-          note: pay.upi.note.trim() || "",
-        }
-      : null,
-    pay.bank.enabled
-      ? {
-          title: "Bank transfer (India · NEFT / IMPS / RTGS)",
-          rows: [
-            ...row("Account name", pay.bank.accountName),
-            ...row("Account no", pay.bank.accountNumber),
-            ...row("IFSC", pay.bank.ifsc),
-            ...row("Bank", pay.bank.bankName),
-            ...row("Branch", pay.bank.branch),
-            ...row("Type", pay.bank.accountType),
-          ],
-          note: pay.bank.note.trim() || "",
-        }
-      : null,
-    pay.wire.enabled
-      ? {
-          title: "International wire (SWIFT)",
-          rows: [
-            ...row("Beneficiary", pay.wire.beneficiary),
-            ...row("Account / IBAN", pay.wire.accountNumber),
-            ...row("SWIFT / BIC", pay.wire.swift),
-            ...row("Bank", pay.wire.bankName),
-            ...row("Bank address", pay.wire.bankAddress),
-          ],
-          note: pay.wire.note.trim() || "",
-        }
-      : null,
-  ].filter((b): b is { title: string; rows: { label: string; value: string }[]; note: string } =>
-    b !== null && b.rows.length > 0,
-  );
+    block(
+      pay.upi.enabled && !!pay.upi.upiId.trim(),
+      "UPI (India)",
+      [
+        ["UPI ID", pay.upi.upiId],
+        ["Name", pay.upi.payeeName],
+      ],
+      pay.upi.note,
+    ),
+    block(
+      pay.bank.enabled,
+      "Bank transfer (India · NEFT / IMPS / RTGS)",
+      [
+        ["Account name", pay.bank.accountName],
+        ["Account no", pay.bank.accountNumber],
+        ["IFSC", pay.bank.ifsc],
+        ["Bank", pay.bank.bankName],
+        ["Branch", pay.bank.branch],
+        ["Type", pay.bank.accountType],
+      ],
+      pay.bank.note,
+    ),
+    block(
+      pay.wire.enabled,
+      "International wire (SWIFT)",
+      [
+        ["Beneficiary", pay.wire.beneficiary],
+        ["Account / IBAN", pay.wire.accountNumber],
+        ["SWIFT / BIC", pay.wire.swift],
+        ["Bank", pay.wire.bankName],
+        ["Bank address", pay.wire.bankAddress],
+      ],
+      pay.wire.note,
+    ),
+  ].filter((b): b is PayBlock => b !== null);
 
   return (
     <div className="mx-auto max-w-3xl bg-white p-8 text-stone-800">
@@ -205,17 +220,25 @@ export default async function QuotationPrintPage({
       {payBlocks.length > 0 && (
         <div className="mt-6 break-inside-avoid border-t border-stone-200 pt-3 text-xs text-stone-600">
           <div className="mb-2 font-bold uppercase tracking-wide text-stone-400">How to pay</div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          {/* CSS columns rather than a grid. The three blocks are very
+              different heights (bank has six rows, UPI two), and a 2-col grid
+              left a hole under the short one while the next block started a
+              fresh row. Columns flow the blocks so they fill, and
+              break-inside-avoid stops one splitting across a page in the PDF. */}
+          <div className="columns-1 gap-6 sm:columns-2">
             {payBlocks.map((b) => (
-              <div key={b.title}>
+              <div key={b.title} className="mb-3 break-inside-avoid">
                 <div className="font-bold text-stone-800">{b.title}</div>
                 <dl className="mt-0.5">
                   {b.rows.map((r) => (
                     <div key={r.label} className="flex gap-1.5">
                       <dt className="shrink-0 text-stone-400">{r.label}:</dt>
-                      {/* Tabular figures so an account number cannot be
-                          misread off a printed page. */}
-                      <dd className="break-all font-medium tabular-nums text-stone-800">{r.value}</dd>
+                      {/* break-words, not break-all: break-all split a postcode
+                          mid-number ("NY 100 / 01"). Tabular figures so an
+                          account number cannot be misread off a printed page. */}
+                      <dd className="break-words font-medium tabular-nums text-stone-800">
+                        {r.value}
+                      </dd>
                     </div>
                   ))}
                 </dl>
