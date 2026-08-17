@@ -345,6 +345,105 @@ Need us sooner? WhatsApp <a href="https://wa.me/919953900123" style="color:#7C2D
   };
 }
 
+/**
+ * A quotation, delivered to the client.
+ *
+ * Its own template rather than actionEmail because a quotation is a document,
+ * not a notification: the reference and the amount have to be legible at a
+ * glance in the inbox, before anyone clicks anything. The sender's covering
+ * note stays in their own words above the figures.
+ *
+ * Same constraints as everything else in this file — tables, inline styles,
+ * one 600px column — because the first version of this email bypassed the
+ * house shell entirely and went out as an unstyled div.
+ */
+export function quotationEmail(input: {
+  /** e.g. "QUO-2026-0002 · v4" */
+  reference: string;
+  clientName: string;
+  /** Already formatted with its currency symbol. */
+  total: string;
+  /** Rendered date, or "" to omit the row. */
+  validUntil?: string;
+  itemCount: number;
+  /** The sender's covering message, plain text with newlines. */
+  message: string;
+  url: string;
+}): Email {
+  const row = (label: string, value: string) =>
+    value
+      ? `<tr>
+<td style="padding:7px 0;font-size:12px;color:#A8A29E;white-space:nowrap;">${escapeHtml(label)}</td>
+<td align="right" style="padding:7px 0;font-size:13px;font-weight:bold;color:${INK};">${escapeHtml(value)}</td>
+</tr>`
+      : "";
+
+  const items = `${input.itemCount} ${input.itemCount === 1 ? "line item" : "line items"}`;
+
+  /* The summary panel. The total is the one thing sized to be read across the
+     room — everything else on this card supports it. */
+  const panel = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 0;border-collapse:separate;">
+<tr><td style="background:#ffffff;border:1px solid #EFE4D7;border-radius:10px;padding:20px 22px;">
+<div style="font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${ORANGE};">Quotation</div>
+<div style="margin-top:4px;font-size:15px;font-weight:bold;color:${INK};font-family:${FONT};">${escapeHtml(input.reference)}</div>
+<div style="margin-top:14px;font-size:30px;line-height:1.1;font-weight:bold;color:${ORANGE};">${escapeHtml(input.total)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;border-top:1px solid #F5EDE4;border-collapse:collapse;">
+${row("Prepared for", input.clientName)}
+${row("Includes", items)}
+${row("Valid until", input.validUntil ?? "")}
+</table>
+</td></tr>
+</table>`;
+
+  const button = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 0;">
+<tr><td style="background:${ORANGE};border-radius:26px;">
+<a href="${escapeHtml(input.url)}" style="display:inline-block;padding:13px 30px;font-family:${FONT};font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;">View your quotation</a>
+</td></tr></table>
+<p style="margin:14px 0 0;font-size:11px;line-height:1.6;color:#A8A29E;word-break:break-all;">
+Button not working? Paste this into your browser:<br>${escapeHtml(input.url)}
+</p>`;
+
+  const note = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 0;">
+<tr><td style="background:#FFF6EF;border-left:3px solid ${ORANGE};padding:12px 14px;font-size:13px;line-height:1.6;color:#7C2D12;">
+Full line items and payment details are on the linked page. Reply to this email with any questions — it reaches the person who prepared it.
+</td></tr>
+</table>`;
+
+  const body = `${input.message
+    .split(/\n{2,}/)
+    .map((p) => `<p style="${P}">${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
+    .join("\n")}
+${panel}
+${button}
+${note}`;
+
+  const text = [
+    input.message,
+    "",
+    `Quotation ${input.reference}`,
+    `Total: ${input.total}`,
+    `Prepared for: ${input.clientName}`,
+    `Includes: ${items}`,
+    ...(input.validUntil ? [`Valid until: ${input.validUntil}`] : []),
+    "",
+    `View your quotation: ${input.url}`,
+    "",
+    "Full line items and payment details are on that page. Reply to this email with any questions.",
+    "",
+    "—",
+    "DigiSutra Solutions · B-521, iThum Tower, Sector 62, Noida",
+  ].join("\n");
+
+  return {
+    html: shell(
+      header("Quotation", "orange"),
+      body,
+      footer("This quotation was prepared for you by DigiSutra Solutions."),
+    ),
+    text,
+  };
+}
+
 /** Absolute URL for links inside email — relative paths are meaningless there. */
 export function emailUrl(path: string): string {
   return path.startsWith("http") ? path : `${SITE_URL}${path}`;

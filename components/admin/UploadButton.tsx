@@ -4,6 +4,9 @@ import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 
+/** Intrinsic size of an uploaded image, when the endpoint reports one. */
+export type UploadedDims = { width: number; height: number };
+
 /** Small reusable upload control: pushes a file to an endpoint and hands back
     the stored URL. Reused for blog covers, inline images and video files. */
 export default function UploadButton({
@@ -13,7 +16,12 @@ export default function UploadButton({
   label = "Upload",
   className = "",
 }: {
-  onUploaded: (url: string) => void;
+  /* `dims` is optional on purpose. /api/media has always measured images and
+     stored width/height on the MediaAsset — this control simply threw them
+     away, which is why the blog hero had to guess at a cover's shape. Callers
+     that do not care (avatars, gateway logos, video files) ignore the second
+     argument and are unaffected. */
+  onUploaded: (url: string, dims?: UploadedDims) => void;
   accept?: string;
   endpoint?: string;
   label?: string;
@@ -38,7 +46,9 @@ export default function UploadButton({
         setErr(json.error ?? "Upload failed.");
         return;
       }
-      onUploaded(url);
+      const w = json.asset?.width;
+      const h = json.asset?.height;
+      onUploaded(url, typeof w === "number" && typeof h === "number" ? { width: w, height: h } : undefined);
     } catch {
       setErr("Upload failed.");
     } finally {

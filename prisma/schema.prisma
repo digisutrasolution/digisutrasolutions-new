@@ -245,6 +245,12 @@ model BlogPost {
   category       String     @default("General")
   tags           String[]   @default([])
   coverUrl       String?
+  /// Intrinsic size of the cover, so the article hero can render it at its own
+  /// ratio instead of cropping it into a fixed box. Null for covers we could
+  /// not measure (a pasted remote URL that failed to load), which fall back to
+  /// the old fixed-height treatment.
+  coverWidth     Int?
+  coverHeight    Int?
   status         PageStatus @default(DRAFT)
   publishedAt    DateTime?
   scheduledAt    DateTime?

@@ -24,6 +24,12 @@ const UpdatePostSchema = z
     category: z.string().trim().min(1).max(60).optional(),
     tags: z.array(z.string().trim().min(1).max(40)).max(15).optional(),
     coverUrl: z.string().trim().max(500).nullable().optional(),
+    /* Must be listed here or zod strips them and the editor's dimensions
+       appear to save and silently vanish — the same omission that lost the
+       gateway card text. Bounded because they size a layout box: a bogus
+       200000 would reserve a screen-tall gap before the image loads. */
+    coverWidth: z.number().int().min(1).max(20000).nullable().optional(),
+    coverHeight: z.number().int().min(1).max(20000).nullable().optional(),
     seoTitle: z.string().trim().max(200).nullable().optional(),
     seoDescription: z.string().trim().max(400).nullable().optional(),
     noIndex: z.boolean().optional(),

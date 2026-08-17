@@ -83,6 +83,10 @@ export default function QuotationEditor({
      the only place that cares. */
   const [sends, setSends] = useState<Send[]>([]);
   const [viewedAt, setViewedAt] = useState<string | null>(null);
+  /* The exact link the client was given. Shown because the first version of
+     this feature emailed a link that 404'd, and there was no way to tell from
+     the admin — only from the client's inbox. */
+  const [clientUrl, setClientUrl] = useState<string | null>(null);
   const [files, setFiles] = useState<QuoteFile[]>([]);
   const [composeOpen, setComposeOpen] = useState(false);
   const [to, setTo] = useState(initial.clientEmail);
@@ -103,7 +107,7 @@ export default function QuotationEditor({
       fetch(withBase(`/api/quotations/${initial.id}/send`)).then((r) => r.json()).catch(() => ({ ok: false })),
       fetch(withBase(`/api/attachments?quotationId=${initial.id}`)).then((r) => r.json()).catch(() => ({ ok: false })),
     ]);
-    if (s.ok) { setSends(s.sends); setViewedAt(s.viewedAt); }
+    if (s.ok) { setSends(s.sends); setViewedAt(s.viewedAt); setClientUrl(s.url ?? null); }
     if (f.ok) setFiles(f.attachments);
   }, [initial.id, isNew]);
 
@@ -116,7 +120,8 @@ export default function QuotationEditor({
     setSubject(`Quotation ${ref} from DigiSutra Solutions`);
     setNote(
       `Hi ${(initial.clientName || "there").split(/\s+/)[0]},\n\n` +
-        `Thank you for your time. Your quotation is ready — you can view it using the button below.\n\n` +
+        // No "click the button below" — the template supplies its own CTA.
+        `Thank you for your time — your quotation is ready.\n\n` +
         `Do come back to us with any questions and we will be glad to walk you through it.\n\n` +
         `Best regards,\nDigiSutra Solutions`,
     );
@@ -310,6 +315,12 @@ export default function QuotationEditor({
             </span>
             {sends.length > 1 && <span className="text-stone-400">· {sends.length} sends</span>}
           </div>
+          {clientUrl && (
+            <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-stone-400">
+              <span>Client link:</span>
+              <a href={clientUrl} target="_blank" rel="noopener noreferrer" className="break-all font-mono text-orange-700 hover:underline">{clientUrl}</a>
+            </p>
+          )}
           {sends.length > 1 && (
             <ul className="mt-2 space-y-0.5 border-t border-stone-100 pt-2 text-[11px] text-stone-400 dark:border-stone-800">
               {sends.slice(1).map((s) => (

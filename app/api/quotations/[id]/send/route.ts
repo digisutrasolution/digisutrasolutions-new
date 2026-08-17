@@ -14,7 +14,8 @@ import { getChannelsConfig } from "@/lib/channels-config-server";
 import { readStoredFile } from "@/lib/storage";
 import { clientIp } from "@/lib/rate-limit";
 import { absUrl } from "@/lib/site";
-import { quoteRef } from "@/lib/quotations";
+import { quotationEmail } from "@/lib/email-templates";
+import { computeTotals, formatMoney, quoteRef, type QuoteItem } from "@/lib/quotations";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -31,8 +32,6 @@ const Schema = z.object({
 /** ~22 url-safe chars, matching newToken() in lib/outreach-server. */
 const newToken = () => randomBytes(16).toString("base64url");
 
-const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
  * Email a quotation to its client.
@@ -123,20 +122,37 @@ export async function POST(req: Request, { params }: Params) {
      meaning "the client opened the quotation" instead of resetting each time
      we chase them.
 
-     Generated here but NOT persisted until the send succeeds. Writing it first
-     was wrong twice over: a failed send would leave state behind, and — worse
-     — a DRAFT would end up with a live /q/<token> that anyone holding the link
-     could read, for a quotation we never sent. */
+     Persisted BEFORE the email goes out. The first version wrote it after, to
+     avoid leaving state behind on a failure — which put a token in a client's
+     inbox that the database had never seen, and their link 404'd. An email is
+     not retractable, so anything it carries must already be durable.
+
+     The leak that ordering was guarding against is handled properly below: the
+     page decides from the CommLog, which is written only on success, so a
+     token belonging to a send that failed opens nothing. */
   const token = quote.publicToken ?? newToken();
+  if (!quote.publicToken) {
+    await db.quotation.update({ where: { id }, data: { publicToken: token } });
+  }
   const url = absUrl(`/q/${token}`);
   const ref = quoteRef(quote.number, quote.version);
 
-  const html = `<div style="font-family:system-ui,Arial,sans-serif;font-size:15px;line-height:1.6;color:#1c1917">
-${esc(d.body).replace(/\n/g, "<br />")}
-<p style="margin:24px 0"><a href="${url}" style="background:#F26419;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:700;display:inline-block">View quotation ${esc(ref)}</a></p>
-<p style="font-size:13px;color:#78716c">Or paste this into your browser:<br />${esc(url)}</p>
-</div>`;
-  const text = `${d.body}\n\nView your quotation (${ref}):\n${url}\n`;
+  /* The house template, not hand-rolled HTML. lib/email-templates has carried
+     the branded, Outlook-safe shell all along; the first version of this route
+     ignored it and the client received an unstyled div. */
+  const items = (quote.items as unknown as QuoteItem[]) ?? [];
+  const totals = computeTotals(items, quote.discountPct, quote.taxRatePct, quote.taxMode);
+  const { html, text } = quotationEmail({
+    reference: ref,
+    clientName: quote.clientName,
+    total: formatMoney(totals.total, quote.currency),
+    validUntil: quote.validUntil
+      ? quote.validUntil.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+      : "",
+    itemCount: items.length,
+    message: d.body,
+    url,
+  });
 
   const result = await sendEmail({
     to: [to],
@@ -153,10 +169,6 @@ ${esc(d.body).replace(/\n/g, "<br />")}
       { ok: false, error: result.error ?? "Email failed to send." },
       { status: 502 },
     );
-  }
-
-  if (!quote.publicToken) {
-    await db.quotation.update({ where: { id }, data: { publicToken: token } });
   }
 
   await db.commLog.create({

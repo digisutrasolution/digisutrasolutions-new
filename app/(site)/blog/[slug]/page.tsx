@@ -272,17 +272,39 @@ export default async function BlogPostPage({
             </div>
           </div>
 
+          {/* The cover renders at its OWN ratio when we know it. It used to sit
+              in a fixed h-64/sm:h-80 box with object-cover, which at 768×320 is
+              a 2.4:1 slot — a 3:2 banner got its headline and footer sliced off.
+              Real width/height also mean the browser reserves the right space
+              before load, so removing the crop costs no layout shift.
+
+              Without dimensions (a legacy row, or a remote URL that would not
+              load in the editor) it falls back to the old box: better a crop
+              than a wrongly-shaped gap. Thumbnails elsewhere still crop on
+              purpose — grids need uniform cards. */}
           {post.coverUrl && (
-            <div className="relative mt-6 h-64 overflow-hidden rounded-3xl sm:h-80">
+            post.coverWidth && post.coverHeight ? (
               <Image
                 src={withBase(post.coverUrl)}
                 alt=""
-                fill
+                width={post.coverWidth}
+                height={post.coverHeight}
                 priority
                 sizes="(max-width: 768px) 100vw, 768px"
-                className="object-cover"
+                className="mt-6 h-auto w-full rounded-3xl"
               />
-            </div>
+            ) : (
+              <div className="relative mt-6 h-64 overflow-hidden rounded-3xl sm:h-80">
+                <Image
+                  src={withBase(post.coverUrl)}
+                  alt=""
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 768px"
+                  className="object-cover"
+                />
+              </div>
+            )
           )}
 
           {takeaways.length >= 3 && (

@@ -60,11 +60,19 @@ export default async function ClientQuotationPage({
       .catch(() => {});
   }
 
-  /* Defence in depth. Tokens are only written after a successful send, so an
-     unsent quotation should have none — but the page must not rely on the
-     send route being the only writer. A DRAFT or pending-approval quotation is
-     internal working state and never the client's to read. */
-  if (quote.status === "DRAFT" || quote.status === "PENDING_APPROVAL") notFound();
+  /* Was this quotation actually emailed to someone?
+
+     A CommLog row is written only after the provider accepts the message, so
+     this is the precise question — and it is the right one. Gating on STATUS
+     instead was a bug: a quotation sent while pending approval never advances
+     to SENT, so its perfectly valid link 404'd for the client. Status
+     describes where the document is in our workflow; it does not decide
+     whether we already put a link in someone's inbox.
+
+     It also covers the token now being written before the send: a token from
+     a send that failed has no CommLog row, so it opens nothing. */
+  const wasSent = await db.commLog.count({ where: { quotationId: quote.id } });
+  if (wasSent === 0) notFound();
 
   const gone = GONE[quote.status];
   if (gone) {

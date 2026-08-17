@@ -29,6 +29,8 @@ export default async function AdminBlogEditorPage({
         category: post.category,
         tags: post.tags,
         coverUrl: post.coverUrl,
+        coverWidth: post.coverWidth,
+        coverHeight: post.coverHeight,
         status: post.status,
         seoTitle: post.seoTitle,
         seoDescription: post.seoDescription,

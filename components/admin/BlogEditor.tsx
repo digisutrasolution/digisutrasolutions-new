@@ -2,7 +2,7 @@
 
 import { withBase } from "@/lib/base-path";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Bold, ExternalLink, Eye, Italic, Link2, List, Pencil, Save } from "lucide-react";
@@ -21,6 +21,8 @@ type EditorPost = {
   category: string;
   tags: string[];
   coverUrl: string | null;
+  coverWidth: number | null;
+  coverHeight: number | null;
   status: PageStatus;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -100,6 +102,40 @@ export default function BlogEditor({
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  /* The cover's intrinsic size travels with its URL, so the article hero can
+     render the image at its own ratio instead of cropping it into a fixed box.
+     Kept in its own state rather than in `form` because the two always move
+     together and a stale pairing would be worse than none. */
+  const [coverDims, setCoverDims] = useState<{ width: number; height: number } | null>(
+    post.coverWidth && post.coverHeight
+      ? { width: post.coverWidth, height: post.coverHeight }
+      : null,
+  );
+
+  /* A pasted URL has no MediaAsset row, so the browser measures it: loading
+     the image is the only way to learn the shape of something we did not
+     store. Debounced, because this fires on every keystroke in the URL box. */
+  useEffect(() => {
+    const url = form.coverUrl.trim();
+    let cancelled = false;
+    /* Every path goes through the timeout, including the clear. Calling
+       setCoverDims synchronously here trips react-hooks/set-state-in-effect. */
+    const t = setTimeout(() => {
+      if (!url) { setCoverDims(null); return; }
+      const img = new window.Image();
+      img.onload = () => {
+        if (!cancelled && img.naturalWidth && img.naturalHeight) {
+          setCoverDims({ width: img.naturalWidth, height: img.naturalHeight });
+        }
+      };
+      // Unreachable or blocked URL: leave dimensions null and the hero falls
+      // back to its fixed box rather than reserving a wrong-shaped space.
+      img.onerror = () => { if (!cancelled) setCoverDims(null); };
+      img.src = withBase(url);
+    }, 400);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [form.coverUrl]);
+
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [preview, setPreview] = useState(false);
 
@@ -169,6 +205,9 @@ export default function BlogEditor({
       category: form.category || BLOG_CATEGORIES[0].db,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       coverUrl: form.coverUrl || null,
+      // Sent together, always: a URL with a stale size is worse than no size.
+      coverWidth: form.coverUrl ? (coverDims?.width ?? null) : null,
+      coverHeight: form.coverUrl ? (coverDims?.height ?? null) : null,
       seoTitle: form.seoTitle || null,
       seoDescription: form.seoDescription || null,
       noIndex: form.noIndex,
@@ -362,7 +401,7 @@ export default function BlogEditor({
               <label htmlFor="be-cover" className={labelCls}>Cover image</label>
               <div className="flex items-center gap-2">
                 <input id="be-cover" value={form.coverUrl} onChange={(e) => set("coverUrl", e.target.value)} className={inputCls} placeholder="Paste a URL or upload →" />
-                <UploadButton accept="image/*" onUploaded={(url) => set("coverUrl", url)} />
+                <UploadButton accept="image/*" onUploaded={(url, dims) => { set("coverUrl", url); if (dims) setCoverDims(dims); }} />
               </div>
               {form.coverUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
