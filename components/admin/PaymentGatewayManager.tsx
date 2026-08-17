@@ -43,8 +43,13 @@ function Field({
   hint?: string;
   children: React.ReactNode;
 }) {
+  /* No margin here on purpose. `mt-3 first:mt-0` looked right and was not:
+     inside a 2-column grid every Field is a grid item, so :first-child matched
+     only the FIRST cell and left every right-hand column sitting 12px lower
+     than its neighbour. Spacing belongs to the parent — the grids use gap-3,
+     stacked Fields use space-y-3 on MethodCard's content wrapper. */
   return (
-    <div className="mt-3 first:mt-0">
+    <div>
       <span className={labelCls}>{label}</span>
       {children}
       {hint && <p className="mt-1 text-[11px] leading-snug text-stone-400">{hint}</p>}
@@ -61,6 +66,7 @@ function MethodCard({
   note,
   enabled,
   onToggle,
+  onVisibility,
   children,
 }: {
   title: string;
@@ -68,9 +74,25 @@ function MethodCard({
   note: string;
   enabled: boolean;
   onToggle: (v: boolean) => void;
+  /** Omitted for UPI — a receive-only ID is not a decision worth a switch. */
+  onVisibility?: (showOnSite: boolean) => void;
   children: React.ReactNode;
 }) {
   const isPublic = visibility === "public";
+  const badgeCls = `inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+    isPublic
+      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+      : "bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300"
+  }`;
+  const badgeInner = isPublic ? (
+    <>
+      <Eye size={11} aria-hidden /> On the website
+    </>
+  ) : (
+    <>
+      <EyeOff size={11} aria-hidden /> Sent with invoices only
+    </>
+  );
   return (
     <div className="rounded-xl border border-stone-200 p-4 dark:border-stone-800">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -83,29 +105,41 @@ function MethodCard({
           />
           {title}
         </label>
-        <span
-          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
-            isPublic
-              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-              : "bg-stone-200 text-stone-700 dark:bg-stone-800 dark:text-stone-300"
-          }`}
-        >
-          {isPublic ? (
-            <>
-              <Eye size={11} aria-hidden /> On the website
-            </>
-          ) : (
-            <>
-              <EyeOff size={11} aria-hidden /> Sent with invoices only
-            </>
-          )}
-        </span>
+        {onVisibility ? (
+          <button
+            type="button"
+            onClick={() => onVisibility(!isPublic)}
+            title={
+              isPublic
+                ? "Click to stop showing these on the public payment page"
+                : "Click to show these on the public payment page"
+            }
+            className={`${badgeCls} cursor-pointer transition-colors hover:ring-2 hover:ring-orange-300`}
+          >
+            {badgeInner}
+          </button>
+        ) : (
+          <span className={badgeCls}>{badgeInner}</span>
+        )}
       </div>
       <p className="mt-1 text-[11px] leading-snug text-stone-400">
         {note}
         {!isPublic && " These never appear on the public site — they print on the quotation PDF."}
       </p>
-      <div className={enabled ? "mt-3" : "mt-3 opacity-50"}>{children}</div>
+      {/* Shown only once published, and only where there is a real decision:
+          a public account number gets scraped, and it lets someone quote
+          real-looking details on a fake invoice. */}
+      {isPublic && onVisibility && (
+        <p className="mt-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] leading-snug text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+          These are on the public payment page. Published account numbers get
+          scraped, and they let someone quote real-looking details on a fake
+          invoice — the page carries a &ldquo;confirm against your
+          quotation&rdquo; warning for that reason.
+        </p>
+      )}
+      {/* space-y-3 is what now separates stacked Fields — the QR block sits
+          outside the grid and used to rely on Field's own margin. */}
+      <div className={`mt-3 space-y-3 ${enabled ? "" : "opacity-50"}`}>{children}</div>
     </div>
   );
 }
@@ -288,10 +322,11 @@ export default function PaymentGatewayManager({ initial }: { initial: PaymentsVi
       {/* ---- Bank + wire: entered here, sent with invoices ---- */}
       <MethodCard
         title="Indian bank transfer"
-        visibility="private"
+        visibility={p.bank.showOnSite ? "public" : "private"}
         note="NEFT / IMPS / RTGS."
         enabled={p.bank.enabled}
         onToggle={(v) => setSimple("bank", { enabled: v })}
+        onVisibility={(v) => setSimple("bank", { showOnSite: v })}
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Account name">
@@ -317,10 +352,11 @@ export default function PaymentGatewayManager({ initial }: { initial: PaymentsVi
 
       <MethodCard
         title="International wire (SWIFT)"
-        visibility="private"
+        visibility={p.wire.showOnSite ? "public" : "private"}
         note="USD · AED · GBP · EUR."
         enabled={p.wire.enabled}
         onToggle={(v) => setSimple("wire", { enabled: v })}
+        onVisibility={(v) => setSimple("wire", { showOnSite: v })}
       >
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Beneficiary name">

@@ -38,8 +38,15 @@ export const UpiMethodSchema = SimpleMethodSchema.extend({
   payeeName: line(80),
 });
 
-/** Indian bank transfer — PRIVATE, sent with invoices. */
+/* Opt-in publishing for the two methods that carry real account details.
+   Defaulted false so deploying changes nothing until it is ticked, and so an
+   existing stored row still parses (getPayments falls back to DEFAULT_PAYMENTS
+   on any parse failure — a required field here would wipe live settings). */
+const showOnSite = z.boolean().default(false);
+
+/** Indian bank transfer — private unless showOnSite is ticked. */
 export const BankMethodSchema = SimpleMethodSchema.extend({
+  showOnSite,
   accountName: line(120),
   accountNumber: line(40),
   ifsc: line(20),
@@ -48,8 +55,9 @@ export const BankMethodSchema = SimpleMethodSchema.extend({
   accountType: line(40),
 });
 
-/** International wire — PRIVATE, sent with invoices. */
+/** International wire — private unless showOnSite is ticked. */
 export const WireMethodSchema = SimpleMethodSchema.extend({
+  showOnSite,
   beneficiary: line(120),
   accountNumber: line(40),
   swift: line(20),
@@ -73,11 +81,11 @@ export const DEFAULT_PAYMENTS: Payments = {
   paypal: { enabled: true, mode: "test", keyId: "", keySecret: "" },
   upi: { enabled: true, note: "", upiId: "", qrUrl: "", payeeName: "" },
   bank: {
-    enabled: true, note: "", accountName: "", accountNumber: "",
+    enabled: true, showOnSite: false, note: "", accountName: "", accountNumber: "",
     ifsc: "", bankName: "", branch: "", accountType: "",
   },
   wire: {
-    enabled: true, note: "", beneficiary: "", accountNumber: "",
+    enabled: true, showOnSite: false, note: "", beneficiary: "", accountNumber: "",
     swift: "", bankName: "", bankAddress: "",
   },
 };
@@ -87,15 +95,15 @@ export type PaymentMethodKey = keyof Payments;
 /**
  * What the public page may know.
  *
- * The shape IS the security boundary. Bank and wire carry only `enabled` and
- * their free-text note — no account number, IFSC, SWIFT or beneficiary field
- * exists on this type, so `/payment` cannot render one even by mistake. That
- * is a stronger guarantee than remembering not to, which is the same reason
- * gateway secrets never appear here either.
+ * This is still the single decision point about what the public site may see —
+ * gateway secrets never appear here at all, and bank/wire account details
+ * appear ONLY when that method's `showOnSite` is ticked.
  *
- * Those details are deliberately private: a published account number and IFSC
- * get scraped, and they let anyone quote real-looking details on a fake
- * invoice. They travel with the quotation instead (see the quote-print view).
+ * They are optional on the type rather than always present, so a page that
+ * forgets to check gets `undefined` instead of a number it should not print.
+ * The default is off: a published account number and IFSC get scraped, and
+ * they let someone quote real-looking details on a fake invoice. When it is
+ * off the details still reach the client on the quotation (see quote-print).
  */
 export type PublicPayments = {
   cashfree: { enabled: boolean };
@@ -108,8 +116,25 @@ export type PublicPayments = {
     qrUrl: string;
     payeeName: string;
   };
-  bank: { enabled: boolean; note: string };
-  wire: { enabled: boolean; note: string };
+  bank: {
+    enabled: boolean;
+    note: string;
+    accountName?: string;
+    accountNumber?: string;
+    ifsc?: string;
+    bankName?: string;
+    branch?: string;
+    accountType?: string;
+  };
+  wire: {
+    enabled: boolean;
+    note: string;
+    beneficiary?: string;
+    accountNumber?: string;
+    swift?: string;
+    bankName?: string;
+    bankAddress?: string;
+  };
 };
 
 export async function getPayments(): Promise<Payments> {
@@ -138,9 +163,44 @@ export async function getPublicPayments(): Promise<PublicPayments> {
     /* Fields are picked one by one rather than spread. A spread would quietly
        start publishing any field added to the schema later — which for these
        two means an account number on a public page. */
-    bank: { enabled: p.bank.enabled, note: p.bank.note },
-    wire: { enabled: p.wire.enabled, note: p.wire.note },
+    bank: {
+      enabled: p.bank.enabled,
+      note: p.bank.note,
+      ...(p.bank.showOnSite
+        ? {
+            accountName: p.bank.accountName,
+            accountNumber: p.bank.accountNumber,
+            ifsc: p.bank.ifsc,
+            bankName: p.bank.bankName,
+            branch: p.bank.branch,
+            accountType: p.bank.accountType,
+          }
+        : {}),
+    },
+    wire: {
+      enabled: p.wire.enabled,
+      note: p.wire.note,
+      ...(p.wire.showOnSite
+        ? {
+            beneficiary: p.wire.beneficiary,
+            accountNumber: p.wire.accountNumber,
+            swift: p.wire.swift,
+            bankName: p.wire.bankName,
+            bankAddress: p.wire.bankAddress,
+          }
+        : {}),
+    },
   };
+}
+
+/** Label/value pairs to print, skipping blanks. Shared by the public page and
+    the quotation so the two never show a different set of fields. */
+export function detailRows(
+  pairs: [string, string | undefined][],
+): { label: string; value: string }[] {
+  return pairs
+    .filter(([, v]) => (v ?? "").trim().length > 0)
+    .map(([label, v]) => ({ label, value: (v ?? "").trim() }));
 }
 
 /**

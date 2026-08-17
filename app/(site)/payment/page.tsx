@@ -19,8 +19,9 @@ import {
 import CtaBand from "@/components/CtaBand";
 import PageHero from "@/components/PageHero";
 import { withBase } from "@/lib/base-path";
-import { getPublicPayments, upiPayUrl } from "@/lib/payments";
+import { detailRows, getPublicPayments, upiPayUrl } from "@/lib/payments";
 import UpiPay from "@/components/payment/UpiPay";
+import PayDetails from "@/components/payment/PayDetails";
 import { SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 
@@ -127,11 +128,42 @@ export default async function PaymentPage() {
   const extraNote = (key: (typeof METHODS)[number]["key"]) =>
     key === "cashfree" || key === "paypal" ? null : enabled[key].note.trim() || null;
 
-  /* The UPI card also covers Indian bank transfer in its title, and the bank
-     details are deliberately NOT public — they go out with the quotation. So
-     this card shows the UPI ID and QR, and the copy keeps promising the account
-     details by invoice, which is now true (see app/admin/quote-print). */
+  /* UPI is always public — a receive-only ID is safe to publish. Bank and wire
+     details are opt-in per method in Settings and default to off, so they
+     travel with the quotation unless someone deliberately turns them on. */
   const upiPay = enabled.upi.enabled ? upiPayUrl(enabled.upi.upiId, enabled.upi.payeeName) : "";
+
+  /* Present only when that method's "show on the website" switch is on —
+     getPublicPayments omits the fields entirely otherwise, so an empty list
+     here means "not published", not "not filled in". */
+  const bankRows = detailRows([
+    ["Account name", enabled.bank.accountName],
+    ["Account no", enabled.bank.accountNumber],
+    ["IFSC", enabled.bank.ifsc],
+    ["Bank", enabled.bank.bankName],
+    ["Branch", enabled.bank.branch],
+    ["Type", enabled.bank.accountType],
+  ]);
+  const wireRows = detailRows([
+    ["Beneficiary", enabled.wire.beneficiary],
+    ["Account / IBAN", enabled.wire.accountNumber],
+    ["SWIFT / BIC", enabled.wire.swift],
+    ["Bank", enabled.wire.bankName],
+    ["Bank address", enabled.wire.bankAddress],
+  ]);
+
+  /* The stock copy promises these details "arrive with your invoice". Leaving
+     that sentence while the account number sits directly beneath it reads as a
+     mistake, so the prose follows the setting. */
+  const copyFor = (m: (typeof METHODS)[number]) => {
+    if (m.key === "upi" && bankRows.length > 0) {
+      return "Instant and free — pay to our UPI ID or by NEFT / IMPS / RTGS. Scan the QR or use the account details below; every payment gets a GST tax invoice.";
+    }
+    if (m.key === "wire" && wireRows.length > 0) {
+      return "For larger projects and retainers worldwide — including Dubai and the wider Gulf. Our SWIFT details are below; transfers typically clear in 1–3 business days.";
+    }
+    return m.copy;
+  };
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -191,7 +223,7 @@ export default async function PaymentPage() {
                   </p>
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-stone-600">{m.copy}</p>
+              <p className="mt-4 text-sm leading-relaxed text-stone-600">{copyFor(m)}</p>
               {m.key === "upi" && enabled.upi.upiId && (
                 <UpiPay
                   upiId={enabled.upi.upiId}
@@ -199,6 +231,11 @@ export default async function PaymentPage() {
                   qrUrl={enabled.upi.qrUrl}
                 />
               )}
+              {/* The bank block lives in the UPI card because that card is
+                  titled "UPI & Indian bank transfer" — there is no separate
+                  bank card. */}
+              {m.key === "upi" && <PayDetails title="Bank transfer" rows={bankRows} />}
+              {m.key === "wire" && <PayDetails title="SWIFT details" rows={wireRows} />}
               {extraNote(m.key) && (
                 <p className="mt-2 rounded-lg bg-orange-50 px-3 py-2 text-xs font-medium text-orange-900">
                   {extraNote(m.key)}
