@@ -3,7 +3,14 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
-import { PaymentsSchema, getPayments, maskPayments } from "@/lib/payments";
+import {
+  BankMethodSchema,
+  PaymentsSchema,
+  UpiMethodSchema,
+  WireMethodSchema,
+  getPayments,
+  maskPayments,
+} from "@/lib/payments";
 import { clientIp } from "@/lib/rate-limit";
 
 /* Secrets are write-only: the client may send a new one, but an empty
@@ -14,16 +21,16 @@ const IncomingGateway = z.object({
   keyId: z.string().trim().max(200),
   keySecret: z.string().trim().max(400).optional(),
 });
-const IncomingSimple = z.object({
-  enabled: z.boolean(),
-  note: z.string().trim().max(160),
-});
+/* The manual-method schemas are reused from lib/payments rather than restated
+   here. They were a duplicate pair that had already drifted — note was max 160
+   there and max 160 here, and adding a field would have needed remembering to
+   add it twice. One definition, two callers. */
 const IncomingSchema = z.object({
   cashfree: IncomingGateway,
   paypal: IncomingGateway,
-  upi: IncomingSimple,
-  bank: IncomingSimple,
-  wire: IncomingSimple,
+  upi: UpiMethodSchema,
+  bank: BankMethodSchema,
+  wire: WireMethodSchema,
 });
 
 export async function GET() {

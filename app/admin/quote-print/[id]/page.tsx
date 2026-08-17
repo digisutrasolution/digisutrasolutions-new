@@ -4,6 +4,7 @@ import { userCan } from "@/lib/auth/rbac";
 import { getCurrentUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { getContactConfig } from "@/lib/contact-config-server";
+import { getPayments } from "@/lib/payments";
 import PrintButton from "@/components/admin/PrintButton";
 import {
   computeTotals,
@@ -24,9 +25,12 @@ export default async function QuotationPrintPage({
   const user = await getCurrentUser();
   if (!user || !userCan(user, "quotes.manage")) redirect("/admin/login");
 
-  const [quote, contact] = await Promise.all([
+  const [quote, contact, pay] = await Promise.all([
     db.quotation.findUnique({ where: { id } }),
     getContactConfig(),
+    /* getPayments(), not getPublicPayments() — this page is behind
+       quotes.manage and its whole job is to carry the private details. */
+    getPayments(),
   ]);
   if (!quote) notFound();
 
@@ -34,6 +38,51 @@ export default async function QuotationPrintPage({
   const t = computeTotals(items, quote.discountPct, quote.taxRatePct, quote.taxMode);
   const cur = quote.currency;
   const fmtDate = (d: Date) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+  /* Built from the same settings the payment page reads, so switching a method
+     off in Settings removes it from the website AND from new quotations rather
+     than leaving one of them stale. Rows with no value are dropped, and a
+     method with nothing filled in produces no block at all — an empty "Bank
+     transfer" heading on a client-facing PDF is worse than its absence. */
+  const row = (label: string, value: string) => (value.trim() ? [{ label, value: value.trim() }] : []);
+  const payBlocks = [
+    pay.upi.enabled && pay.upi.upiId.trim()
+      ? {
+          title: "UPI (India)",
+          rows: [...row("UPI ID", pay.upi.upiId), ...row("Name", pay.upi.payeeName)],
+          note: pay.upi.note.trim() || "",
+        }
+      : null,
+    pay.bank.enabled
+      ? {
+          title: "Bank transfer (India · NEFT / IMPS / RTGS)",
+          rows: [
+            ...row("Account name", pay.bank.accountName),
+            ...row("Account no", pay.bank.accountNumber),
+            ...row("IFSC", pay.bank.ifsc),
+            ...row("Bank", pay.bank.bankName),
+            ...row("Branch", pay.bank.branch),
+            ...row("Type", pay.bank.accountType),
+          ],
+          note: pay.bank.note.trim() || "",
+        }
+      : null,
+    pay.wire.enabled
+      ? {
+          title: "International wire (SWIFT)",
+          rows: [
+            ...row("Beneficiary", pay.wire.beneficiary),
+            ...row("Account / IBAN", pay.wire.accountNumber),
+            ...row("SWIFT / BIC", pay.wire.swift),
+            ...row("Bank", pay.wire.bankName),
+            ...row("Bank address", pay.wire.bankAddress),
+          ],
+          note: pay.wire.note.trim() || "",
+        }
+      : null,
+  ].filter((b): b is { title: string; rows: { label: string; value: string }[]; note: string } =>
+    b !== null && b.rows.length > 0,
+  );
 
   return (
     <div className="mx-auto max-w-3xl bg-white p-8 text-stone-800">
@@ -142,6 +191,42 @@ export default async function QuotationPrintPage({
         <div className="mt-6 border-t border-stone-200 pt-3 text-xs text-stone-600">
           <div className="mb-1 font-bold uppercase tracking-wide text-stone-400">Notes &amp; terms</div>
           <div className="whitespace-pre-wrap">{quote.notes}</div>
+        </div>
+      )}
+
+      {/* How to pay.
+          This is where the private payment details finally land. They are
+          entered in Settings → Payments and deliberately kept off the public
+          site (a published account number gets scraped and lets anyone quote
+          real-looking details on a fake invoice), so the quotation is the
+          channel that actually carries them. Before this block the page had no
+          payment details at all — "details arrive with your invoice" was true
+          nowhere. */}
+      {payBlocks.length > 0 && (
+        <div className="mt-6 break-inside-avoid border-t border-stone-200 pt-3 text-xs text-stone-600">
+          <div className="mb-2 font-bold uppercase tracking-wide text-stone-400">How to pay</div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {payBlocks.map((b) => (
+              <div key={b.title}>
+                <div className="font-bold text-stone-800">{b.title}</div>
+                <dl className="mt-0.5">
+                  {b.rows.map((r) => (
+                    <div key={r.label} className="flex gap-1.5">
+                      <dt className="shrink-0 text-stone-400">{r.label}:</dt>
+                      {/* Tabular figures so an account number cannot be
+                          misread off a printed page. */}
+                      <dd className="break-all font-medium tabular-nums text-stone-800">{r.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {b.note && <p className="mt-0.5 text-stone-500">{b.note}</p>}
+              </div>
+            ))}
+          </div>
+          <p className="mt-2.5 text-[10px] leading-snug text-stone-400">
+            Always confirm these details against a quotation sent from our own
+            domain before transferring. We never change bank details by email.
+          </p>
         </div>
       )}
 

@@ -19,7 +19,8 @@ import {
 import CtaBand from "@/components/CtaBand";
 import PageHero from "@/components/PageHero";
 import { withBase } from "@/lib/base-path";
-import { getPublicPayments } from "@/lib/payments";
+import { getPublicPayments, upiPayUrl } from "@/lib/payments";
+import UpiPay from "@/components/payment/UpiPay";
 import { SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 
@@ -120,7 +121,17 @@ export default async function PaymentPage() {
   // Only advertise methods that are switched on in admin Settings.
   const enabled = await getPublicPayments();
   const methods = METHODS.filter((m) => enabled[m.key]?.enabled !== false);
-  const extraNote = (key: keyof typeof enabled) => enabled[key]?.note?.trim() || null;
+  /* Only the manual methods carry a note — the gateway entries deliberately do
+     not, which is why this narrows by key rather than reaching for `.note` on
+     the union. The compiler catches it now, which is the boundary working. */
+  const extraNote = (key: (typeof METHODS)[number]["key"]) =>
+    key === "cashfree" || key === "paypal" ? null : enabled[key].note.trim() || null;
+
+  /* The UPI card also covers Indian bank transfer in its title, and the bank
+     details are deliberately NOT public — they go out with the quotation. So
+     this card shows the UPI ID and QR, and the copy keeps promising the account
+     details by invoice, which is now true (see app/admin/quote-print). */
+  const upiPay = enabled.upi.enabled ? upiPayUrl(enabled.upi.upiId, enabled.upi.payeeName) : "";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -181,6 +192,13 @@ export default async function PaymentPage() {
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-stone-600">{m.copy}</p>
+              {m.key === "upi" && enabled.upi.upiId && (
+                <UpiPay
+                  upiId={enabled.upi.upiId}
+                  payUrl={upiPay}
+                  qrUrl={enabled.upi.qrUrl}
+                />
+              )}
               {extraNote(m.key) && (
                 <p className="mt-2 rounded-lg bg-orange-50 px-3 py-2 text-xs font-medium text-orange-900">
                   {extraNote(m.key)}

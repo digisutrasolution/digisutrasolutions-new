@@ -16,17 +16,53 @@ export const GatewaySchema = z.object({
   keySecret: z.string().trim().max(400),
 });
 
+/* Every field below this line is `.default("")`.
+   That is not tidiness — getPayments() safeParses the stored SiteSetting and
+   falls back to DEFAULT_PAYMENTS on ANY failure, so one required new field
+   would make the existing row fail to parse and silently wipe the UPI ID and
+   bank details already saved in production. Defaults keep old rows valid. */
+const line = (max = 120) => z.string().trim().max(max).default("");
+
 export const SimpleMethodSchema = z.object({
   enabled: z.boolean(),
-  note: z.string().trim().max(160),
+  /** Free text, kept so anything typed before the structured fields survives. */
+  note: z.string().trim().max(300).default(""),
+});
+
+/** UPI is the only manual method shown publicly. */
+export const UpiMethodSchema = SimpleMethodSchema.extend({
+  upiId: line(80),
+  /** Optional override; blank means "generate the QR from upiId". */
+  qrUrl: line(400),
+  /** Payee name encoded in the QR, so a scanner shows who is being paid. */
+  payeeName: line(80),
+});
+
+/** Indian bank transfer — PRIVATE, sent with invoices. */
+export const BankMethodSchema = SimpleMethodSchema.extend({
+  accountName: line(120),
+  accountNumber: line(40),
+  ifsc: line(20),
+  bankName: line(120),
+  branch: line(120),
+  accountType: line(40),
+});
+
+/** International wire — PRIVATE, sent with invoices. */
+export const WireMethodSchema = SimpleMethodSchema.extend({
+  beneficiary: line(120),
+  accountNumber: line(40),
+  swift: line(20),
+  bankName: line(120),
+  bankAddress: line(200),
 });
 
 export const PaymentsSchema = z.object({
   cashfree: GatewaySchema,
   paypal: GatewaySchema,
-  upi: SimpleMethodSchema,
-  bank: SimpleMethodSchema,
-  wire: SimpleMethodSchema,
+  upi: UpiMethodSchema,
+  bank: BankMethodSchema,
+  wire: WireMethodSchema,
 });
 
 export type Gateway = z.infer<typeof GatewaySchema>;
@@ -35,15 +71,46 @@ export type Payments = z.infer<typeof PaymentsSchema>;
 export const DEFAULT_PAYMENTS: Payments = {
   cashfree: { enabled: true, mode: "test", keyId: "", keySecret: "" },
   paypal: { enabled: true, mode: "test", keyId: "", keySecret: "" },
-  upi: { enabled: true, note: "" },
-  bank: { enabled: true, note: "" },
-  wire: { enabled: true, note: "" },
+  upi: { enabled: true, note: "", upiId: "", qrUrl: "", payeeName: "" },
+  bank: {
+    enabled: true, note: "", accountName: "", accountNumber: "",
+    ifsc: "", bankName: "", branch: "", accountType: "",
+  },
+  wire: {
+    enabled: true, note: "", beneficiary: "", accountNumber: "",
+    swift: "", bankName: "", bankAddress: "",
+  },
 };
 
 export type PaymentMethodKey = keyof Payments;
 
-/** What the public page may know — never credentials. */
-export type PublicPayments = Record<PaymentMethodKey, { enabled: boolean; note?: string }>;
+/**
+ * What the public page may know.
+ *
+ * The shape IS the security boundary. Bank and wire carry only `enabled` and
+ * their free-text note — no account number, IFSC, SWIFT or beneficiary field
+ * exists on this type, so `/payment` cannot render one even by mistake. That
+ * is a stronger guarantee than remembering not to, which is the same reason
+ * gateway secrets never appear here either.
+ *
+ * Those details are deliberately private: a published account number and IFSC
+ * get scraped, and they let anyone quote real-looking details on a fake
+ * invoice. They travel with the quotation instead (see the quote-print view).
+ */
+export type PublicPayments = {
+  cashfree: { enabled: boolean };
+  paypal: { enabled: boolean };
+  upi: {
+    enabled: boolean;
+    note: string;
+    upiId: string;
+    /** Already-resolved image URL, or "" to generate from upiId. */
+    qrUrl: string;
+    payeeName: string;
+  };
+  bank: { enabled: boolean; note: string };
+  wire: { enabled: boolean; note: string };
+};
 
 export async function getPayments(): Promise<Payments> {
   try {
@@ -61,10 +128,33 @@ export async function getPublicPayments(): Promise<PublicPayments> {
   return {
     cashfree: { enabled: p.cashfree.enabled },
     paypal: { enabled: p.paypal.enabled },
-    upi: { enabled: p.upi.enabled, note: p.upi.note },
+    upi: {
+      enabled: p.upi.enabled,
+      note: p.upi.note,
+      upiId: p.upi.upiId,
+      qrUrl: p.upi.qrUrl,
+      payeeName: p.upi.payeeName,
+    },
+    /* Fields are picked one by one rather than spread. A spread would quietly
+       start publishing any field added to the schema later — which for these
+       two means an account number on a public page. */
     bank: { enabled: p.bank.enabled, note: p.bank.note },
     wire: { enabled: p.wire.enabled, note: p.wire.note },
   };
+}
+
+/**
+ * The UPI deep link a QR encodes. Empty when there is no UPI ID, so callers
+ * can treat "" as "nothing to show" rather than rendering a QR that resolves
+ * to a broken payment.
+ */
+export function upiPayUrl(upiId: string, payeeName: string): string {
+  const id = upiId.trim();
+  if (!id) return "";
+  const params = new URLSearchParams({ pa: id });
+  if (payeeName.trim()) params.set("pn", payeeName.trim());
+  // upi:// takes its params after a bare "?" with no host or path.
+  return `upi://pay?${params.toString()}`;
 }
 
 /** Admin view: secrets replaced by a "configured" flag. */
