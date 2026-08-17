@@ -125,8 +125,18 @@ export default async function PaymentPage() {
   /* Only the manual methods carry a note — the gateway entries deliberately do
      not, which is why this narrows by key rather than reaching for `.note` on
      the union. The compiler catches it now, which is the boundary working. */
-  const extraNote = (key: (typeof METHODS)[number]["key"]) =>
-    key === "cashfree" || key === "paypal" ? null : enabled[key].note.trim() || null;
+  const extraNote = (key: (typeof METHODS)[number]["key"]) => {
+    if (key === "cashfree" || key === "paypal") return null;
+    const note = enabled[key].note.trim();
+    if (!note) return null;
+    /* Suppress a note that only repeats the UPI ID. Before the structured
+       fields existed the ID was typed into this free-text box, so it renders
+       as a bare orange bar beside the proper UPI block saying the same thing.
+       The migration script empties it, and this makes the page correct even
+       if that script never runs. */
+    if (key === "upi" && note === enabled.upi.upiId.trim()) return null;
+    return note;
+  };
 
   /* UPI is always public — a receive-only ID is safe to publish. Bank and wire
      details are opt-in per method in Settings and default to off, so they
