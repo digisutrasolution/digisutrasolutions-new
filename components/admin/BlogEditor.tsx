@@ -20,6 +20,7 @@ type EditorPost = {
   body: string;
   category: string;
   tags: string[];
+  authorId: string | null;
   coverUrl: string | null;
   coverWidth: number | null;
   coverHeight: number | null;
@@ -81,6 +82,7 @@ export default function BlogEditor({
     body: post.body,
     category: post.category,
     tags: post.tags.join(", "),
+    authorId: post.authorId ?? "",
     coverUrl: post.coverUrl ?? "",
     seoTitle: post.seoTitle ?? "",
     seoDescription: post.seoDescription ?? "",
@@ -135,6 +137,19 @@ export default function BlogEditor({
     }, 400);
     return () => { cancelled = true; clearTimeout(t); };
   }, [form.coverUrl]);
+
+  /* Active author profiles for the byline picker. Loaded here rather than
+     passed in, because adding a profile in another tab should show up on the
+     next save without re-rendering the whole editor page. */
+  const [authors, setAuthors] = useState<{ id: string; name: string; role: string }[]>([]);
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      const res = await fetch(withBase("/api/authors"));
+      const json = await res.json().catch(() => ({ ok: false }));
+      if (json.ok) setAuthors(json.authors.filter((a: { isActive: boolean }) => a.isActive));
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const [preview, setPreview] = useState(false);
@@ -204,6 +219,7 @@ export default function BlogEditor({
       body: form.body,
       category: form.category || BLOG_CATEGORIES[0].db,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      authorId: form.authorId || null,
       coverUrl: form.coverUrl || null,
       // Sent together, always: a URL with a stale size is worse than no size.
       coverWidth: form.coverUrl ? (coverDims?.width ?? null) : null,
@@ -396,6 +412,31 @@ export default function BlogEditor({
             <div>
               <label htmlFor="be-tags" className={labelCls}>Tags (comma separated)</label>
               <input id="be-tags" value={form.tags} onChange={(e) => set("tags", e.target.value)} className={inputCls} placeholder="seo, local-seo" />
+            </div>
+            <div>
+              <label htmlFor="be-author" className={labelCls}>Author</label>
+              <select
+                id="be-author"
+                value={form.authorId}
+                onChange={(e) => set("authorId", e.target.value)}
+                className={inputCls}
+              >
+                {/* An honest team byline is a real choice, not a blank. Google
+                    objects to invented authors, not to an Organization one. */}
+                <option value="">DigiSutra growth team (no named author)</option>
+                {authors.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}{a.role ? ` — ${a.role}` : ""}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-stone-400">
+                A named author with a photo, bio and LinkedIn is the strongest
+                E-E-A-T signal on the page. Manage profiles under{" "}
+                <Link href="/admin/authors" className="font-semibold text-orange-700 hover:underline">
+                  Authors
+                </Link>.
+              </p>
             </div>
             <div>
               <label htmlFor="be-cover" className={labelCls}>Cover image</label>

@@ -53,6 +53,8 @@ model User {
       role's (except Super Admin, who is always all-powerful). */
   customRole    CustomRole?    @relation("UserCustomRole", fields: [customRoleId], references: [id], onDelete: SetNull)
   customRoleId  String?
+  /// Public author profile, when this team member writes for the blog.
+  authorProfile Author?
 }
 
 /* An admin-defined role: a named permission set assigned to users on top of
@@ -236,6 +238,49 @@ model MediaAsset {
   @@index([createdAt])
 }
 
+/**
+ * A public author profile — the E-E-A-T half of a byline.
+ *
+ * Deliberately NOT the User model. User carries a home address, a mobile
+ * number and a postal code; publishing profiles from it would put staff PII one
+ * careless select away from a public page. It also lets a freelance or guest
+ * writer be credited without an admin seat, and stops a tester automatically
+ * becoming a public author. userId links the two when the author IS staff, but
+ * nothing private is ever read through it.
+ *
+ * Everything here is written by a human in the admin. Nothing about a person's
+ * experience or credentials may be generated or guessed: a fabricated bio is
+ * worse for trust than no bio at all, which is the whole point of the exercise.
+ */
+model Author {
+  id              String    @id @default(cuid())
+  /// URL segment for /author/<slug>.
+  slug            String    @unique
+  name            String
+  /// Job title under the name, e.g. "SEO Lead".
+  role            String    @default("")
+  photoUrl        String?
+  bio             String    @default("")
+  /// The "Experience" in E-E-A-T, stated plainly.
+  experienceYears Int?
+  /// Certifications or notable credentials, one per line.
+  credentials     String[]  @default([])
+  linkedinUrl     String?
+  /// Public contact, optional and separate from any staff account address.
+  email           String?
+  /// Off hides the profile and drops its posts back to the organisation
+  /// byline, without unpicking who wrote what.
+  isActive        Boolean   @default(true)
+  /// Optional link to a staff login. Never a source of public fields.
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId          String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  posts           BlogPost[]
+
+  @@index([isActive, name])
+}
+
 model BlogPost {
   id             String     @id @default(cuid())
   title          String
@@ -258,7 +303,12 @@ model BlogPost {
   seoTitle       String?
   seoDescription String?
   noIndex        Boolean    @default(false)
+  /// The person credited. Null means the article is published under the
+  /// organisation byline, which is the honest answer for genuinely
+  /// team-written pieces — better than inventing a person for E-E-A-T.
+  author         Author?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId       String?
+  /// Legacy free-text label, kept as a fallback for posts predating Author.
   authorName     String?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
@@ -266,6 +316,7 @@ model BlogPost {
 
   @@index([status, publishedAt])
   @@index([category])
+  @@index([authorId])
 }
 
 model Form {

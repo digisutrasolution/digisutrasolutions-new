@@ -10,10 +10,12 @@ import ArticleToc from "@/components/blog/ArticleToc";
 import Reviews from "@/components/blog/Reviews";
 import ShareRail from "@/components/blog/ShareRail";
 import BlogBody from "@/components/BlogBody";
+import AuthorBox from "@/components/blog/AuthorBox";
 import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
 import { categoryByDb, extractHeadings, extractTakeaways } from "@/lib/blog";
+import { authorJsonLd, experienceLabel, initials } from "@/lib/authors";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +23,10 @@ import { absUrl, SITE_URL } from "@/lib/site";
 import { jsonLdScript } from "@/lib/jsonld";
 
 const getPost = cache(async (slug: string) => {
-  return db.blogPost.findUnique({ where: { slug } });
+  /* The author comes with the post: the byline, the box and the JSON-LD all
+     need it, and three lookups of the same row would be three chances to
+     disagree about who wrote the article. */
+  return db.blogPost.findUnique({ where: { slug }, include: { author: true } });
 });
 
 export async function generateMetadata({
@@ -135,6 +140,11 @@ export default async function BlogPostPage({
     post.publishedAt &&
     post.updatedAt.getTime() - post.publishedAt.getTime() > 24 * 60 * 60 * 1000;
 
+  /* One byline, used by the JSON-LD, the header line and the box below.
+     An inactive author drops back to the organisation rather than vanishing —
+     turning a profile off should hide the person, not orphan their work. */
+  const byline = post.author && post.author.isActive ? post.author : null;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -144,7 +154,10 @@ export default async function BlogPostPage({
         description: post.seoDescription ?? post.excerpt,
         datePublished: post.publishedAt?.toISOString(),
         dateModified: post.updatedAt.toISOString(),
-        author: { "@type": "Person", name: post.authorName ?? "DigiSutra Solutions" },
+        /* A bare Person name carries no reputation. authorJsonLd emits a url to a
+           real profile plus sameAs, or an honest Organization when nobody is
+           credited. */
+        author: authorJsonLd(byline),
         publisher: { "@type": "Organization", name: "DigiSutra Solutions" },
         mainEntityOfPage: url,
         ...(post.coverUrl ? { image: absUrl(post.coverUrl) } : {}),
@@ -245,16 +258,45 @@ export default async function BlogPostPage({
             {post.title}
           </h1>
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F26419] text-[11px] font-bold text-white">
-              {(post.authorName ?? "DigiSutra")
-                .split(/\s+/)
-                .map((w) => w[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase()}
+            {/* Photo and a link to a real profile, not initials and a dead
+                string. The name is the anchor Google follows to decide whether
+                the byline means anything. */}
+            <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#F26419] text-[11px] font-bold text-white">
+              {byline?.photoUrl ? (
+                <Image
+                  src={withBase(byline.photoUrl)}
+                  alt=""
+                  fill
+                  sizes="36px"
+                  className="object-cover"
+                />
+              ) : (
+                initials(byline?.name ?? post.authorName ?? "DigiSutra")
+              )}
             </span>
             <p className="text-sm text-stone-500">
-              {post.authorName ?? "DigiSutra team"}
+              {byline ? (
+                <>
+                  <Link
+                    href={`/author/${byline.slug}`}
+                    className="font-semibold text-stone-700 hover:text-orange-700"
+                  >
+                    {byline.name}
+                  </Link>
+                  {byline.role && <span className="text-stone-400"> · {byline.role}</span>}
+                  {experienceLabel(byline.experienceYears) && (
+                    <span className="text-stone-400">
+                      {" "}
+                      · {experienceLabel(byline.experienceYears)}
+                    </span>
+                  )}
+                </>
+              ) : (
+                /* No named author: say the team wrote it. The old code printed
+                   post.authorName here, which is how "Marketing Manager" ended
+                   up presented as a person. */
+                "DigiSutra growth team"
+              )}
               {post.publishedAt && <> · {dateFmt(post.publishedAt)}</>}
               {wasUpdated && (
                 <>
@@ -341,21 +383,10 @@ export default async function BlogPostPage({
             </div>
           )}
 
-          {/* Author box (E-E-A-T) */}
-          <div className="mt-10 flex items-center gap-4 rounded-2xl border border-stone-200 bg-white p-5">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F26419] text-sm font-bold text-white">
-              DS
-            </span>
-            <div>
-              <p className="font-display text-sm font-bold text-stone-900">
-                Written by the DigiSutra growth team
-              </p>
-              <p className="mt-0.5 text-sm leading-relaxed text-stone-500">
-                Digital marketing agency in Noida, India — SEO, ads and AI
-                automation for startups and SMBs across 12 countries.
-              </p>
-            </div>
-          </div>
+          {/* Author box (E-E-A-T). Was hardcoded to the growth team, which
+              contradicted the byline at the top whenever a person was
+              credited — one source now feeds both. */}
+          <AuthorBox author={byline} />
 
           <Reviews postSlug={post.slug} reviews={reviews} average={avgRating} />
 

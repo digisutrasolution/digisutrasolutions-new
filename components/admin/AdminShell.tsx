@@ -47,6 +47,7 @@ import {
   Menu,
   X,
   Quote,
+  UserRound,
 } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/auth/rbac";
 import type { SessionUser } from "@/lib/auth/session";
@@ -79,6 +80,7 @@ const NAV_GROUPS = [
     items: [
       { label: "Pages", href: "/admin/pages", icon: FileText, permission: "pages.view" },
       { label: "Blog", href: "/admin/blog", icon: Newspaper, permission: "blog.manage" },
+      { label: "Authors", href: "/admin/authors", icon: UserRound, permission: "blog.manage" },
       { label: "Media", href: "/admin/media", icon: ImageIcon, permission: "pages.view" },
       { label: "Videos", href: "/admin/videos", icon: Video, permission: "pages.view" },
       { label: "Forms", href: "/admin/forms", icon: ClipboardList, permission: "forms.manage" },

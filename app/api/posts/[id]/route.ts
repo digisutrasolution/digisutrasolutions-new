@@ -23,6 +23,10 @@ const UpdatePostSchema = z
     body: z.string().max(100000).optional(),
     category: z.string().trim().min(1).max(60).optional(),
     tags: z.array(z.string().trim().min(1).max(40)).max(15).optional(),
+    /* Listed for the same reason as the cover dimensions: zod strips what it
+       does not know, and the byline silently reverting to the team would be a
+       maddening bug to chase. */
+    authorId: z.string().max(60).nullable().optional(),
     coverUrl: z.string().trim().max(500).nullable().optional(),
     /* Must be listed here or zod strips them and the editor's dimensions
        appear to save and silently vanish — the same omission that lost the
@@ -85,6 +89,22 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json(
         { ok: false, error: "A post with this slug already exists." },
         { status: 409 },
+      );
+    }
+  }
+
+  /* Check the author exists before Prisma does. A bad id would otherwise
+     surface as a raw foreign-key violation and a 500, which tells the person
+     saving the article nothing useful. */
+  if (parsed.data.authorId) {
+    const author = await db.author.findUnique({
+      where: { id: parsed.data.authorId },
+      select: { id: true },
+    });
+    if (!author) {
+      return NextResponse.json(
+        { ok: false, error: "That author profile no longer exists." },
+        { status: 400 },
       );
     }
   }
