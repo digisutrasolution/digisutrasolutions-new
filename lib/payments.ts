@@ -9,11 +9,31 @@ import { db } from "@/lib/db";
    wired yet — these settings control which methods /payment advertises
    and hold the keys for when it is. */
 
+/* Editable text for a method's card on /payment.
+
+   Every field is optional and blank by default. The page keeps its written
+   copy as the fallback and an admin value overrides it field by field — so an
+   empty box means "use the standard wording", never a blank card. Making these
+   editable should not create a way to publish an empty page. */
+export const CardContentSchema = z.object({
+  title: z.string().trim().max(80).default(""),
+  /** The small line under the title, e.g. "India · ₹". */
+  region: z.string().trim().max(40).default(""),
+  copy: z.string().trim().max(500).default(""),
+  points: z.array(z.string().trim().min(1).max(90)).max(6).default([]),
+});
+
+export type CardContent = z.infer<typeof CardContentSchema>;
+
+/** Blank card content — the "inherit the code copy" state. */
+const emptyCard: CardContent = { title: "", region: "", copy: "", points: [] };
+
 export const GatewaySchema = z.object({
   enabled: z.boolean(),
   mode: z.enum(["test", "live"]),
   keyId: z.string().trim().max(200),
   keySecret: z.string().trim().max(400),
+  card: CardContentSchema.default(emptyCard),
 });
 
 /* Every field below this line is `.default("")`.
@@ -31,6 +51,7 @@ export const SimpleMethodSchema = z.object({
 
 /** UPI is the only manual method shown publicly. */
 export const UpiMethodSchema = SimpleMethodSchema.extend({
+  card: CardContentSchema.default(emptyCard),
   upiId: line(80),
   /** Optional override; blank means "generate the QR from upiId". */
   qrUrl: line(400),
@@ -57,6 +78,10 @@ export const BankMethodSchema = SimpleMethodSchema.extend({
 
 /** International wire — private unless showOnSite is ticked. */
 export const WireMethodSchema = SimpleMethodSchema.extend({
+  /* No `card` on BankMethodSchema: bank has no card of its own on /payment —
+     its details render inside the UPI card, which is titled "UPI & Indian bank
+     transfer". Adding editable text there would be a box that changes nothing. */
+  card: CardContentSchema.default(emptyCard),
   showOnSite,
   beneficiary: line(120),
   accountNumber: line(40),
@@ -77,16 +102,16 @@ export type Gateway = z.infer<typeof GatewaySchema>;
 export type Payments = z.infer<typeof PaymentsSchema>;
 
 export const DEFAULT_PAYMENTS: Payments = {
-  cashfree: { enabled: true, mode: "test", keyId: "", keySecret: "" },
-  paypal: { enabled: true, mode: "test", keyId: "", keySecret: "" },
-  upi: { enabled: true, note: "", upiId: "", qrUrl: "", payeeName: "" },
+  cashfree: { enabled: true, mode: "test", keyId: "", keySecret: "", card: { ...emptyCard } },
+  paypal: { enabled: true, mode: "test", keyId: "", keySecret: "", card: { ...emptyCard } },
+  upi: { enabled: true, note: "", upiId: "", qrUrl: "", payeeName: "", card: { ...emptyCard } },
   bank: {
     enabled: true, showOnSite: false, note: "", accountName: "", accountNumber: "",
     ifsc: "", bankName: "", branch: "", accountType: "",
   },
   wire: {
     enabled: true, showOnSite: false, note: "", beneficiary: "", accountNumber: "",
-    swift: "", bankName: "", bankAddress: "",
+    swift: "", bankName: "", bankAddress: "", card: { ...emptyCard },
   },
 };
 
@@ -106,10 +131,11 @@ export type PaymentMethodKey = keyof Payments;
  * off the details still reach the client on the quotation (see quote-print).
  */
 export type PublicPayments = {
-  cashfree: { enabled: boolean };
-  paypal: { enabled: boolean };
+  cashfree: { enabled: boolean; card: CardContent };
+  paypal: { enabled: boolean; card: CardContent };
   upi: {
     enabled: boolean;
+    card: CardContent;
     note: string;
     upiId: string;
     /** Already-resolved image URL, or "" to generate from upiId. */
@@ -128,6 +154,7 @@ export type PublicPayments = {
   };
   wire: {
     enabled: boolean;
+    card: CardContent;
     note: string;
     beneficiary?: string;
     accountNumber?: string;
@@ -151,10 +178,11 @@ export async function getPayments(): Promise<Payments> {
 export async function getPublicPayments(): Promise<PublicPayments> {
   const p = await getPayments();
   return {
-    cashfree: { enabled: p.cashfree.enabled },
-    paypal: { enabled: p.paypal.enabled },
+    cashfree: { enabled: p.cashfree.enabled, card: p.cashfree.card },
+    paypal: { enabled: p.paypal.enabled, card: p.paypal.card },
     upi: {
       enabled: p.upi.enabled,
+      card: p.upi.card,
       note: p.upi.note,
       upiId: p.upi.upiId,
       qrUrl: p.upi.qrUrl,
@@ -179,6 +207,7 @@ export async function getPublicPayments(): Promise<PublicPayments> {
     },
     wire: {
       enabled: p.wire.enabled,
+      card: p.wire.card,
       note: p.wire.note,
       ...(p.wire.showOnSite
         ? {
@@ -224,6 +253,8 @@ export function maskPayments(p: Payments) {
     mode: g.mode,
     keyId: g.keyId,
     hasSecret: g.keySecret.length > 0,
+    // Card copy is not a credential — the admin needs it back to edit it.
+    card: g.card,
   });
   return {
     cashfree: mask(p.cashfree),

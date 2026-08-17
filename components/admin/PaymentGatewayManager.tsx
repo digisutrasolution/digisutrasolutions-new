@@ -5,9 +5,16 @@ import { withBase } from "@/lib/base-path";
 import { useState } from "react";
 import { AlertTriangle, Eye, EyeOff, Save } from "lucide-react";
 import UploadButton from "@/components/admin/UploadButton";
-import type { Payments } from "@/lib/payments";
+import type { CardContent, Payments } from "@/lib/payments";
+import { paymentCardDefaults } from "@/lib/payment-cards";
 
-type GatewayView = { enabled: boolean; mode: "test" | "live"; keyId: string; hasSecret: boolean };
+type GatewayView = {
+  enabled: boolean;
+  mode: "test" | "live";
+  keyId: string;
+  hasSecret: boolean;
+  card: CardContent;
+};
 
 /* The manual methods are typed straight off the zod schema instead of being
    restated here, so a field added to lib/payments cannot be silently missing
@@ -54,6 +61,90 @@ function Field({
       {children}
       {hint && <p className="mt-1 text-[11px] leading-snug text-stone-400">{hint}</p>}
     </div>
+  );
+}
+
+/* Editable copy for a method's card on /payment.
+
+   Collapsed behind a native <details> — no JS, keyboard-accessible for free,
+   and it keeps four extra field groups from burying the settings that are
+   actually used day to day.
+
+   Every box is optional: blank means "use the standard wording". The
+   placeholders show what that wording currently is, so the screen answers
+   "what will this say if I leave it alone" without anyone opening the site. */
+function CardText({
+  value,
+  onChange,
+  defaults,
+}: {
+  value: CardContent;
+  onChange: (patch: Partial<CardContent>) => void;
+  defaults: { title: string; region: string; copy: string; points: string[] };
+}) {
+  return (
+    <details className="rounded-lg border border-stone-200 dark:border-stone-800">
+      <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-stone-600 dark:text-stone-300">
+        Card text on the payment page
+        <span className="ml-1.5 font-normal text-stone-400">
+          {value.title || value.region || value.copy || value.points.length
+            ? "· edited"
+            : "· using the standard wording"}
+        </span>
+      </summary>
+      <div className="space-y-3 border-t border-stone-200 p-3 dark:border-stone-800">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Title">
+            <input
+              value={value.title}
+              onChange={(e) => onChange({ title: e.target.value })}
+              placeholder={defaults.title}
+              maxLength={80}
+              className={`${fieldCls} w-full`}
+            />
+          </Field>
+          <Field label="Region line">
+            <input
+              value={value.region}
+              onChange={(e) => onChange({ region: e.target.value })}
+              placeholder={defaults.region}
+              maxLength={40}
+              className={`${fieldCls} w-full`}
+            />
+          </Field>
+        </div>
+        <Field label="Blurb">
+          <textarea
+            value={value.copy}
+            onChange={(e) => onChange({ copy: e.target.value })}
+            placeholder={defaults.copy}
+            rows={3}
+            maxLength={500}
+            className={`${fieldCls} w-full`}
+          />
+        </Field>
+        <Field label="Bullets" hint="One per line, up to six.">
+          <textarea
+            /* Stored as an array, edited as lines — the natural way to type a
+               short list. Blank lines are dropped on the way in so a stray
+               return cannot become an empty bullet on the page. */
+            value={value.points.join("\n")}
+            onChange={(e) =>
+              onChange({
+                points: e.target.value
+                  .split("\n")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+                  .slice(0, 6),
+              })
+            }
+            placeholder={defaults.points.join("\n")}
+            rows={3}
+            className={`${fieldCls} w-full`}
+          />
+        </Field>
+      </div>
+    </details>
   );
 }
 
@@ -261,6 +352,16 @@ export default function PaymentGatewayManager({ initial }: { initial: PaymentsVi
                 />
               </div>
             </div>
+
+            <div className="mt-3">
+              <CardText
+                value={gw.card}
+                defaults={paymentCardDefaults(g.key)}
+                onChange={(patch) =>
+                  setGateway(g.key, { card: { ...gw.card, ...patch } })
+                }
+              />
+            </div>
           </div>
         );
       })}
@@ -317,6 +418,11 @@ export default function PaymentGatewayManager({ initial }: { initial: PaymentsVi
             )}
           </div>
         </Field>
+        <CardText
+          value={p.upi.card}
+          defaults={paymentCardDefaults("upi")}
+          onChange={(patch) => setSimple("upi", { card: { ...p.upi.card, ...patch } })}
+        />
       </MethodCard>
 
       {/* ---- Bank + wire: entered here, sent with invoices ---- */}
@@ -377,6 +483,11 @@ export default function PaymentGatewayManager({ initial }: { initial: PaymentsVi
             </Field>
           </div>
         </div>
+        <CardText
+          value={p.wire.card}
+          defaults={paymentCardDefaults("wire")}
+          onChange={(patch) => setSimple("wire", { card: { ...p.wire.card, ...patch } })}
+        />
       </MethodCard>
 
       <div className="flex items-center gap-3">

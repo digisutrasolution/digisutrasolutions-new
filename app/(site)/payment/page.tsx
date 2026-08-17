@@ -20,6 +20,7 @@ import CtaBand from "@/components/CtaBand";
 import PageHero from "@/components/PageHero";
 import { withBase } from "@/lib/base-path";
 import { detailRows, getPublicPayments, upiPayUrl } from "@/lib/payments";
+import { PAYMENT_CARD_DEFAULTS } from "@/lib/payment-cards";
 import UpiPay from "@/components/payment/UpiPay";
 import PayDetails from "@/components/payment/PayDetails";
 import { SITE_URL } from "@/lib/site";
@@ -47,40 +48,16 @@ const ACCEPT_CHIPS = [
   { src: "/payment-methods/bank-transfer.webp", label: "Bank transfer" },
 ];
 
-const METHODS = [
-  {
-    key: "upi" as const,
-    icon: Smartphone,
-    title: "UPI & Indian bank transfer",
-    region: "India · ₹",
-    copy: "Instant and free — pay to our UPI ID or by NEFT / IMPS / RTGS. The UPI ID and account details arrive with your invoice, along with a scan-and-pay QR code.",
-    points: ["Settles instantly", "Zero payment fees", "GST tax invoice within 24h"],
-  },
-  {
-    key: "cashfree" as const,
-    icon: CreditCard,
-    title: "Cards, netbanking & wallets — via Cashfree",
-    region: "India · ₹",
-    copy: "Every invoice can carry a secure Cashfree payment link: credit and debit cards (Visa, Mastercard, RuPay), netbanking across major banks, and popular wallets.",
-    points: ["PCI-DSS secure checkout", "We never see or store card details", "Link valid until paid"],
-  },
-  {
-    key: "paypal" as const,
-    icon: Wallet,
-    title: "PayPal",
-    region: "International · $",
-    copy: "The easiest route for clients in the USA, UK, Australia and Europe. We invoice in USD directly through PayPal — pay with your PayPal balance or any linked card.",
-    points: ["USD invoicing", "PayPal buyer protection", "No Indian bank account needed"],
-  },
-  {
-    key: "wire" as const,
-    icon: Landmark,
-    title: "International wire (SWIFT)",
-    region: "USD · AED · GBP · EUR",
-    copy: "For larger projects and retainers worldwide — including Dubai and the wider Gulf. SWIFT details are shared with your invoice; transfers typically clear in 1–3 business days.",
-    points: ["USD, AED, GBP or EUR", "Best for ₹1L+ engagements", "FIRC provided on request"],
-  },
-];
+/* Icons only — the wording lives in lib/payment-cards so the settings screen
+   can show the very same strings as placeholders. */
+const METHOD_ICONS = {
+  upi: Smartphone,
+  cashfree: CreditCard,
+  paypal: Wallet,
+  wire: Landmark,
+} as const;
+
+const METHODS = PAYMENT_CARD_DEFAULTS.map((c) => ({ ...c, icon: METHOD_ICONS[c.key] }));
 
 const CURRENCIES = [
   {
@@ -165,7 +142,7 @@ export default async function PaymentPage() {
   /* The stock copy promises these details "arrive with your invoice". Leaving
      that sentence while the account number sits directly beneath it reads as a
      mistake, so the prose follows the setting. */
-  const copyFor = (m: (typeof METHODS)[number]) => {
+  const autoCopy = (m: (typeof METHODS)[number]) => {
     if (m.key === "upi" && bankRows.length > 0) {
       return "Instant and free — pay to our UPI ID or by NEFT / IMPS / RTGS. Scan the QR or use the account details below; every payment gets a GST tax invoice.";
     }
@@ -173,6 +150,21 @@ export default async function PaymentPage() {
       return "For larger projects and retainers worldwide — including Dubai and the wider Gulf. Our SWIFT details are below; transfers typically clear in 1–3 business days.";
     }
     return m.copy;
+  };
+
+  /* What a card actually renders: the wording below is the default, and
+     anything typed in Settings → Payment methods overrides it FIELD BY FIELD.
+     A blank box therefore means "use the standard wording" rather than
+     "publish an empty card" — making copy editable should not create a way to
+     wipe the page by clearing an input. */
+  const cardOf = (m: (typeof METHODS)[number]) => {
+    const c = enabled[m.key].card;
+    return {
+      title: c.title || m.title,
+      region: c.region || m.region,
+      copy: c.copy || autoCopy(m),
+      points: c.points.length > 0 ? c.points : m.points,
+    };
   };
   const jsonLd = {
     "@context": "https://schema.org",
@@ -217,9 +209,11 @@ export default async function PaymentPage() {
       <section className="mx-auto max-w-[1280px] px-6 py-12 sm:py-16">
         {/* Methods */}
         <div className="grid gap-5 lg:grid-cols-2">
-          {methods.map((m) => (
+          {methods.map((m) => {
+            const card = cardOf(m);
+            return (
             <div
-              key={m.title}
+              key={m.key}
               className="group rounded-2xl border border-stone-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#F26419] hover:shadow-[0_16px_40px_rgba(28,25,23,0.08)] sm:p-7"
             >
               <div className="flex flex-wrap items-center gap-3">
@@ -227,13 +221,13 @@ export default async function PaymentPage() {
                   <m.icon size={20} aria-hidden />
                 </span>
                 <div>
-                  <h2 className="font-display text-lg font-bold text-stone-900">{m.title}</h2>
+                  <h2 className="font-display text-lg font-bold text-stone-900">{card.title}</h2>
                   <p className="text-xs font-semibold uppercase tracking-wide text-orange-800">
-                    {m.region}
+                    {card.region}
                   </p>
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-stone-600">{copyFor(m)}</p>
+              <p className="mt-4 text-sm leading-relaxed text-stone-600">{card.copy}</p>
               {m.key === "upi" && enabled.upi.upiId && (
                 <UpiPay
                   upiId={enabled.upi.upiId}
@@ -252,7 +246,7 @@ export default async function PaymentPage() {
                 </p>
               )}
               <ul className="mt-4 space-y-1.5">
-                {m.points.map((p) => (
+                {card.points.map((p) => (
                   <li key={p} className="flex items-center gap-2 text-sm text-stone-700">
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
                     {p}
@@ -260,7 +254,8 @@ export default async function PaymentPage() {
                 ))}
               </ul>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Currencies */}

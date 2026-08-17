@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { db } from "@/lib/db";
 import {
   BankMethodSchema,
+  CardContentSchema,
   PaymentsSchema,
   UpiMethodSchema,
   WireMethodSchema,
@@ -15,11 +16,17 @@ import { clientIp } from "@/lib/rate-limit";
 
 /* Secrets are write-only: the client may send a new one, but an empty
    string means "keep what is stored" and GET never returns them. */
+/* Mirrors GatewaySchema except that keySecret is optional (blank = keep the
+   stored one). `card` must be listed: zod strips unknown keys, so leaving it
+   out would make gateway card text appear to save and silently vanish — the
+   exact drift the note below warns about, which is why every field added to
+   GatewaySchema has to be added here too. */
 const IncomingGateway = z.object({
   enabled: z.boolean(),
   mode: z.enum(["test", "live"]),
   keyId: z.string().trim().max(200),
   keySecret: z.string().trim().max(400).optional(),
+  card: CardContentSchema.default({ title: "", region: "", copy: "", points: [] }),
 });
 /* The manual-method schemas are reused from lib/payments rather than restated
    here. They were a duplicate pair that had already drifted — note was max 160
