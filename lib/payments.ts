@@ -85,6 +85,10 @@ export const WireMethodSchema = SimpleMethodSchema.extend({
   showOnSite,
   beneficiary: line(120),
   accountNumber: line(40),
+  /* The beneficiary bank's DOMESTIC code — US ABA, UK sort code, AU BSB. One
+     field rather than three near-duplicates: a business has one wire account,
+     and which national scheme it belongs to is obvious from the bank. */
+  routingNumber: line(20),
   swift: line(20),
   bankName: line(120),
   bankAddress: line(200),
@@ -111,7 +115,7 @@ export const DEFAULT_PAYMENTS: Payments = {
   },
   wire: {
     enabled: true, showOnSite: false, note: "", beneficiary: "", accountNumber: "",
-    swift: "", bankName: "", bankAddress: "", card: { ...emptyCard },
+    routingNumber: "", swift: "", bankName: "", bankAddress: "", card: { ...emptyCard },
   },
 };
 
@@ -158,6 +162,7 @@ export type PublicPayments = {
     note: string;
     beneficiary?: string;
     accountNumber?: string;
+    routingNumber?: string;
     swift?: string;
     bankName?: string;
     bankAddress?: string;
@@ -213,6 +218,7 @@ export async function getPublicPayments(): Promise<PublicPayments> {
         ? {
             beneficiary: p.wire.beneficiary,
             accountNumber: p.wire.accountNumber,
+            routingNumber: p.wire.routingNumber,
             swift: p.wire.swift,
             bankName: p.wire.bankName,
             bankAddress: p.wire.bankAddress,

@@ -134,6 +134,7 @@ export default async function PaymentPage() {
   const wireRows = detailRows([
     ["Beneficiary", enabled.wire.beneficiary],
     ["Account / IBAN", enabled.wire.accountNumber],
+    ["Routing number", enabled.wire.routingNumber],
     ["SWIFT / BIC", enabled.wire.swift],
     ["Bank", enabled.wire.bankName],
     ["Bank address", enabled.wire.bankAddress],

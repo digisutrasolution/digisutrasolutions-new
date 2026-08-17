@@ -471,7 +471,13 @@ export default function PaymentGatewayManager({ initial }: { initial: PaymentsVi
           <Field label="Account / IBAN">
             <input value={p.wire.accountNumber} onChange={(e) => setSimple("wire", { accountNumber: e.target.value })} maxLength={40} className={`${fieldCls} w-full font-mono`} />
           </Field>
-          <Field label="SWIFT / BIC">
+          <Field label="Routing number" hint="US ABA, UK sort code or AU BSB — the beneficiary bank's domestic code.">
+            <input value={p.wire.routingNumber} onChange={(e) => setSimple("wire", { routingNumber: e.target.value })} maxLength={20} className={`${fieldCls} w-full font-mono`} />
+          </Field>
+          {/* The hint is guidance, not validation. This box held 026073150 — a
+              routing number — because nothing said what a BIC looks like, and
+              that value printed on client quotations labelled "SWIFT / BIC". */}
+          <Field label="SWIFT / BIC" hint="8 or 11 characters, starting with letters (e.g. ABCDUS33).">
             <input value={p.wire.swift} onChange={(e) => setSimple("wire", { swift: e.target.value.toUpperCase() })} maxLength={20} className={`${fieldCls} w-full font-mono`} />
           </Field>
           <Field label="Bank name">

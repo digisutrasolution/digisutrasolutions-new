@@ -91,6 +91,9 @@ export default async function QuotationPrintPage({
       [
         ["Beneficiary", pay.wire.beneficiary],
         ["Account / IBAN", pay.wire.accountNumber],
+        /* Routing sits next to the account number — that is the pair a domestic
+           US transfer needs; SWIFT follows for the international route. */
+        ["Routing number", pay.wire.routingNumber],
         ["SWIFT / BIC", pay.wire.swift],
         ["Bank", pay.wire.bankName],
         ["Bank address", pay.wire.bankAddress],
