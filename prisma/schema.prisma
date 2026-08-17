@@ -918,6 +918,10 @@ model CommLog {
   id         String      @id @default(cuid())
   lead       Lead?       @relation(fields: [leadId], references: [id], onDelete: Cascade)
   leadId     String?
+  /// Set when this message delivered a quotation, which gives the quotation a
+  /// send history (who, when, to whom, opened) without a second mechanism.
+  quotation   Quotation? @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  quotationId String?
   channel    CommChannel
   templateId String?
   toAddress  String
@@ -935,6 +939,7 @@ model CommLog {
   createdAt  DateTime    @default(now())
 
   @@index([leadId, createdAt])
+  @@index([quotationId, createdAt])
   @@index([channel, createdAt])
 }
 
@@ -977,6 +982,13 @@ model Quotation {
   status     QuotationStatus @default(DRAFT)
   validUntil DateTime?
 
+  /// Token for the client-facing /q/<token> page. Minted on the first send and
+  /// reused on every resend, so "viewed" keeps meaning "the client opened the
+  /// quotation" rather than resetting each time we chase them.
+  publicToken String?  @unique
+  /// First time the client opened that page.
+  viewedAt    DateTime?
+
   approvedById   String?
   approvedByName String?
   approvedAt     DateTime?
@@ -987,6 +999,7 @@ model Quotation {
   updatedAt     DateTime @updatedAt
   attachments   Attachment[]
   payments      Payment[]
+  comms         CommLog[]
 
   @@unique([number, version])
   @@index([status, createdAt])

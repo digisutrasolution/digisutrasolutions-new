@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Copy, FileText, Plus, Printer, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Eye, FileText, Mail, Paperclip, Plus, Printer, Trash2 } from "lucide-react";
 import { withBase } from "@/lib/base-path";
 import Attachments from "@/components/admin/Attachments";
 import {
@@ -42,10 +42,25 @@ type QuoteData = {
 };
 
 const inputCls =
-  "w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none transition-colors focus:border-orange-500 disabled:opacity-60 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100";
+  "w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none transition-colors focus:border-orange-500 disabled:cursor-not-allowed disabled:border-dashed disabled:bg-stone-100 disabled:text-stone-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:disabled:bg-stone-800";
 
 const EDITABLE = new Set(["DRAFT", "PENDING_APPROVAL", "REJECTED"]);
 const blankItem = (): QuoteItem => ({ description: "", qty: 1, unitPrice: 0, discountPct: 0 });
+
+type Send = {
+  id: string; toAddress: string; subject: string; status: string;
+  openedAt: string | null; attachments: string[]; userName: string | null; createdAt: string;
+};
+type QuoteFile = { id: string; originalName: string; size: number };
+
+const MAX_TOTAL_BYTES = 10 * 1024 * 1024;
+function fmtSize(b: number): string {
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${Math.round(b / 1024)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+}
+const fmtWhen = (d: string) =>
+  new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
 export default function QuotationEditor({
   initial,
@@ -62,6 +77,72 @@ export default function QuotationEditor({
 
   const locked = !isNew && !EDITABLE.has(q.status ?? "DRAFT");
   const set = <K extends keyof QuoteData>(k: K, v: QuoteData[K]) => setQ((p) => ({ ...p, [k]: v }));
+
+  /* Send state. Loaded lazily rather than passed from the server component,
+     because it changes every time the client opens the link and the editor is
+     the only place that cares. */
+  const [sends, setSends] = useState<Send[]>([]);
+  const [viewedAt, setViewedAt] = useState<string | null>(null);
+  const [files, setFiles] = useState<QuoteFile[]>([]);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [to, setTo] = useState(initial.clientEmail);
+  const [subject, setSubject] = useState("");
+  const [note, setNote] = useState("");
+  const [picked, setPicked] = useState<string[]>([]);
+
+  const ref = quoteRef(q.number ?? "", q.version ?? 1);
+  const lastSend = sends[0];
+  const opened = sends.find((s) => s.openedAt)?.openedAt ?? null;
+  const selected = files.filter((f) => picked.includes(f.id));
+  const totalBytes = selected.reduce((n, f) => n + f.size, 0);
+  const overSize = totalBytes > MAX_TOTAL_BYTES;
+
+  const loadSends = useCallback(async () => {
+    if (isNew) return;
+    const [s, f] = await Promise.all([
+      fetch(withBase(`/api/quotations/${initial.id}/send`)).then((r) => r.json()).catch(() => ({ ok: false })),
+      fetch(withBase(`/api/attachments?quotationId=${initial.id}`)).then((r) => r.json()).catch(() => ({ ok: false })),
+    ]);
+    if (s.ok) { setSends(s.sends); setViewedAt(s.viewedAt); }
+    if (f.ok) setFiles(f.attachments);
+  }, [initial.id, isNew]);
+
+  useEffect(() => {
+    const t = setTimeout(() => void loadSends(), 0);
+    return () => clearTimeout(t);
+  }, [loadSends]);
+
+  function openCompose() {
+    setSubject(`Quotation ${ref} from DigiSutra Solutions`);
+    setNote(
+      `Hi ${(initial.clientName || "there").split(/\s+/)[0]},\n\n` +
+        `Thank you for your time. Your quotation is ready — you can view it using the button below.\n\n` +
+        `Do come back to us with any questions and we will be glad to walk you through it.\n\n` +
+        `Best regards,\nDigiSutra Solutions`,
+    );
+    setMsg("");
+    setComposeOpen(true);
+  }
+
+  async function sendToClient() {
+    if (!to.trim()) { setMsg("A client email address is required."); return; }
+    if (overSize) { setMsg(`Attachments total ${fmtSize(totalBytes)} — the limit is ${fmtSize(MAX_TOTAL_BYTES)}.`); return; }
+    setBusy(true); setMsg("");
+    try {
+      const res = await fetch(withBase(`/api/quotations/${initial.id}/send`), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toAddress: to.trim(), subject, body: note, attachmentIds: picked }),
+      });
+      const json = await res.json();
+      if (!json.ok) { setMsg(json.error ?? "Send failed."); return; }
+      setMsg(`Sent to ${to.trim()}.`);
+      setComposeOpen(false);
+      setPicked([]);
+      setQ((p) => ({ ...p, status: json.status }));
+      await loadSends();
+      router.refresh();
+    } finally { setBusy(false); }
+  }
 
   const totals = useMemo(
     () => computeTotals(q.items, q.discountPct, q.taxRatePct, q.taxMode),
@@ -170,7 +251,19 @@ export default function QuotationEditor({
           {q.status === "DRAFT" && <Action onClick={() => transition("PENDING_APPROVAL")} busy={busy}>Submit for approval</Action>}
           {q.status === "PENDING_APPROVAL" && canApprove && <Action onClick={() => transition("APPROVED")} busy={busy} tone="green">Approve</Action>}
           {q.status === "PENDING_APPROVAL" && canApprove && <Action onClick={() => transition("REJECTED")} busy={busy} tone="red">Reject</Action>}
-          {(q.status === "APPROVED" || q.status === "DRAFT") && <Action onClick={() => transition("SENT")} busy={busy}>Mark sent</Action>}
+          {/* The real send. "Mark sent" below only ever moved a status — a
+              quotation was marked Sent and the client never heard from us. */}
+          {q.status !== "SUPERSEDED" && (
+            <button
+              onClick={openCompose}
+              disabled={busy || !q.clientEmail}
+              title={q.clientEmail ? undefined : "Add a client email address first"}
+              className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-500 disabled:opacity-50"
+            >
+              <Mail size={13} /> {lastSend ? "Resend to client" : "Email to client"}
+            </button>
+          )}
+          {(q.status === "APPROVED" || q.status === "DRAFT") && <Action onClick={() => transition("SENT")} busy={busy}>Mark sent (no email)</Action>}
           {q.status === "SENT" && <Action onClick={() => transition("ACCEPTED")} busy={busy} tone="green">Mark accepted</Action>}
           {q.status === "SENT" && <Action onClick={() => transition("REJECTED")} busy={busy} tone="red">Mark rejected</Action>}
           <a href={withBase(`/admin/quote-print/${initial.id}`)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-semibold text-stone-600 hover:border-orange-400 hover:text-orange-600 dark:border-stone-700 dark:text-stone-300">
@@ -184,7 +277,106 @@ export default function QuotationEditor({
           </button>
         </div>
       )}
-      {locked && <p className="mt-2 text-xs text-amber-600">This quotation is locked. Use <strong>Revise</strong> to create an editable version.</p>}
+      {/* Revise sits IN the banner, next to the sentence telling you to use it.
+          Previously the advice was here and the button was in the bar above. */}
+      {locked && (
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-amber-700">
+          <span>
+            This quotation is locked — every field below is read-only so the
+            client cannot see it change after we sent it.
+          </span>
+          <button
+            onClick={() => void revise()}
+            disabled={busy}
+            className="rounded-lg border border-amber-400 px-2 py-1 text-[11px] font-bold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+          >
+            Revise to edit
+          </button>
+        </p>
+      )}
+
+      {/* Send status + history */}
+      {!isNew && (lastSend || viewedAt) && (
+        <div className="mt-3 rounded-xl border border-stone-200 bg-white p-3 text-xs dark:border-stone-800 dark:bg-stone-900">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {lastSend && (
+              <span className="font-semibold text-stone-700 dark:text-stone-200">
+                Sent {fmtWhen(lastSend.createdAt)} to {lastSend.toAddress}
+              </span>
+            )}
+            {opened && <span className="text-stone-500">Email opened {fmtWhen(opened)}</span>}
+            <span className={viewedAt ? "flex items-center gap-1 font-semibold text-green-700" : "flex items-center gap-1 text-stone-400"}>
+              <Eye size={12} /> {viewedAt ? `Quotation viewed ${fmtWhen(viewedAt)}` : "Not viewed yet"}
+            </span>
+            {sends.length > 1 && <span className="text-stone-400">· {sends.length} sends</span>}
+          </div>
+          {sends.length > 1 && (
+            <ul className="mt-2 space-y-0.5 border-t border-stone-100 pt-2 text-[11px] text-stone-400 dark:border-stone-800">
+              {sends.slice(1).map((s) => (
+                <li key={s.id}>
+                  {fmtWhen(s.createdAt)} · {s.toAddress}
+                  {s.userName ? ` · ${s.userName}` : ""}
+                  {s.attachments.length > 0 && ` · ${s.attachments.length} file(s)`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Compose */}
+      {composeOpen && (
+        <div className="mt-3 rounded-xl border border-orange-200 bg-[#FFF9F5] p-4 dark:border-stone-700 dark:bg-stone-900">
+          <h2 className="font-display text-sm font-bold">Email this quotation</h2>
+          <p className="mt-0.5 text-[11px] text-stone-500">
+            The client gets a private link to a read-only copy of this quotation
+            — they never need an account, and you will see when they open it.
+          </p>
+          <div className="mt-3 space-y-2">
+            <Field label="To"><input value={to} onChange={(e) => setTo(e.target.value)} className={inputCls} /></Field>
+            <Field label="Subject"><input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} /></Field>
+            <Field label="Message"><textarea value={note} onChange={(e) => setNote(e.target.value)} rows={7} className={inputCls} /></Field>
+            {files.length > 0 && (
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+                  Also attach
+                </label>
+                <ul className="space-y-1">
+                  {files.map((f) => (
+                    <li key={f.id}>
+                      <label className="flex cursor-pointer items-center gap-2 text-xs text-stone-700 dark:text-stone-200">
+                        <input
+                          type="checkbox"
+                          checked={picked.includes(f.id)}
+                          onChange={() => setPicked((p) => p.includes(f.id) ? p.filter((x) => x !== f.id) : [...p, f.id])}
+                          className="accent-orange-600"
+                        />
+                        <Paperclip size={11} className="text-stone-400" />
+                        <span className="truncate">{f.originalName}</span>
+                        <span className="text-[10px] text-stone-400">{fmtSize(f.size)}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                {selected.length > 0 && (
+                  <p className={`mt-1 text-[11px] ${overSize ? "text-red-500" : "text-stone-400"}`}>
+                    {fmtSize(totalBytes)} of {fmtSize(MAX_TOTAL_BYTES)}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button onClick={() => void sendToClient()} disabled={busy || overSize} className="flex items-center gap-1.5 rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-500 disabled:opacity-50">
+              <Mail size={14} /> {busy ? "Sending…" : lastSend ? "Resend" : "Send"}
+            </button>
+            <button onClick={() => setComposeOpen(false)} disabled={busy} className="text-xs font-semibold text-stone-500 hover:text-stone-800">
+              Cancel
+            </button>
+            {msg && <span className="text-xs font-semibold text-stone-600">{msg}</span>}
+          </div>
+        </div>
+      )}
 
       {/* Client + meta */}
       <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -202,7 +394,11 @@ export default function QuotationEditor({
 
         <Card title="Quotation">
           <Grid>
-            <Field label="Title" full><input value={q.title} disabled={locked} onChange={(e) => set("title", e.target.value)} placeholder="e.g. SEO + PPC retainer — Q3" className={inputCls} /></Field>
+            <Field label="Title" full>
+              {locked && !q.title ? <NotSet /> : (
+                <input value={q.title} disabled={locked} onChange={(e) => set("title", e.target.value)} placeholder={locked ? "" : "e.g. SEO + PPC retainer — Q3"} className={inputCls} />
+              )}
+            </Field>
             <Field label="Currency"><input value={q.currency} disabled={locked} onChange={(e) => set("currency", e.target.value.toUpperCase().slice(0, 4))} className={inputCls} /></Field>
             <Field label="Tax mode">
               <select value={q.taxMode} disabled={locked} onChange={(e) => set("taxMode", e.target.value as TaxModeKey)} className={inputCls}>
@@ -211,7 +407,11 @@ export default function QuotationEditor({
             </Field>
             <Field label="Tax rate %"><input type="number" min={0} max={100} value={q.taxRatePct} disabled={locked || q.taxMode === "NONE"} onChange={(e) => set("taxRatePct", Number(e.target.value))} className={inputCls} /></Field>
             <Field label="Overall discount %"><input type="number" min={0} max={100} value={q.discountPct} disabled={locked} onChange={(e) => set("discountPct", Number(e.target.value))} className={inputCls} /></Field>
-            <Field label="Notes / terms" full><textarea value={q.notes} disabled={locked} onChange={(e) => set("notes", e.target.value)} rows={2} className={inputCls} placeholder="Payment terms, scope notes…" /></Field>
+            <Field label="Notes / terms" full>
+              {locked && !q.notes ? <NotSet /> : (
+                <textarea value={q.notes} disabled={locked} onChange={(e) => set("notes", e.target.value)} rows={2} className={inputCls} placeholder={locked ? "" : "Payment terms, scope notes…"} />
+              )}
+            </Field>
           </Grid>
         </Card>
       </div>
@@ -312,6 +512,24 @@ function Field({ label, full, children }: { label: string; full?: boolean; child
       <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-stone-500">{label}</label>
       {children}
     </div>
+  );
+}
+
+/**
+ * A locked, empty optional field.
+ *
+ * This exists because of a real report: a Title typed on a locked quotation
+ * never appeared, and the owner reasonably concluded it had failed to store.
+ * It had never been entered — the input was disabled — but a greyed empty box
+ * still showing its placeholder ("e.g. SEO + PPC retainer — Q3") is visually
+ * indistinguishable from an editable empty one, so "I can't type here" read as
+ * "my data was lost". Saying "Not set" makes the difference obvious.
+ */
+function NotSet() {
+  return (
+    <p className="rounded-lg border border-dashed border-stone-300 bg-stone-50 px-3 py-1.5 text-sm italic text-stone-400 dark:border-stone-700 dark:bg-stone-800">
+      Not set
+    </p>
   );
 }
 function Row({ label, value }: { label: string; value: string }) {
