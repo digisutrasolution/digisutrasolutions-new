@@ -18,6 +18,30 @@ export type SendResult =
   | { ok: true; via: "smtp" | "resend" }
   | { ok: false; via: "none"; error: string };
 
+/**
+ * A file to send with a message.
+ *
+ * Content, not a URL. Both providers can take a link instead, but a link in an
+ * attachment slot arrives as a link — and for a CRM the whole point is that the
+ * client receives the proposal, not a login-walled path back into our admin.
+ */
+export type MailAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+};
+
+/**
+ * Total attachment bytes one message may carry.
+ *
+ * Well under the ~25 MB most relays enforce, because that limit applies to the
+ * ENCODED message: base64 inflates by about a third, so 10 MB of files leaves
+ * roughly 13.4 MB on the wire plus the body. Exceeding a relay's cap fails at
+ * the SMTP layer with an opaque error long after the user has hit send, so the
+ * check belongs up front where it can name the problem.
+ */
+export const MAX_TOTAL_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+
 export async function sendEmail(input: {
   to: string[];
   subject: string;
@@ -25,6 +49,7 @@ export async function sendEmail(input: {
   html?: string;
   /** Lets the team reply straight to the enquirer on internal alerts. */
   replyTo?: string;
+  attachments?: MailAttachment[];
 }): Promise<SendResult> {
   if (input.to.length === 0) {
     return { ok: false, via: "none", error: "No recipients." };
@@ -63,6 +88,16 @@ export async function sendEmail(input: {
         text: input.text,
         ...(input.html ? { html: input.html } : {}),
         ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+        // Resend takes base64 in `content`; nodemailer takes the raw Buffer.
+        ...(input.attachments?.length
+          ? {
+              attachments: input.attachments.map((a) => ({
+                filename: a.filename,
+                content: a.content.toString("base64"),
+                content_type: a.contentType,
+              })),
+            }
+          : {}),
       }),
     });
     if (!res.ok) {

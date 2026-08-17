@@ -80,9 +80,11 @@ export default function Attachments({
           className={`mt-3 flex cursor-pointer flex-col items-center gap-1 rounded-xl border-2 border-dashed p-4 text-center transition-colors ${drag ? "border-orange-400 bg-orange-50/60 dark:bg-stone-800/60" : "border-stone-200 hover:border-orange-300 dark:border-stone-700"}`}
         >
           <Upload size={18} className="text-stone-400" />
-          <span className="text-xs font-semibold text-stone-600 dark:text-stone-300">{busy ? "Uploading…" : "Drop a file or click to upload"}</span>
-          <span className="text-[10px] text-stone-400">PDF, docs, images, spreadsheets · up to 15 MB</span>
-          <input ref={inputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files?.length) void upload(e.target.files); e.target.value = ""; }} />
+          <span className="text-xs font-semibold text-stone-600 dark:text-stone-300">{busy ? "Uploading…" : "Drop files or click to upload"}</span>
+          <span className="text-[10px] text-stone-400">PDF, docs, images, spreadsheets · up to 15 MB each</span>
+          {/* `multiple`: upload() already loops, and drag-and-drop of several
+              files always worked — only the click path was one-at-a-time. */}
+          <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) void upload(e.target.files); e.target.value = ""; }} />
         </label>
       )}
 

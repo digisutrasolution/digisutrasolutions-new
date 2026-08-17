@@ -1,4 +1,4 @@
-import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import sharp from "sharp";
@@ -154,6 +154,36 @@ export async function saveUpload(
   const filename = `${id}.${ext}`;
   const url = await persist(filename, buffer, mimeType);
   return { filename, url, size: buffer.length, mimeType };
+}
+
+/**
+ * Read a stored file back as bytes — the inverse of persist(), same two
+ * backends. Needed because emailing a file means putting its CONTENT on the
+ * wire: a mail client cannot follow a /uploads path, and a Blob URL passed to
+ * a mail server as a link would arrive as a link, not an attachment.
+ *
+ * Callers pass the stored filename and url from the Attachment row, never a
+ * client-supplied value — this reads from disk and fetches over the network,
+ * so an attacker-chosen url here would be a file-read and SSRF primitive.
+ *
+ * Returns null rather than throwing when the file has gone missing, so one
+ * dead attachment cannot take down the whole send.
+ */
+export async function readStoredFile(
+  filename: string,
+  url: string,
+): Promise<Buffer | null> {
+  try {
+    if (url.startsWith("http")) {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      return Buffer.from(await res.arrayBuffer());
+    }
+    // Same traversal guard as the delete path.
+    return await readFile(path.join(UPLOAD_DIR, path.basename(filename)));
+  } catch {
+    return null;
+  }
 }
 
 export async function deleteStoredFile(

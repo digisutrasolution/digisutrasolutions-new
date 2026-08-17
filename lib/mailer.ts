@@ -1,6 +1,7 @@
 import "server-only";
 import nodemailer from "nodemailer";
 import { getSmtp, smtpReady, type SmtpSettings } from "@/lib/smtp";
+import type { MailAttachment } from "@/lib/email";
 
 /**
  * Builds a nodemailer transport from stored settings.
@@ -48,6 +49,7 @@ export async function sendViaSmtp(input: {
   text: string;
   html?: string;
   replyTo?: string;
+  attachments?: MailAttachment[];
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const s = await getSmtp();
   if (!smtpReady(s)) return { ok: false, error: "SMTP is not configured." };
@@ -59,6 +61,19 @@ export async function sendViaSmtp(input: {
       text: input.text,
       ...(input.html ? { html: input.html } : {}),
       ...(input.replyTo ? { replyTo: input.replyTo } : {}),
+      /* Buffers, not `path`/`href`. nodemailer would happily read a path or
+         fetch a URL itself, but then the file it sends is whatever that string
+         resolves to at send time — the caller has already loaded and
+         size-checked these bytes, and passing them keeps the two in step. */
+      ...(input.attachments?.length
+        ? {
+            attachments: input.attachments.map((a) => ({
+              filename: a.filename,
+              content: a.content,
+              contentType: a.contentType,
+            })),
+          }
+        : {}),
     });
     return { ok: true };
   } catch (err) {

@@ -924,6 +924,10 @@ model CommLog {
   subject    String      @default("")
   body       String
   status     String      @default("SENT") // SENT | FAILED | OPENED
+  /// Names of the files that went out with this message.
+  /// Denormalised on purpose: this is a record of what was actually sent, so
+  /// it must survive the file later being deleted from the lead.
+  attachments String[]   @default([])
   openedAt   DateTime?
   trackId    String      @unique @default(cuid())
   userId     String?

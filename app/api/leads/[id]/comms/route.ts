@@ -22,7 +22,7 @@ export async function GET(_req: Request, { params }: Params) {
       where: { leadId: id },
       orderBy: { createdAt: "desc" },
       take: 100,
-      select: { id: true, channel: true, subject: true, body: true, status: true, openedAt: true, toAddress: true, userName: true, createdAt: true },
+      select: { id: true, channel: true, subject: true, body: true, status: true, attachments: true, openedAt: true, toAddress: true, userName: true, createdAt: true },
     }),
     channelsAvailability(await getChannelsConfig()),
   ]);
