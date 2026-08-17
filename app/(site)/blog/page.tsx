@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Bot, Megaphone, Newspaper, Search } from "lucide-react";
+import { ArrowRight, Bot, Megaphone, MonitorSmartphone, Newspaper, Search } from "lucide-react";
 import AdSlot from "@/components/blog/AdSlot";
 import NewsletterCard from "@/components/blog/NewsletterCard";
 import Pagination from "@/components/blog/Pagination";
 import PostListCard from "@/components/blog/PostListCard";
 import SocialFollow from "@/components/blog/SocialFollow";
 import { db } from "@/lib/db";
-import { BLOG_CATEGORIES } from "@/lib/blog";
+import { BLOG_CATEGORIES, categoryByDb, type BlogCategory } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
 };
 
-const HUB_ICONS = { seo: Search, marketing: Megaphone, ai: Bot } as const;
+const HUB_ICONS = { seo: Search, marketing: Megaphone, ai: Bot, web: MonitorSmartphone } as const;
 
 export default async function BlogIndexPage({
   searchParams,
@@ -72,8 +72,16 @@ export default async function BlogIndexPage({
   ]);
 
   const pagePosts = posts;
-  const countFor = (dbName: string) =>
-    counts.find((c) => c.category === dbName)?._count._all ?? 0;
+  /* Sums every stored category that resolves to this hub, rather than looking
+     for one exact row. Posts filed as "Performance Marketing" or "SEO Tools"
+     were being counted as zero — and the hub page filtered the same way, so
+     they were unreachable too, which is why the cards read 0 beside content
+     that plainly existed. */
+  const countFor = (cat: BlogCategory) =>
+    counts.reduce(
+      (n, c) => (categoryByDb(c.category)?.slug === cat.slug ? n + c._count._all : n),
+      0,
+    );
 
   // Most read: real pageview counts, falling back to latest posts.
   const viewedSlugs = views
@@ -139,10 +147,10 @@ export default async function BlogIndexPage({
       </div>
 
       {/* Topic hubs */}
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {BLOG_CATEGORIES.map((cat, i) => {
           const Icon = HUB_ICONS[cat.slug as keyof typeof HUB_ICONS] ?? Newspaper;
-          const n = countFor(cat.db);
+          const n = countFor(cat);
           const dark = i === 0;
           return (
             <Link

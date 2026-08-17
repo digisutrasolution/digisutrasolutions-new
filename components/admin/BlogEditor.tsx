@@ -10,6 +10,7 @@ import type { PageStatus } from "@prisma/client";
 import AiAssist from "@/components/admin/AiAssist";
 import BlogBody from "@/components/BlogBody";
 import UploadButton from "@/components/admin/UploadButton";
+import { BLOG_CATEGORIES, categoryByDb } from "@/lib/blog";
 
 type EditorPost = {
   id: string;
@@ -83,6 +84,15 @@ export default function BlogEditor({
     seoDescription: post.seoDescription ?? "",
     noIndex: post.noIndex,
   });
+  /* The post's stored category when it is not one of the canonical hub values
+     — offered back in the select so saving never rewrites it behind the
+     author's back. Derived from `form` so it disappears the moment they pick a
+     real hub. */
+  const legacyCategory =
+    form.category && !BLOG_CATEGORIES.some((c) => c.db === form.category)
+      ? form.category
+      : null;
+
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
@@ -156,7 +166,7 @@ export default function BlogEditor({
       slug: form.slug,
       excerpt: form.excerpt,
       body: form.body,
-      category: form.category || "General",
+      category: form.category || BLOG_CATEGORIES[0].db,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       coverUrl: form.coverUrl || null,
       seoTitle: form.seoTitle || null,
@@ -309,7 +319,40 @@ export default function BlogEditor({
           <div className={`${cardCls} space-y-3`}>
             <div>
               <label htmlFor="be-category" className={labelCls}>Category</label>
-              <input id="be-category" value={form.category} onChange={(e) => set("category", e.target.value)} className={inputCls} />
+              {/* A select, not free text. The old input is exactly how posts
+                  ended up filed as "Performance Marketing" and "SEO Tools" —
+                  values no hub matched, which left them uncounted AND
+                  unreachable from hub navigation. */}
+              <select
+                id="be-category"
+                value={form.category}
+                onChange={(e) => set("category", e.target.value)}
+                className={inputCls}
+              >
+                {BLOG_CATEGORIES.map((c) => (
+                  <option key={c.db} value={c.db}>
+                    {c.label}
+                  </option>
+                ))}
+                {/* A legacy value is offered back as-is so opening an old post
+                    and saving it cannot silently re-file it. It still lands in
+                    the right hub via the alias map — the label says which. */}
+                {legacyCategory && (
+                  <option value={legacyCategory}>
+                    {legacyCategory}
+                    {categoryByDb(legacyCategory)
+                      ? ` → ${categoryByDb(legacyCategory)!.label}`
+                      : " → no hub (fix this)"}
+                  </option>
+                )}
+              </select>
+              {legacyCategory && (
+                <p className="mt-1 text-[11px] leading-snug text-stone-500">
+                  {categoryByDb(legacyCategory)
+                    ? `Filed under ${categoryByDb(legacyCategory)!.label}. Pick it from the list above to make that explicit.`
+                    : "This category matches no hub, so the post is missing from every topic page. Pick one above."}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="be-tags" className={labelCls}>Tags (comma separated)</label>

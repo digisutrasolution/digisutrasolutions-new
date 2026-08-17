@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Newspaper } from "lucide-react";
 import Pagination from "@/components/blog/Pagination";
 import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
-import { BLOG_CATEGORIES, categoryBySlug } from "@/lib/blog";
+import { BLOG_CATEGORIES, categoryBySlug, categoryKeysFor } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,14 @@ export default async function BlogCategoryPage({
   const cat = categoryBySlug(category);
   if (!cat) notFound();
 
-  const where = { status: "PUBLISHED" as const, category: cat.db };
+  /* Must match countFor on the index, or the card would advertise a number the
+     page then fails to list. Aliases are matched exactly here rather than
+     case-insensitively — Prisma has no case-insensitive `in`, and every value
+     actually in use is covered by the alias list. */
+  const where = {
+    status: "PUBLISHED" as const,
+    category: { in: categoryKeysFor(cat) },
+  };
   const total = await db.blogPost.count({ where });
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const current = Math.min(
