@@ -20,7 +20,17 @@ export type PostCardData = {
  * row because sharing it with the thumbnail squeezed it into half the
  * column beside the sidebar.
  */
-export default function PostListCard({ post }: { post: PostCardData }) {
+export default function PostListCard({
+  post,
+  /* Set on a category hub. categoryByDb resolves aliases, so every card in a
+     hub prints the SAME label — "WEB & DESIGN" six times down one column is
+     noise, not information. Hidden, the meta line is date · read time, which
+     is exactly what the hub's old grid cards showed. */
+  hideCategory = false,
+}: {
+  post: PostCardData;
+  hideCategory?: boolean;
+}) {
   const category = categoryByDb(post.category)?.label ?? post.category;
   const date = post.publishedAt?.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -34,12 +44,16 @@ export default function PostListCard({ post }: { post: PostCardData }) {
       className="group block rounded-2xl border border-stone-200 bg-white p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#F26419] hover:shadow-[0_16px_40px_rgba(28,25,23,0.08)] sm:p-6"
     >
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-        <span className="font-semibold uppercase tracking-[0.14em] text-orange-800">
-          {category}
-        </span>
-        <span aria-hidden className="text-stone-300">
-          ·
-        </span>
+        {!hideCategory && (
+          <>
+            <span className="font-semibold uppercase tracking-[0.14em] text-orange-800">
+              {category}
+            </span>
+            <span aria-hidden className="text-stone-300">
+              ·
+            </span>
+          </>
+        )}
         <span className="text-stone-400">
           {date} · {post.readingMinutes} min read
         </span>

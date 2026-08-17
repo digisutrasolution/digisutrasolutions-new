@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Newspaper } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import AdSlot from "@/components/blog/AdSlot";
+import NewsletterCard from "@/components/blog/NewsletterCard";
 import Pagination from "@/components/blog/Pagination";
-import { withBase } from "@/lib/base-path";
+import PostListCard from "@/components/blog/PostListCard";
+import SocialFollow from "@/components/blog/SocialFollow";
 import { db } from "@/lib/db";
-import { BLOG_CATEGORIES, categoryBySlug, categoryKeysFor } from "@/lib/blog";
+import {
+  BLOG_CATEGORIES,
+  categoryBySlug,
+  categoryKeysFor,
+  hubCount,
+} from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -57,20 +64,57 @@ export default async function BlogCategoryPage({
     totalPages,
   );
 
-  const posts = await db.blogPost.findMany({
-    where,
-    orderBy: { publishedAt: "desc" },
-    skip: (current - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
-    select: {
-      slug: true,
-      title: true,
-      excerpt: true,
-      coverUrl: true,
-      publishedAt: true,
-      readingMinutes: true,
-    },
-  });
+  const [posts, counts, elsewhere] = await Promise.all([
+    db.blogPost.findMany({
+      where,
+      orderBy: { publishedAt: "desc" },
+      skip: (current - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      select: {
+        slug: true,
+        title: true,
+        excerpt: true,
+        /* PostListCard needs it to resolve the hub label. Hidden on this page
+           (every card would say the same thing) but still required by the type. */
+        category: true,
+        coverUrl: true,
+        publishedAt: true,
+        readingMinutes: true,
+      },
+    }),
+    db.blogPost.groupBy({
+      by: ["category"],
+      where: { status: "PUBLISHED" },
+      _count: { _all: true },
+    }),
+    /* Onward reading, from OTHER lanes rather than a "most read in this lane":
+       a one-post hub would otherwise recommend the very card above it.
+
+       This sits in the main column, not the rail, and that placement is the
+       point. A hub holding one post has a short left column; hanging a tall
+       sidebar beside it just moves the empty space from the right to the left.
+       Extending the main column instead keeps the two roughly level AND gives
+       a reader who lands on a thin lane somewhere real to go next. */
+    db.blogPost.findMany({
+      where: {
+        status: "PUBLISHED",
+        category: { notIn: categoryKeysFor(cat) },
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+      select: {
+        slug: true,
+        title: true,
+        excerpt: true,
+        category: true,
+        coverUrl: true,
+        publishedAt: true,
+        readingMinutes: true,
+      },
+    }),
+  ]);
+
+  const otherLanes = BLOG_CATEGORIES.filter((c) => c.slug !== cat.slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -112,98 +156,130 @@ export default async function BlogCategoryPage({
       >
         <ArrowLeft size={14} aria-hidden /> All topics
       </Link>
-      <p className="mb-3 mt-6 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
-        Journal · {cat.label}
-      </p>
-      <h1 className="font-display text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">
-        {cat.label.split(" & ")[0]}{" "}
-        {cat.label.includes(" & ") && (
-          <span className="font-serif-accent font-medium italic text-orange-600">
-            &amp; {cat.label.split(" & ")[1]}
-          </span>
-        )}
-      </h1>
-      <p className="mt-4 max-w-3xl text-base leading-relaxed text-stone-600">
-        {cat.intro}
-      </p>
 
-      {posts.length === 0 ? (
-        <p className="py-20 text-center text-sm text-stone-500">
-          No articles in this topic yet — check back soon.
-        </p>
-      ) : (
-        <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
-              <div className="relative h-44 overflow-hidden rounded-2xl bg-stone-900">
-                {post.coverUrl ? (
-                  <Image
-                    src={withBase(post.coverUrl)}
-                    alt=""
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
-                    <Newspaper size={28} className="text-white/80" aria-hidden />
-                  </div>
-                )}
-                <span
-                  className="absolute inset-0 bg-[#F26419]/25 mix-blend-color"
-                  aria-hidden
-                />
-              </div>
-              <p className="mt-3 text-xs text-stone-400">
-                {post.publishedAt?.toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}{" "}
-                · {post.readingMinutes} min read
+      {/* Same two-column shell as /blog, and for the same reason the article
+          page gives itself rails: a hub is a 1280px container holding one
+          narrow column, so the right ~40% was empty on every lane before the
+          first post was even counted. The heading sits INSIDE the main column
+          (as the article's h1 does) so the rail starts level with it rather
+          than below a band of blank space. */}
+      <div className="mt-6 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+        <div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
+            Journal · {cat.label}
+          </p>
+          <h1 className="font-display text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl">
+            {cat.label.split(" & ")[0]}{" "}
+            {cat.label.includes(" & ") && (
+              <span className="font-serif-accent font-medium italic text-orange-600">
+                &amp; {cat.label.split(" & ")[1]}
+              </span>
+            )}
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-stone-600">
+            {cat.intro}
+          </p>
+
+          {/* List cards, not a grid. A grid leaves empty tracks whenever the
+              post count is not a multiple of the column count, and these lanes
+              hold 0, 1, 2 and 6 posts — one card per row cannot leave a hole. */}
+          <div className="mt-8 space-y-4">
+            {posts.map((post) => (
+              <PostListCard key={post.slug} post={post} hideCategory />
+            ))}
+            {posts.length === 0 && (
+              <p className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
+                No articles in this topic yet — check back soon.
               </p>
-              <h2 className="font-display mt-1 text-lg font-bold leading-snug text-stone-900 group-hover:text-orange-700">
-                {post.title}
-              </h2>
-              {post.excerpt && (
-                <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-stone-500">
-                  {post.excerpt}
-                </p>
-              )}
-            </Link>
-          ))}
+            )}
+          </div>
+
+          <Pagination
+            page={current}
+            totalPages={totalPages}
+            totalItems={total}
+            pageSize={PAGE_SIZE}
+            basePath={`/blog/category/${cat.slug}`}
+            label="guides"
+          />
+
+          {elsewhere.length > 0 && (
+            <div className="mt-12 border-t border-stone-200 pt-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-800">
+                More from the journal
+              </p>
+              {/* Category shown here, unlike the cards above — these come from
+                  other lanes, so the label is the useful part. */}
+              <div className="mt-4 space-y-4">
+                {elsewhere.map((post) => (
+                  <PostListCard key={post.slug} post={post} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
 
-      <Pagination
-        page={current}
-        totalPages={totalPages}
-        totalItems={total}
-        pageSize={PAGE_SIZE}
-        basePath={`/blog/category/${cat.slug}`}
-        label="guides"
-      />
+        <aside>
+          {/* Was a row of chips below the fold at the bottom of the page.
+              Up here it is both the fix for the empty column and the more
+              useful place for it — with counts, so a reader can see which
+              lane is worth the click. */}
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-800">
+            More lanes
+          </p>
+          <div className="mt-4 space-y-2.5">
+            {otherLanes.map((c) => {
+              const n = hubCount(counts, c);
+              return (
+                <Link
+                  key={c.slug}
+                  href={`/blog/category/${c.slug}`}
+                  className="group block rounded-2xl border border-stone-200 bg-white p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#F26419] hover:shadow-[0_14px_34px_rgba(28,25,23,0.07)]"
+                >
+                  <p className="font-display flex items-center gap-1.5 text-sm font-bold text-stone-900 transition-colors group-hover:text-orange-700">
+                    {c.label}
+                    <ArrowRight
+                      size={13}
+                      aria-hidden
+                      className="transition-transform duration-300 group-hover:translate-x-0.5"
+                    />
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-stone-500">
+                    {c.blurb}
+                  </p>
+                  <p className="mt-2 text-xs font-semibold text-orange-700">
+                    {n} {n === 1 ? "guide" : "guides"}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
 
-      <div className="mt-14 border-t border-stone-200 pt-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-800">
-          More lanes
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {BLOG_CATEGORIES.filter((c) => c.slug !== cat.slug).map((c) => (
+          <div className="mt-6 rounded-2xl bg-[#FFF6EF] p-5">
+            <p className="font-display text-sm font-bold text-orange-950">
+              Free 15-page website audit
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-stone-600">
+              See exactly what is blocking your rankings and conversions —
+              delivered in 48 hours.
+            </p>
             <Link
-              key={c.slug}
-              href={`/blog/category/${c.slug}`}
-              className="group flex items-center gap-2 rounded-full border border-stone-200 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:border-[#F26419] hover:text-orange-700"
+              href="/free-audit"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[#F26419] hover:text-orange-800"
             >
-              {c.label}
-              <ArrowRight
-                size={13}
-                aria-hidden
-                className="transition-transform duration-300 group-hover:translate-x-0.5"
-              />
+              Get my audit <ArrowRight size={14} aria-hidden />
             </Link>
-          ))}
-        </div>
+          </div>
+          <div className="mt-6 empty:hidden">
+            <AdSlot placement="BLOG_SIDEBAR" />
+          </div>
+          <div className="mt-6 empty:hidden">
+            <SocialFollow />
+          </div>
+          <div className="mt-6">
+            <NewsletterCard source="blog-category" />
+          </div>
+        </aside>
       </div>
     </section>
   );

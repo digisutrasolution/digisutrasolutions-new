@@ -7,7 +7,7 @@ import Pagination from "@/components/blog/Pagination";
 import PostListCard from "@/components/blog/PostListCard";
 import SocialFollow from "@/components/blog/SocialFollow";
 import { db } from "@/lib/db";
-import { BLOG_CATEGORIES, categoryByDb, type BlogCategory } from "@/lib/blog";
+import { BLOG_CATEGORIES, hubCount, type BlogCategory } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -72,16 +72,8 @@ export default async function BlogIndexPage({
   ]);
 
   const pagePosts = posts;
-  /* Sums every stored category that resolves to this hub, rather than looking
-     for one exact row. Posts filed as "Performance Marketing" or "SEO Tools"
-     were being counted as zero — and the hub page filtered the same way, so
-     they were unreachable too, which is why the cards read 0 beside content
-     that plainly existed. */
-  const countFor = (cat: BlogCategory) =>
-    counts.reduce(
-      (n, c) => (categoryByDb(c.category)?.slug === cat.slug ? n + c._count._all : n),
-      0,
-    );
+  /* Shared with the category hubs, which print the same counts in their rail. */
+  const countFor = (cat: BlogCategory) => hubCount(counts, cat);
 
   // Most read: real pageview counts, falling back to latest posts.
   const viewedSlugs = views

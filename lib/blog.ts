@@ -89,6 +89,7 @@ const norm = (v: string) => v.trim().toLowerCase();
 /** Every stored category value that belongs to this hub. */
 export const categoryKeysFor = (cat: BlogCategory): string[] => [cat.db, ...cat.aliases];
 
+
 /**
  * The hub a stored BlogPost.category belongs to.
  *
@@ -101,6 +102,26 @@ export const categoryByDb = (db: string): BlogCategory | undefined => {
   if (!n) return undefined;
   return BLOG_CATEGORIES.find((c) => categoryKeysFor(c).some((k) => norm(k) === n));
 };
+
+/**
+ * Published posts in a hub, summed from a `groupBy(["category"])` result.
+ *
+ * Sums every stored value that RESOLVES to the hub rather than looking for one
+ * exact row: posts filed as "Performance Marketing" or "SEO Tools" were counted
+ * as zero, and the hub page filtered the same way, so they were unreachable too
+ * — which is why cards read 0 beside content that plainly existed.
+ *
+ * Shared rather than closed over in one page: the index cards and the hub rail
+ * both print these counts, and two copies would be two chances to drift.
+ */
+export const hubCount = (
+  counts: { category: string; _count: { _all: number } }[],
+  cat: BlogCategory,
+): number =>
+  counts.reduce(
+    (n, c) => (categoryByDb(c.category)?.slug === cat.slug ? n + c._count._all : n),
+    0,
+  );
 
 export function slugifyHeading(text: string) {
   return text
