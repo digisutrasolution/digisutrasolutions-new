@@ -87,6 +87,10 @@ export default function QuotationEditor({
      this feature emailed a link that 404'd, and there was no way to tell from
      the admin — only from the client's inbox. */
   const [clientUrl, setClientUrl] = useState<string | null>(null);
+  /* The client's own accept/reject. Worth showing separately from the status
+     badge, which looks identical whether the client decided or we set it by
+     hand. */
+  const [decision, setDecision] = useState<null | { status: string; by: string | null; at: string | null; note: string | null }>(null);
   const [files, setFiles] = useState<QuoteFile[]>([]);
   const [composeOpen, setComposeOpen] = useState(false);
   const [to, setTo] = useState(initial.clientEmail);
@@ -107,7 +111,7 @@ export default function QuotationEditor({
       fetch(withBase(`/api/quotations/${initial.id}/send`)).then((r) => r.json()).catch(() => ({ ok: false })),
       fetch(withBase(`/api/attachments?quotationId=${initial.id}`)).then((r) => r.json()).catch(() => ({ ok: false })),
     ]);
-    if (s.ok) { setSends(s.sends); setViewedAt(s.viewedAt); setClientUrl(s.url ?? null); }
+    if (s.ok) { setSends(s.sends); setViewedAt(s.viewedAt); setClientUrl(s.url ?? null); setDecision(s.decision ?? null); }
     if (f.ok) setFiles(f.attachments);
   }, [initial.id, isNew]);
 
@@ -301,7 +305,7 @@ export default function QuotationEditor({
       )}
 
       {/* Send status + history */}
-      {!isNew && (lastSend || viewedAt) && (
+      {!isNew && (lastSend || viewedAt || decision) && (
         <div className="mt-3 rounded-xl border border-stone-200 bg-white p-3 text-xs dark:border-stone-800 dark:bg-stone-900">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             {lastSend && (
@@ -315,6 +319,14 @@ export default function QuotationEditor({
             </span>
             {sends.length > 1 && <span className="text-stone-400">· {sends.length} sends</span>}
           </div>
+          {decision && (
+            <p className={`mt-1.5 text-xs font-bold ${decision.status === "ACCEPTED" ? "text-green-700" : "text-stone-600"}`}>
+              {decision.status === "ACCEPTED" ? "Accepted" : "Declined"} by the client
+              {decision.by ? ` — ${decision.by}` : ""}
+              {decision.at ? ` on ${fmtWhen(decision.at)}` : ""}
+              {decision.note ? ` · “${decision.note}”` : ""}
+            </p>
+          )}
           {clientUrl && (
             <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-stone-400">
               <span>Client link:</span>

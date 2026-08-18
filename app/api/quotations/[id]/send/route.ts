@@ -224,7 +224,11 @@ export async function GET(_req: Request, { params }: Params) {
 
   const quote = await db.quotation.findUnique({
     where: { id },
-    select: { publicToken: true, viewedAt: true },
+    select: {
+      publicToken: true, viewedAt: true,
+      clientDecisionBy: true, clientDecisionAt: true, clientDecisionNote: true,
+      status: true,
+    },
   });
   if (!quote) return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
 
@@ -242,6 +246,17 @@ export async function GET(_req: Request, { params }: Params) {
     ok: true,
     sends,
     viewedAt: quote.viewedAt,
+    /* The client's own decision, so the editor can say who accepted rather than
+       just showing a status badge that could equally have been set in-house. */
+    decision:
+      quote.status === "ACCEPTED" || quote.status === "REJECTED"
+        ? {
+            status: quote.status,
+            by: quote.clientDecisionBy,
+            at: quote.clientDecisionAt,
+            note: quote.clientDecisionNote,
+          }
+        : null,
     url: quote.publicToken ? absUrl(`/q/${quote.publicToken}`) : null,
   });
 }

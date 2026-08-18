@@ -121,7 +121,13 @@ export default async function SiteLayout({
           the bot panel, the footer contact tiles and the contact page.
           The remaining floating widgets are code-split and mounted on idle /
           first interaction so their JS stays off the critical path. */}
-      <DeferredWidgets nudge={botNudge} />
+      {/* Wrapped so a document page can hide these too. [data-site-chrome]
+          covers only the nav and footer, which is why the floating call button
+          and the bot were still sitting on top of a client's quotation. A
+          landing page deliberately keeps them — there a call button converts. */}
+      <div data-site-widgets>
+        <DeferredWidgets nudge={botNudge} />
+      </div>
     </>
   );
 }

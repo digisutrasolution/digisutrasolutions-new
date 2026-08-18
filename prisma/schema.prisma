@@ -1046,6 +1046,17 @@ model Quotation {
   /// First time the client opened that page.
   viewedAt    DateTime?
 
+  /// The CLIENT's decision, taken on /q/<token>.
+  /// Deliberately separate from approvedBy* below, which records our own
+  /// internal PENDING_APPROVAL -> APPROVED step. Collapsing "our manager
+  /// approved this" with "the client accepted it" would corrupt both.
+  /// Which way it went is already recorded by the status column.
+  clientDecisionBy   String?
+  clientDecisionAt   DateTime?
+  clientDecisionNote String?
+  /// Kept as light evidence of who acted on the link, nothing more.
+  clientDecisionIp   String?
+
   approvedById   String?
   approvedByName String?
   approvedAt     DateTime?

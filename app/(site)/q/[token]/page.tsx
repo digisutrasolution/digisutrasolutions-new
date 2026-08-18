@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { getContactConfig } from "@/lib/contact-config-server";
 import { getPayments } from "@/lib/payments";
 import QuotationPayBlocks, { payBlocksFor } from "@/components/QuotationPayBlocks";
+import QuotationActions, { PrintQuotationButton } from "@/components/QuotationActions";
+import { withBase } from "@/lib/base-path";
 import {
   computeTotals,
   formatMoney,
@@ -29,9 +32,11 @@ export const metadata: Metadata = {
 const GONE: Record<string, string> = {
   SUPERSEDED:
     "This quotation has been replaced by a newer version. Please get in touch and we will send you the current one.",
-  REJECTED:
-    "This quotation is no longer open. Please get in touch if you would like us to prepare a new one.",
 };
+/* REJECTED is deliberately NOT here. A client who has just declined should see
+   the acknowledgement that we were told, not a blank 'no longer current' page —
+   and the figures are ones they have already seen, so re-showing them costs
+   nothing and re-reading them may change their mind. */
 
 export default async function ClientQuotationPage({
   params,
@@ -101,7 +106,38 @@ export default async function ClientQuotationPage({
   const payBlocks = payBlocksFor(pay);
 
   return (
-    <section className="mx-auto max-w-3xl px-6 pb-20 pt-12 sm:pb-24 sm:pt-16">
+    <section className="mx-auto max-w-3xl px-6 pb-20 pt-10 sm:pb-24 sm:pt-14">
+      {/* Takes the site header, footer AND the floating widgets away — see the
+          [data-doc-bare] block in globals.css. This is a document someone reads
+          before committing money; the nav exists to send them elsewhere. */}
+      <div data-doc-bare hidden />
+
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          @page { margin: 14mm; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      `}</style>
+
+      {/* Minimal masthead in place of the nav — who this is from, nothing to
+          click away to. Mirrors components/LandingChrome.tsx. */}
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <Image
+          src={withBase("/logo.png")}
+          alt="DigiSutra Solutions"
+          width={168}
+          height={44}
+          className="h-10 w-auto"
+          priority
+        />
+        <p className="text-right text-[11px] leading-snug text-stone-400">
+          {contact.mainEmail}
+          <br />
+          {contact.whatsappDisplay}
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-orange-500 pb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-orange-800">
@@ -127,8 +163,8 @@ export default async function ClientQuotationPage({
 
       {expired && (
         <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
-          The validity date on this quotation has passed. The pricing below may
-          have changed — get in touch and we will confirm or refresh it.
+          The validity date on this quotation has passed — see the note below
+          the totals.
         </p>
       )}
 
@@ -218,9 +254,52 @@ export default async function ClientQuotationPage({
         </div>
       )}
 
+      {/* Decide, or print. Expired quotations get neither Accept nor Decline:
+          clicking Approve on a lapsed price would leave the client believing it
+          is locked in, and us choosing between honouring a stale figure and an
+          awkward conversation. The API enforces the same rule, so a tab left
+          open overnight cannot post through it. */}
+      {expired && quote.status === "SENT" ? (
+        <div className="no-print mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <p className="font-display text-base font-bold text-amber-950">
+            This quotation expired on {fmtDate(quote.validUntil!)}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-stone-600">
+            The pricing here may no longer be current, so we have closed it for
+            acceptance. Ask us and we will send an updated one straight over —
+            usually the same day.
+          </p>
+          <Link
+            href="/contact"
+            className="mt-3 inline-flex rounded-full bg-[#F26419] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-700"
+          >
+            Request an updated quotation
+          </Link>
+          <div className="mt-3">
+            <PrintQuotationButton />
+          </div>
+        </div>
+      ) : (
+        <QuotationActions
+          token={token}
+          reference={quoteRef(quote.number, quote.version)}
+          total={formatMoney(t.total, cur)}
+          clientName={quote.clientName}
+          decided={
+            quote.status === "ACCEPTED" || quote.status === "REJECTED"
+              ? {
+                  status: quote.status,
+                  by: quote.clientDecisionBy,
+                  at: quote.clientDecisionAt?.toISOString() ?? null,
+                }
+              : null
+          }
+        />
+      )}
+
       <div className="mt-10 rounded-2xl bg-[#FFF6EF] p-5">
         <p className="font-display text-base font-bold text-orange-950">
-          Questions, or ready to go ahead?
+          Questions before you decide?
         </p>
         <p className="mt-1 text-sm leading-relaxed text-stone-600">
           Reply to the email this link came from, or reach us directly — we will

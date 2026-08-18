@@ -860,6 +860,25 @@ body:has([data-lp-bare]) [data-site-main] {
 }
 
 /* ---------------------------------------------------------------------------
+   Bare DOCUMENT pages — the client quotation at /q/<token>.
+
+   Stronger than [data-lp-bare]: it also takes away the floating widgets. A
+   landing page keeps its call button because there it converts; on a document
+   somebody is reading before they commit money, a chat bot and a call bubble
+   are just things covering the total.
+
+   Same :has() mechanism and the same reason for it — a layout cannot see which
+   nested page is rendering, and this resolves during the first paint.
+---------------------------------------------------------------------------- */
+body:has([data-doc-bare]) [data-site-chrome],
+body:has([data-doc-bare]) [data-site-widgets] {
+  display: none;
+}
+body:has([data-doc-bare]) [data-site-main] {
+  padding-top: 0;
+}
+
+/* ---------------------------------------------------------------------------
    Offers page (/offers)
 --------------------------------------------------------------------------- */
 
