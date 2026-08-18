@@ -51,6 +51,8 @@ export default async function BlogIndexPage({
         excerpt: true,
         category: true,
         coverUrl: true,
+        coverWidth: true,
+        coverHeight: true,
         publishedAt: true,
         readingMinutes: true,
       },

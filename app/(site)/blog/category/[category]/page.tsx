@@ -78,6 +78,8 @@ export default async function BlogCategoryPage({
            (every card would say the same thing) but still required by the type. */
         category: true,
         coverUrl: true,
+        coverWidth: true,
+        coverHeight: true,
         publishedAt: true,
         readingMinutes: true,
       },
@@ -108,6 +110,8 @@ export default async function BlogCategoryPage({
         excerpt: true,
         category: true,
         coverUrl: true,
+        coverWidth: true,
+        coverHeight: true,
         publishedAt: true,
         readingMinutes: true,
       },

@@ -58,6 +58,8 @@ export default async function AuthorPage({
       excerpt: true,
       category: true,
       coverUrl: true,
+      coverWidth: true,
+      coverHeight: true,
       publishedAt: true,
       readingMinutes: true,
     },
