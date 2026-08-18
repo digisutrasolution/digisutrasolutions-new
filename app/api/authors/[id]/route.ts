@@ -8,7 +8,7 @@ import { AuthorInputSchema, uniqueSlug } from "../route";
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: Request, { params }: Params) {
-  const { user, error } = await requirePermission("blog.manage");
+  const { user, error } = await requirePermission("authors.manage");
   if (error) return error;
   const { id } = await params;
 
@@ -61,7 +61,7 @@ export async function PATCH(req: Request, { params }: Params) {
 }
 
 export async function DELETE(req: Request, { params }: Params) {
-  const { user, error } = await requirePermission("blog.manage");
+  const { user, error } = await requirePermission("authors.manage");
   if (error) return error;
   const { id } = await params;
 

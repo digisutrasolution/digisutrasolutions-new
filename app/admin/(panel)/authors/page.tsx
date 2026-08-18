@@ -7,6 +7,6 @@ export const metadata = { title: "Authors" };
 
 export default async function AdminAuthorsPage() {
   const user = await getCurrentUser();
-  if (!user || !userCan(user, "blog.manage")) redirect("/admin");
+  if (!user || !userCan(user, "authors.manage")) redirect("/admin");
   return <AuthorsManager />;
 }

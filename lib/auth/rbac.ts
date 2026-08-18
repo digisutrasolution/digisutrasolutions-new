@@ -34,6 +34,13 @@ export const PERMISSIONS = {
   // be granted (or withheld) per role in the admin matrix — deletion is
   // irreversible, unlike archiving.
   "blog.delete": ["SUPER_ADMIN"],
+  // Create and edit public author profiles. Split out of blog.manage for the
+  // same reason blog.delete is: a profile makes checkable public claims about a
+  // real colleague — their title, years of experience, credentials, LinkedIn —
+  // which is a different act from writing an article and deserves its own
+  // switch. Note this gates WRITING profiles only; reading the list stays on
+  // blog.manage, because the byline picker in the blog editor needs it.
+  "authors.manage": ["SUPER_ADMIN", "SEO_MANAGER"],
   "forms.manage": ["SUPER_ADMIN", "DEVELOPER"],
   "ai.use": ["SUPER_ADMIN", "DEVELOPER", "SEO_MANAGER"],
   "videos.manage": ["SUPER_ADMIN", "DEVELOPER", "SEO_MANAGER"],
@@ -257,6 +264,7 @@ export const PERMISSION_META: Record<Permission, { label: string; group: Permiss
   "blog.manage": { label: "Manage blog", group: "Content" },
   "blog.publish": { label: "Publish blog", group: "Content" },
   "blog.delete": { label: "Delete blog articles (permanent)", group: "Content" },
+  "authors.manage": { label: "Manage author profiles", group: "Content" },
   "contact.manage": { label: "Edit contact page & footer details", group: "Content" },
   "forms.manage": { label: "Manage forms", group: "Content" },
   "videos.manage": { label: "Manage videos", group: "Content" },

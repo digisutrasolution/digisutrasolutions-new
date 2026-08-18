@@ -70,9 +70,14 @@ function TB({
 export default function BlogEditor({
   post,
   canPublish,
+  canManageAuthors = false,
 }: {
   post: EditorPost;
   canPublish: boolean;
+  /** authors.manage. The PICKER is always available — crediting an author is
+      part of writing — but only someone who may edit profiles is offered the
+      link to go and do it. */
+  canManageAuthors?: boolean;
 }) {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -432,10 +437,15 @@ export default function BlogEditor({
               </select>
               <p className="mt-1 text-[11px] text-stone-400">
                 A named author with a photo, bio and LinkedIn is the strongest
-                E-E-A-T signal on the page. Manage profiles under{" "}
-                <Link href="/admin/authors" className="font-semibold text-orange-700 hover:underline">
-                  Authors
-                </Link>.
+                E-E-A-T signal on the page.
+                {canManageAuthors && (
+                  <>
+                    {" "}Manage profiles under{" "}
+                    <Link href="/admin/authors" className="font-semibold text-orange-700 hover:underline">
+                      Authors
+                    </Link>.
+                  </>
+                )}
               </p>
             </div>
             <div>

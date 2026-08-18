@@ -6,8 +6,13 @@ import { db } from "@/lib/db";
 import { clientIp } from "@/lib/rate-limit";
 import { authorSlug } from "@/lib/authors";
 
-/* Author profiles. Behind blog.manage — the same people who publish articles
-   decide who is credited for them. */
+/* Author profiles.
+
+   Reading and writing are gated differently on purpose. GET stays on
+   blog.manage because the byline picker in the blog editor calls it — a writer
+   who cannot manage profiles must still be able to credit one. Creating and
+   editing them needs authors.manage: a profile states a real colleague's
+   experience and credentials in public. */
 
 /* Every field is `.optional()` and NOT `.default()`.
    That distinction is load-bearing, and getting it wrong cost an author their
@@ -46,6 +51,7 @@ async function uniqueSlug(base: string, exceptId?: string): Promise<string> {
 }
 
 export async function GET() {
+  // Deliberately blog.manage, not authors.manage — see the note above.
   const { error } = await requirePermission("blog.manage");
   if (error) return error;
   const authors = await db.author.findMany({
@@ -56,7 +62,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { user, error } = await requirePermission("blog.manage");
+  const { user, error } = await requirePermission("authors.manage");
   if (error) return error;
 
   const parsed = AuthorInputSchema.safeParse(await req.json().catch(() => null));

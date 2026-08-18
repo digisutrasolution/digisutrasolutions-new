@@ -39,6 +39,7 @@ export default async function AdminBlogEditorPage({
         readingMinutes: post.readingMinutes,
       }}
       canPublish={userCan(user, "blog.publish")}
+      canManageAuthors={userCan(user, "authors.manage")}
     />
   );
 }
