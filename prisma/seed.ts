@@ -166,7 +166,9 @@ async function main() {
         readingMinutes: Math.max(1, Math.round(p.body.split(/\s+/).length / 200)),
         seoTitle: p.title,
         seoDescription: p.excerpt,
-        authorId: seo?.id,
+        /* NOT seo?.id — that is a User id, and authorId is a foreign key to
+           Author. Seeded posts publish under the organisation byline;
+           scripts/backfill-authors.mjs is what creates real profiles. */
         authorName: seo?.name ?? "DigiSutra team",
       },
     });

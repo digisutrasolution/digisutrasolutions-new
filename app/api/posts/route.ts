@@ -59,11 +59,25 @@ export async function POST(req: Request) {
     );
   }
 
+  /* Credit the creator when they have an author profile of their own.
+
+     authorId used to be stamped with `user.id` — a User id in a column that
+     was a bare String with no relation. It is now a foreign key to Author, so
+     writing a User id there violates the constraint and the create fails
+     outright. Resolving the profile first is both correct and the nicer
+     behaviour: a writer with a profile is credited automatically, and everyone
+     else starts on the organisation byline and picks an author in the editor. */
+  const profile = await db.author.findFirst({
+    where: { userId: user.id, isActive: true },
+    select: { id: true },
+  });
+
   const post = await db.blogPost.create({
     data: {
       title: parsed.data.title,
       slug: parsed.data.slug,
-      authorId: user.id,
+      authorId: profile?.id ?? null,
+      // Legacy label, kept because the admin list shows who drafted an article.
       authorName: user.name,
     },
     select: { id: true, slug: true },
