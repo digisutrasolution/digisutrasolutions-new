@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
 import { SLUG_REGEX } from "@/lib/cms/pages";
+import { BLOG_CATEGORIES } from "@/lib/blog";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
 
@@ -15,6 +16,24 @@ const CreatePostSchema = z.object({
     .min(2)
     .max(150)
     .regex(SLUG_REGEX, "Slug may contain lowercase letters, numbers and hyphens."),
+  /* Required, and checked against the real hubs.
+
+     Creation used to set no category at all, so the row fell back to the
+     schema default of "General" — a value no hub matches. Every new article
+     was therefore born missing from every topic page, and stayed that way
+     until somebody opened it and read the warning. Asking once, here, is what
+     stops that happening rather than reporting it afterwards. */
+  category: z
+    .string()
+    .trim()
+    /* Defaulted to "" so an omitted field falls through to the refine below
+       and gets the readable message, rather than zod's "expected string,
+       received undefined" — which tells the person creating the article
+       nothing about what to do. */
+    .default("")
+    .refine((v) => BLOG_CATEGORIES.some((c) => c.db === v), {
+      message: "Pick a topic hub for the article — without one it would be missing from every topic page.",
+    }),
 });
 
 export async function GET() {
@@ -76,6 +95,7 @@ export async function POST(req: Request) {
     data: {
       title: parsed.data.title,
       slug: parsed.data.slug,
+      category: parsed.data.category,
       authorId: profile?.id ?? null,
       // Legacy label, kept because the admin list shows who drafted an article.
       authorName: user.name,

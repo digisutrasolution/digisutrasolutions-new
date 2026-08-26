@@ -104,6 +104,20 @@ export const categoryByDb = (db: string): BlogCategory | undefined => {
 };
 
 /**
+ * Does this category belong to no hub at all?
+ *
+ * An orphaned post is still on /blog and still reachable by its URL, but it is
+ * absent from its topic page, uncounted in the hub cards, and its breadcrumb
+ * loses the hub link — in the visible trail and in the BreadcrumbList JSON-LD.
+ *
+ * The schema default is "General", which matches nothing, so this used to be
+ * the state EVERY new post was born in. The create form and the publish gate
+ * both check it; one definition so they cannot disagree about what counts.
+ */
+export const isOrphanCategory = (category: string): boolean =>
+  !categoryByDb(category);
+
+/**
  * Published posts in a hub, summed from a `groupBy(["category"])` result.
  *
  * Sums every stored value that RESOLVES to the hub rather than looking for one

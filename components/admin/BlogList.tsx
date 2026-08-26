@@ -1,6 +1,7 @@
 "use client";
 
 import { withBase } from "@/lib/base-path";
+import { BLOG_CATEGORIES, isOrphanCategory } from "@/lib/blog";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -48,6 +49,7 @@ export default function BlogList({
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
+  const [category, setCategory] = useState(BLOG_CATEGORIES[0].db);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -65,7 +67,7 @@ export default function BlogList({
       const res = await fetch(withBase("/api/posts"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, slug }),
+        body: JSON.stringify({ title, slug, category }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.ok) {
@@ -139,7 +141,7 @@ export default function BlogList({
       {showCreate && (
         <form
           onSubmit={handleCreate}
-          className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-stone-200 bg-white p-5 sm:grid-cols-[1fr_1fr_auto] dark:border-stone-800 dark:bg-stone-900"
+          className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-stone-200 bg-white p-5 sm:grid-cols-[1fr_1fr_minmax(0,0.8fr)_auto] dark:border-stone-800 dark:bg-stone-900"
         >
           <div>
             <label htmlFor="post-title" className="mb-1 block text-xs font-semibold">Title</label>
@@ -165,6 +167,22 @@ export default function BlogList({
               onChange={(e) => setSlug(slugify(e.target.value))}
               className={inputCls}
             />
+          </div>
+          <div>
+            <label htmlFor="post-hub" className="mb-1 block text-xs font-semibold">Topic hub</label>
+            {/* Asked for here rather than left to the schema default, which was
+                "General" — a value no hub matches, so every new article was
+                born missing from every topic page. */}
+            <select
+              id="post-hub"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className={inputCls}
+            >
+              {BLOG_CATEGORIES.map((c) => (
+                <option key={c.db} value={c.db}>{c.label}</option>
+              ))}
+            </select>
           </div>
           <button
             type="submit"
@@ -220,7 +238,20 @@ export default function BlogList({
                   </Link>
                   <p className="text-xs text-stone-500 dark:text-stone-400">/blog/{p.slug}</p>
                 </td>
-                <td className="px-5 py-3 text-xs">{p.category}</td>
+                <td className="px-5 py-3 text-xs">
+                  {p.category}
+                  {/* An orphaned category is invisible on the site but looks
+                      perfectly normal in this column, so it says so here —
+                      otherwise you only find out by opening the article. */}
+                  {isOrphanCategory(p.category) && (
+                    <span
+                      title="This category matches no topic hub, so the post is missing from every topic page."
+                      className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                    >
+                      no hub
+                    </span>
+                  )}
+                </td>
                 <td className="px-5 py-3">
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLE[p.status]}`}>
                     {p.status.charAt(0) + p.status.slice(1).toLowerCase()}

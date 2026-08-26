@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth/guards";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
-import { categoryByDb } from "@/lib/blog";
+import { categoryByDb, isOrphanCategory } from "@/lib/blog";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -44,6 +44,25 @@ export async function POST(req: Request, { params }: Params) {
   }
 
   const input = parsed.data;
+
+  /* Going live is the moment reachability starts to matter, so it is the right
+     place to insist on a hub. A post whose category matches none is absent from
+     every topic page, uncounted in the hub cards, and has no hub in its
+     breadcrumb — which is how an article ends up live and invisible.
+     Scheduling counts: it publishes itself later, unattended. */
+  if (
+    (input.action === "publish" || input.action === "schedule") &&
+    isOrphanCategory(post.category)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `"${post.category}" is not one of the topic hubs, so this post would be missing from every topic page. Pick a hub on the article before publishing.`,
+      },
+      { status: 409 },
+    );
+  }
+
   const data =
     input.action === "publish"
       ? { status: "PUBLISHED" as const, publishedAt: new Date(), scheduledAt: null }
