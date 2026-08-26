@@ -5,6 +5,7 @@ import { requirePermission } from "@/lib/auth/guards";
 import { SLUG_REGEX } from "@/lib/cms/pages";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
+import { sanitizeRichText } from "@/lib/rich-text";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -41,7 +42,9 @@ const UpdatePostSchema = z
   .refine((v) => Object.keys(v).length > 0, { message: "Nothing to update." });
 
 function readingMinutes(text: string): number {
-  const words = text.split(/\s+/).filter(Boolean).length;
+  // Bodies are HTML now, so strip tags before counting — otherwise every
+  // <p> and </strong> is counted as a word and reading times drift up.
+  const words = text.replace(/<[^>]*>/g, " ").split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
 }
 
@@ -109,12 +112,24 @@ export async function PATCH(req: Request, { params }: Params) {
     }
   }
 
+  /* Editor HTML is sanitised HERE, on the way in, so the column only ever
+     holds allow-listed markup and every reader gets it clean for free. The
+     editor component is a convenience, not the boundary — anyone can POST to
+     this route without going through it. */
+  const cleanBody =
+    parsed.data.body !== undefined ? sanitizeRichText(parsed.data.body) : undefined;
+
   const updated = await db.blogPost.update({
     where: { id },
     data: {
       ...parsed.data,
-      ...(parsed.data.body !== undefined
-        ? { readingMinutes: readingMinutes(parsed.data.body) }
+      ...(cleanBody !== undefined
+        ? {
+            body: cleanBody,
+            // Word count off the TEXT, not the markup — counting tags as words
+            // would inflate every reading time the moment bodies became HTML.
+            readingMinutes: readingMinutes(cleanBody),
+          }
         : {}),
     },
   });

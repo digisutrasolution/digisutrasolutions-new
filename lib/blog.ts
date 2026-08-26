@@ -131,8 +131,50 @@ export function slugifyHeading(text: string) {
     .replace(/\s+/g, "-");
 }
 
-/** H2 headings ("## ") from a post body, with anchor ids. */
+/**
+ * Is this body editor HTML rather than the legacy text format?
+ *
+ * Both shapes exist at once, and will for a while: the deploy that ships the
+ * rich editor reaches production before the migration is run against it, and
+ * anything written earlier keeps its original text until someone edits it.
+ * Everything that reads a body therefore handles both rather than assuming.
+ *
+ * Client-safe on purpose — BlogBody renders in the editor preview as well as
+ * on the server, so this cannot sit beside the sanitiser in the server-only
+ * module.
+ */
+export function isHtmlBody(body: string): boolean {
+  return /<(p|h2|h3|h4|ul|ol|blockquote|figure|table|pre|img|hr)\b/i.test(body);
+}
+
+/** Strip tags and decode the few entities an editor emits. */
+function textOf(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** H2 headings from a post body, with anchor ids — both formats.
+    Ids come from the same slugifyHeading either way, so an anchor already
+    published against a post keeps resolving after that post is migrated. */
 export function extractHeadings(body: string) {
+  if (isHtmlBody(body)) {
+    const out: { id: string; text: string }[] = [];
+    const re = /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(body)) !== null) {
+      const text = textOf(m[1]);
+      if (text) out.push({ id: slugifyHeading(text), text });
+    }
+    return out;
+  }
   return body
     .split(/\n{2,}/)
     .map((b) => b.trim())
@@ -145,6 +187,19 @@ export function extractHeadings(body: string) {
 
 /** First sentence under each H2 — answer-first copy makes these liftable. */
 export function extractTakeaways(body: string, max = 4) {
+  if (isHtmlBody(body)) {
+    const out: string[] = [];
+    /* The first paragraph after each h2. Post copy is written answer-first,
+       which is exactly what makes its opening sentence stand alone. */
+    const re = /<h2\b[^>]*>[\s\S]*?<\/h2>\s*<p\b[^>]*>([\s\S]*?)<\/p>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(body)) !== null && out.length < max) {
+      const sentence = textOf(m[1]).split(/(?<=[.!?])\s/)[0]?.trim();
+      if (sentence && sentence.length > 20) out.push(sentence);
+    }
+    return out;
+  }
+
   const blocks = body
     .split(/\n{2,}/)
     .map((b) => b.trim())

@@ -52,3 +52,6 @@ contact-submissions.log
 *.dump
 *.sql.gz
 /.next-verify/
+
+# Body-format migration backups — real article copy, not source.
+body-backup-*.json

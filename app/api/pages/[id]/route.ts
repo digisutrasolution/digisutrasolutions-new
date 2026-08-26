@@ -9,6 +9,7 @@ import { PAGE_SLUG_REGEX, isReservedSlug } from "@/lib/cms/pages";
 import { SectionsSchema } from "@/lib/cms/sections";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/rate-limit";
+import { sanitizeSections } from "@/lib/rich-text";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -142,7 +143,11 @@ export async function PATCH(req: Request, { params }: Params) {
   if (parsed.data.title !== undefined) data.title = parsed.data.title;
   if (parsed.data.slug !== undefined) data.slug = parsed.data.slug;
   if (parsed.data.sections !== undefined) {
-    data.sections = parsed.data.sections as unknown as Prisma.InputJsonValue;
+    // Rich-text block bodies are editor HTML now; clean them on the way in so
+    // the JSON column only ever holds allow-listed markup.
+    data.sections = sanitizeSections(
+      parsed.data.sections,
+    ) as unknown as Prisma.InputJsonValue;
   }
   if (parsed.data.seoTitle !== undefined) data.seoTitle = parsed.data.seoTitle;
   if (parsed.data.seoDescription !== undefined)

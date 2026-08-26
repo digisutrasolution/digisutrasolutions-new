@@ -1,6 +1,9 @@
 "use client";
 
 import { withBase } from "@/lib/base-path";
+import RichEditor from "@/components/admin/RichEditor";
+import { isHtmlBody } from "@/lib/blog";
+import { legacyToHtml } from "@/lib/legacy-body";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -785,7 +788,24 @@ function SectionFields({
         <div className="space-y-3">
           <div><label className={labelCls}>Eyebrow (small label above the heading)</label><input value={section.eyebrow} disabled={disabled} onChange={(e) => onChange({ eyebrow: e.target.value })} className={inputCls} /></div>
           <div><label className={labelCls}>Heading</label><input value={section.heading} disabled={disabled} onChange={(e) => onChange({ heading: e.target.value })} className={inputCls} /></div>
-          <div><label className={labelCls}>Body (blank line = new paragraph)</label><textarea rows={6} value={section.body} disabled={disabled} onChange={(e) => onChange({ body: e.target.value })} className={inputCls} /></div>
+          {/* The same editor the blog uses. This block had no inline
+              formatting at all before — plain paragraphs, no bold, no links —
+              so it gains the most from the change. Read-only pages get the
+              plain text back rather than a disabled editor. */}
+          <div>
+            <label className={labelCls}>Body</label>
+            {disabled ? (
+              <div className="ds-prose rounded-xl border border-stone-300 bg-stone-50 p-3 dark:border-stone-700 dark:bg-stone-900/60"
+                   dangerouslySetInnerHTML={{ __html: isHtmlBody(section.body) ? section.body : legacyToHtml(section.body) }} />
+            ) : (
+              <RichEditor
+                value={isHtmlBody(section.body) ? section.body : legacyToHtml(section.body)}
+                onChange={(html) => onChange({ body: html })}
+                placeholder="Write the copy for this section…"
+                minHeight={200}
+              />
+            )}
+          </div>
           <div><label className={labelCls}>Side image (optional — shows left of the text)</label><input value={section.image} disabled={disabled} onChange={(e) => onChange({ image: e.target.value })} className={inputCls} placeholder="/section-images/… or /uploads/…" /></div>
           <div><label className={labelCls}>Image alt text</label><input value={section.imageAlt} disabled={disabled} onChange={(e) => onChange({ imageAlt: e.target.value })} className={inputCls} placeholder="Describe the photo for screen readers" /></div>
         </div>

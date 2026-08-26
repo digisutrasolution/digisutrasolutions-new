@@ -2,15 +2,17 @@
 
 import { withBase } from "@/lib/base-path";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Bold, ExternalLink, Eye, Italic, Link2, List, Pencil, Save } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye, Pencil, Save } from "lucide-react";
 import type { PageStatus } from "@prisma/client";
 import AiAssist from "@/components/admin/AiAssist";
 import BlogBody from "@/components/BlogBody";
 import UploadButton from "@/components/admin/UploadButton";
-import { BLOG_CATEGORIES, categoryByDb } from "@/lib/blog";
+import RichEditor from "@/components/admin/RichEditor";
+import { BLOG_CATEGORIES, categoryByDb, isHtmlBody } from "@/lib/blog";
+import { legacyToHtml } from "@/lib/legacy-body";
 
 type EditorPost = {
   id: string;
@@ -44,28 +46,6 @@ const STATUS_STYLE: Record<PageStatus, string> = {
   ARCHIVED: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
 };
 
-/** A single body-toolbar button. */
-function TB({
-  onClick,
-  title,
-  children,
-}: {
-  onClick: () => void;
-  title?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      aria-label={title}
-      className="flex h-7 min-w-7 cursor-pointer items-center justify-center rounded px-2 text-xs font-bold text-stone-600 transition-colors hover:bg-white hover:text-orange-700 dark:text-stone-300 dark:hover:bg-stone-800"
-    >
-      {children}
-    </button>
-  );
-}
 
 export default function BlogEditor({
   post,
@@ -84,7 +64,10 @@ export default function BlogEditor({
     title: post.title,
     slug: post.slug,
     excerpt: post.excerpt,
-    body: post.body,
+    /* A legacy body is converted to HTML before it ever reaches the editor.
+       Handing TipTap "## Heading" verbatim would flatten it into one
+       paragraph of literal text and the next save would persist the damage. */
+    body: isHtmlBody(post.body) ? post.body : legacyToHtml(post.body),
     category: post.category,
     tags: post.tags.join(", "),
     authorId: post.authorId ?? "",
@@ -156,42 +139,11 @@ export default function BlogEditor({
     return () => clearTimeout(t);
   }, []);
 
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
+
   const [preview, setPreview] = useState(false);
 
-  // Wrap the selection (bold/italic/link) and keep the caret sensible.
-  function surround(before: string, after: string, placeholder: string) {
-    const ta = bodyRef.current;
-    if (!ta) return;
-    const { selectionStart: s, selectionEnd: e, value } = ta;
-    const sel = value.slice(s, e) || placeholder;
-    set("body", value.slice(0, s) + before + sel + after + value.slice(e));
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = s + before.length + sel.length + after.length;
-      ta.setSelectionRange(pos, pos);
-    });
-  }
 
-  // Prefix the current line (headings, list items).
-  function linePrefix(prefix: string) {
-    const ta = bodyRef.current;
-    if (!ta) return;
-    const { selectionStart: s, value } = ta;
-    const lineStart = value.lastIndexOf("\n", s - 1) + 1;
-    set("body", value.slice(0, lineStart) + prefix + value.slice(lineStart));
-    requestAnimationFrame(() => {
-      ta.focus();
-      ta.setSelectionRange(s + prefix.length, s + prefix.length);
-    });
-  }
 
-  function insertImage(url: string) {
-    const ta = bodyRef.current;
-    const s = ta?.selectionStart ?? form.body.length;
-    const md = `\n\n![](${url})\n\n`;
-    set("body", form.body.slice(0, s) + md + form.body.slice(s));
-  }
 
   async function api(path: string, body: unknown, method = "PATCH") {
     setMessage(null);
@@ -356,19 +308,22 @@ export default function BlogEditor({
                 </div>
               ) : (
                 <>
-                  <div className="mb-1.5 flex flex-wrap items-center gap-0.5 rounded-lg border border-stone-200 bg-stone-50 p-1 dark:border-stone-800 dark:bg-stone-900/50">
-                    <TB onClick={() => linePrefix("## ")}>H2</TB>
-                    <TB onClick={() => linePrefix("### ")}>H3</TB>
-                    <TB onClick={() => surround("**", "**", "bold text")} title="Bold"><Bold size={13} /></TB>
-                    <TB onClick={() => surround("*", "*", "italic")} title="Italic"><Italic size={13} /></TB>
-                    <TB onClick={() => linePrefix("- ")} title="Bullet list"><List size={13} /></TB>
-                    <TB onClick={() => surround("[", "](https://)", "link text")} title="Link"><Link2 size={13} /></TB>
-                    <UploadButton accept="image/*" label="Image" onUploaded={insertImage} className="border-none bg-transparent px-2 py-1 hover:bg-white dark:hover:bg-stone-800" />
-                  </div>
-                  <textarea ref={bodyRef} id="be-body" rows={18} value={form.body} onChange={(e) => set("body", e.target.value)} className={`${inputCls} font-mono text-xs leading-relaxed`} />
-                  <p className="mt-1 text-[11px] text-stone-400">
-                    Markdown: **bold**, *italic*, [link](url), “- ” lists, “## / ### ” headings, ![alt](url) images.
-                  </p>
+                  {/* The editor styles its own surface with .ds-prose — the same
+                      stylesheet the article uses — so this IS the preview at
+                      editing width. Preview is kept for the article measure. */}
+                  <RichEditor
+                    value={form.body}
+                    onChange={(html) => set("body", html)}
+                    placeholder="Write the article…"
+                    minHeight={420}
+                  />
+                  {!isHtmlBody(form.body) && form.body.trim() !== "" && (
+                    <p className="mt-1.5 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                      This article is still in the old text format. It renders
+                      exactly as before — saving it here converts it to the
+                      editor&rsquo;s format.
+                    </p>
+                  )}
                 </>
               )}
             </div>
@@ -484,10 +439,18 @@ export default function BlogEditor({
 
           <AiAssist
             kinds={["blog_outline", "blog_post", "excerpt", "seo_title", "meta_description", "social_caption"]}
-            getContext={() => `Title: ${form.title}\nCategory: ${form.category}\n\n${form.body.slice(0, 4000)}`}
+            getContext={() =>
+              `Title: ${form.title}\nCategory: ${form.category}\n\n${form.body
+                .replace(/<[^>]*>/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .slice(0, 4000)}`
+            }
             insertLabel="Insert into field"
             onInsert={(kind, text) => {
-              if (kind === "blog_outline" || kind === "blog_post") set("body", text);
+              // The model returns the markdown-ish shape the old format used, so
+              // it goes through the same converter rather than being injected raw.
+              if (kind === "blog_outline" || kind === "blog_post") set("body", legacyToHtml(text));
               else if (kind === "excerpt") set("excerpt", text.slice(0, 500));
               else if (kind === "seo_title") set("seoTitle", text.split("\n")[0].slice(0, 200));
               else if (kind === "meta_description") set("seoDescription", text.split("\n")[0].slice(0, 400));

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { withBase } from "@/lib/base-path";
-import { slugifyHeading } from "@/lib/blog";
+import { isHtmlBody, slugifyHeading } from "@/lib/blog";
 
 /* Blog body renderer — shared by the public article page and the admin
    editor's live preview so what you type is what you get. Backward-compatible:
@@ -108,6 +108,20 @@ function Block({ block, index }: { block: string; index: number }) {
 }
 
 export default function BlogBody({ body }: { body: string }) {
+  /* Editor HTML renders through .ds-prose — the same stylesheet the editing
+     surface uses, so what an author types is what ships.
+
+     The HTML is safe to inject because it was sanitised on the way IN
+     (lib/rich-text.ts, called by the API routes), so the column only ever
+     holds allow-listed markup. Sanitising again on every render would cost a
+     parse per request for no extra safety.
+
+     The legacy branch below is not dead code: bodies stay in the old text
+     format until the migration is run, and the deploy lands before it. */
+  if (isHtmlBody(body)) {
+    return <div className="ds-prose" dangerouslySetInnerHTML={{ __html: body }} />;
+  }
+
   const blocks = body
     .split(/\n{2,}/)
     .map((b) => b.trim())

@@ -20,6 +20,8 @@ import StickyCtaBar from "@/components/sections/StickyCtaBar";
 import SpotlightCard from "@/components/sections/SpotlightCard";
 import VideoBlock from "@/components/sections/VideoBlock";
 import { withBase } from "@/lib/base-path";
+import { isHtmlBody } from "@/lib/blog";
+import { legacyToHtml } from "@/lib/legacy-body";
 import type { Section } from "@/lib/cms/sections";
 
 function Heading({ text }: { text: string }) {
@@ -119,16 +121,21 @@ function HeroBlock({ s }: { s: Extract<Section, { type: "hero" }> }) {
    wide layouts but left as-is in the two-column one, where narrow
    measures + justification open up rivers of white space. */
 function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
-  const paragraphs = s.body.split(/\n{2,}/).filter((p) => p.trim());
+  /* Editor HTML, sanitised on save, rendered through the shared .ds-prose so a
+     page block looks like a blog paragraph and like the editing surface.
+
+     Legacy bodies are converted on the fly: this block only ever held plain
+     paragraphs, so a page that has not been re-saved since the editor shipped
+     still renders correctly rather than showing its markup. */
+  const html = isHtmlBody(s.body) ? s.body : legacyToHtml(s.body);
   const copy = (cls: string) => (
-    <div className={cls}>
-      {paragraphs.map((p, i) => (
-        <p key={i} className="text-sm leading-relaxed text-stone-600 sm:text-base">
-          {p}
-        </p>
-      ))}
-    </div>
+    <div className={`ds-prose ${cls}`} dangerouslySetInnerHTML={{ __html: html }} />
   );
+  /* The three layouts below still branch on how many paragraphs there are, so
+     the count now comes from the markup instead of a split on blank lines.
+     Only top-level <p> counts — a paragraph inside a list or a quote is part
+     of that block, not a card of its own. */
+  const paragraphs = html.match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) ?? [];
   if (s.image) {
     return (
       <section className="mx-auto max-w-[1280px] px-6 pt-16 sm:pt-20">
@@ -184,7 +191,7 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
             </h2>
             {paragraphs.length >= 3 ? (
               <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {paragraphs.map((p, i) => (
+                {paragraphs.map((p: string, i: number) => (
                   <div
                     key={i}
                     className="h-full rounded-3xl border border-stone-200 bg-white p-6 transition-transform duration-300 hover:-translate-y-1.5"
@@ -193,7 +200,10 @@ function RichTextBlock({ s }: { s: Extract<Section, { type: "richText" }> }) {
                       className="block h-1 w-8 rounded-full bg-[#F26419]"
                       aria-hidden
                     />
-                    <p className="mt-4 text-sm leading-relaxed text-stone-600">{p}</p>
+                    <div
+                      className="ds-prose mt-4 [&>p]:text-sm"
+                      dangerouslySetInnerHTML={{ __html: p }}
+                    />
                   </div>
                 ))}
               </div>
