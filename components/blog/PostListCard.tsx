@@ -1,7 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Newspaper } from "lucide-react";
-import { withBase } from "@/lib/base-path";
+import { ArrowRight } from "lucide-react";
+import PostCover from "@/components/blog/PostCover";
 import { categoryByDb } from "@/lib/blog";
 
 export type PostCardData = {
@@ -25,15 +24,6 @@ const THUMB_W = 200;
 /** …and a ceiling on height, so a portrait cover cannot tower over the excerpt
     beside it. A 1120×1400 cover would otherwise render 200×250. */
 const THUMB_MAX_H = 200;
-
-/** The box a cover gets: its own ratio, bounded by both the width and the
-    height above. Scaling the WIDTH down for a tall image keeps the whole
-    picture visible — capping the height instead would need object-contain and
-    put the letterbox bars back. */
-function thumbBox(w: number, h: number): number {
-  const ratio = w / h;
-  return Math.round(Math.min(THUMB_W, THUMB_MAX_H * ratio));
-}
 
 /**
  * Editorial list card: meta line, then the headline across the full card
@@ -85,57 +75,22 @@ export default function PostListCard({
       </h3>
 
       <div className="mt-4 flex flex-col gap-4 sm:flex-row">
-        {/* Whole image when we know its shape.
-
-            The thumbnail used to be a fixed 4:3 box with object-cover, which
-            sliced the top and bottom off covers that are designed banners —
-            the headline and the benefits strip, the two parts carrying the
-            message. Fixing the WIDTH and letting height follow the real ratio
-            avoids both the crop and the letterbox bars object-contain would
-            leave. Safe in a list, unlike a grid: these rows already vary in
-            height with the excerpt, so nothing falls out of alignment. */}
-        {post.coverUrl && post.coverWidth && post.coverHeight ? (
-          <span
-            /* The cap applies from sm up only. On mobile the card stacks, so a
-               full-width banner at its own ratio is the best it can look —
-               pinning it to 200px there would shrink it for no reason. */
-            className="relative block w-full shrink-0 overflow-hidden rounded-xl bg-stone-900 sm:max-w-[var(--thumb-w)]"
-            style={
-              {
-                "--thumb-w": `${thumbBox(post.coverWidth, post.coverHeight)}px`,
-              } as React.CSSProperties
-            }
-          >
-            <Image
-              src={withBase(post.coverUrl)}
-              alt=""
-              width={post.coverWidth}
-              height={post.coverHeight}
-              sizes={`(max-width: 640px) 100vw, ${THUMB_W}px`}
-              className="h-auto w-full transition-transform duration-500 group-hover:scale-[1.06]"
-            />
-            <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
-          </span>
-        ) : (
-          /* Unknown dimensions — a legacy row, or a cover we could not measure.
-             Keep the old box rather than reserving a wrongly-shaped gap. */
-          <span className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-xl bg-stone-900 sm:h-[105px] sm:w-[140px] lg:h-[126px] lg:w-[168px]">
-            {post.coverUrl ? (
-              <Image
-                src={withBase(post.coverUrl)}
-                alt=""
-                fill
-                sizes="(max-width: 640px) 100vw, 168px"
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-              />
-            ) : (
-              <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
-                <Newspaper size={22} className="text-white/80" aria-hidden />
-              </span>
-            )}
-            <span className="absolute inset-0 bg-[#F26419]/25 mix-blend-color" aria-hidden />
-          </span>
-        )}
+        {/* Fixed width, height following the true ratio — safe in a list, where
+            rows already vary with the excerpt. PostCover owns the three states
+            so this card no longer spells them out. */}
+        <PostCover
+          url={post.coverUrl}
+          width={post.coverWidth}
+          height={post.coverHeight}
+          maxW={THUMB_W}
+          maxH={THUMB_MAX_H}
+          sizes={`(max-width: 640px) 100vw, ${THUMB_W}px`}
+          fallbackBox="aspect-[4/3] w-full sm:h-[105px] sm:w-[140px] lg:h-[126px] lg:w-[168px]"
+          iconSize={22}
+          zoom
+          capClass="sm:max-w-[var(--cover-w)]"
+          className="w-full shrink-0 rounded-xl"
+        />
 
         <span className="flex min-w-0 flex-1 flex-col">
           {post.excerpt && (

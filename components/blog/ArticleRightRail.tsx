@@ -1,9 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Newspaper } from "lucide-react";
 import AdSlot from "@/components/blog/AdSlot";
+import PostCover from "@/components/blog/PostCover";
 import NewsletterCard from "@/components/blog/NewsletterCard";
-import { withBase } from "@/lib/base-path";
 import { categoryByDb } from "@/lib/blog";
 
 type RailPost = {
@@ -11,6 +9,8 @@ type RailPost = {
   title: string;
   category: string;
   coverUrl: string | null;
+  coverWidth: number | null;
+  coverHeight: number | null;
   readingMinutes: number;
 };
 
@@ -40,25 +40,18 @@ export default function ArticleRightRail({ posts }: { posts: RailPost[] }) {
                     href={`/blog/${p.slug}`}
                     className="group flex gap-3 rounded-xl p-1.5 transition-colors hover:bg-[#FFF7F0]"
                   >
-                    <span className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-stone-900">
-                      {p.coverUrl ? (
-                        <Image
-                          src={withBase(p.coverUrl)}
-                          alt=""
-                          fill
-                          sizes="64px"
-                          className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                      ) : (
-                        <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
-                          <Newspaper size={13} className="text-white/80" aria-hidden />
-                        </span>
-                      )}
-                      <span
-                        className="absolute inset-0 bg-[#F26419]/25 mix-blend-color"
-                        aria-hidden
-                      />
-                    </span>
+                    <PostCover
+                      url={p.coverUrl}
+                      width={p.coverWidth}
+                      height={p.coverHeight}
+                      maxW={64}
+                      maxH={64}
+                      sizes="64px"
+                      fallbackBox="h-12 w-16"
+                      iconSize={13}
+                      zoom
+                      className="w-16 shrink-0 rounded-lg"
+                    />
                     <span className="min-w-0">
                       <span className="block text-[11px] text-stone-400">
                         {categoryByDb(p.category)?.label ?? p.category} ·{" "}

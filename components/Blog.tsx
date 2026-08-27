@@ -1,11 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Newspaper } from "lucide-react";
+import PostCover from "@/components/blog/PostCover";
 import HomeSubscribe from "@/components/HomeSubscribe";
 import Reveal from "@/components/Reveal";
 import { db } from "@/lib/db";
 import { BLOG_POSTS } from "@/lib/data";
-import { withBase } from "@/lib/base-path";
 
 const FALLBACK_COVERS = [
   "/blog/lead-generation.jpg",
@@ -20,6 +18,8 @@ type Card = {
   category: string;
   date: string;
   coverUrl: string | null;
+  coverWidth: number | null;
+  coverHeight: number | null;
   excerpt: string;
   readingMinutes: number;
   authorName: string | null;
@@ -40,6 +40,8 @@ export default async function Blog() {
         title: true,
         category: true,
         coverUrl: true,
+        coverWidth: true,
+        coverHeight: true,
         excerpt: true,
         readingMinutes: true,
         publishedAt: true,
@@ -62,6 +64,8 @@ export default async function Blog() {
               year: "numeric",
             }) ?? "",
           coverUrl: p.coverUrl,
+          coverWidth: p.coverWidth,
+          coverHeight: p.coverHeight,
           excerpt: p.excerpt,
           readingMinutes: p.readingMinutes,
           authorName: p.authorName,
@@ -73,6 +77,10 @@ export default async function Blog() {
           category: p.category,
           date: p.date,
           coverUrl: FALLBACK_COVERS[i] ?? null,
+          // Static placeholders, only used when no post exists yet — unmeasured,
+          // so they render through PostCover's fixed-box path.
+          coverWidth: null,
+          coverHeight: null,
           excerpt: "",
           readingMinutes: 4,
           authorName: null,
@@ -112,24 +120,24 @@ export default async function Blog() {
               href={featured.href}
               className="group block h-full overflow-hidden rounded-2xl border border-stone-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(124,45,18,0.14)]"
             >
-              <div className="relative h-52 overflow-hidden sm:h-60">
-                {featured.coverUrl ? (
-                  <Image
-                    src={withBase(featured.coverUrl)}
-                    alt=""
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 620px"
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
-                    <Newspaper size={30} className="text-white/80" aria-hidden />
-                  </div>
-                )}
-                <span
-                  className="absolute inset-0 bg-[#F26419]/25 mix-blend-color"
-                  aria-hidden
-                />
+              {/* The chip and reading time live INSIDE the cover so they stay
+                  glued to the image once a portrait one is width-capped. */}
+              <PostCover
+                url={featured.coverUrl}
+                width={featured.coverWidth}
+                height={featured.coverHeight}
+                /* Generous enough that a landscape cover fills the card edge to
+                   edge (686 / 1.39 = 493) instead of sitting inset, which reads
+                   as a mistake. The height cap is what stops a portrait one
+                   towering — it centres at ~400x500 instead. */
+                maxW={760}
+                maxH={500}
+                sizes="(max-width: 1024px) 100vw, 620px"
+                fallbackBox="h-52 sm:h-60"
+                iconSize={30}
+                zoom
+                className="mx-auto w-full"
+              >
                 <span
                   className="absolute inset-0 bg-[linear-gradient(160deg,rgba(124,45,18,0.3),rgba(18,12,8,0.3))] mix-blend-multiply"
                   aria-hidden
@@ -140,7 +148,7 @@ export default async function Blog() {
                 <span className="absolute bottom-3 right-3 rounded-full bg-stone-900/70 px-2.5 py-1 text-[11px] text-[#FDBA74]">
                   {featured.readingMinutes} min read
                 </span>
-              </div>
+              </PostCover>
               <div className="p-5 sm:p-6">
                 <p className="text-xs text-stone-500">
                   {featured.date}
@@ -171,25 +179,18 @@ export default async function Blog() {
                 href={post.href}
                 className="group flex gap-3.5 rounded-xl p-3 transition-colors hover:bg-[#FFF3E8]"
               >
-                <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-900">
-                  {post.coverUrl ? (
-                    <Image
-                      src={withBase(post.coverUrl)}
-                      alt=""
-                      fill
-                      sizes="80px"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
-                      <Newspaper size={16} className="text-white/80" aria-hidden />
-                    </span>
-                  )}
-                  <span
-                    className="absolute inset-0 bg-[#F26419]/25 mix-blend-color"
-                    aria-hidden
-                  />
-                </span>
+                <PostCover
+                  url={post.coverUrl}
+                  width={post.coverWidth}
+                  height={post.coverHeight}
+                  maxW={80}
+                  maxH={80}
+                  sizes="80px"
+                  fallbackBox="h-16 w-20"
+                  iconSize={16}
+                  zoom
+                  className="w-20 shrink-0 rounded-lg"
+                />
                 <span className="min-w-0">
                   <span className="block text-xs text-stone-500">
                     {post.category} · {post.date}

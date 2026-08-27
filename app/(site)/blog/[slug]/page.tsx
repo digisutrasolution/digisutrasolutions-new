@@ -3,13 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { cache } from "react";
-import { ArrowRight, Lightbulb, Newspaper } from "lucide-react";
+import { ArrowRight, Lightbulb } from "lucide-react";
 import AdSlot from "@/components/blog/AdSlot";
 import ArticleRightRail from "@/components/blog/ArticleRightRail";
 import ArticleToc from "@/components/blog/ArticleToc";
 import Reviews from "@/components/blog/Reviews";
 import ShareRail from "@/components/blog/ShareRail";
 import BlogBody from "@/components/BlogBody";
+import PostCover from "@/components/blog/PostCover";
 import AuthorBox from "@/components/blog/AuthorBox";
 import { withBase } from "@/lib/base-path";
 import { db } from "@/lib/db";
@@ -101,6 +102,8 @@ export default async function BlogPostPage({
         title: true,
         category: true,
         coverUrl: true,
+        coverWidth: true,
+        coverHeight: true,
         readingMinutes: true,
       },
       take: 6,
@@ -325,28 +328,17 @@ export default async function BlogPostPage({
               than a wrongly-shaped gap. Thumbnails elsewhere still crop on
               purpose — grids need uniform cards. */}
           {post.coverUrl && (
-            post.coverWidth && post.coverHeight ? (
-              <Image
-                src={withBase(post.coverUrl)}
-                alt=""
-                width={post.coverWidth}
-                height={post.coverHeight}
-                priority
-                sizes="(max-width: 768px) 100vw, 768px"
-                className="mt-6 h-auto w-full rounded-3xl"
-              />
-            ) : (
-              <div className="relative mt-6 h-64 overflow-hidden rounded-3xl sm:h-80">
-                <Image
-                  src={withBase(post.coverUrl)}
-                  alt=""
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, 768px"
-                  className="object-cover"
-                />
-              </div>
-            )
+            <PostCover
+              url={post.coverUrl}
+              width={post.coverWidth}
+              height={post.coverHeight}
+              maxW={768}
+              maxH={620}
+              sizes="(max-width: 768px) 100vw, 768px"
+              fallbackBox="h-64 sm:h-80"
+              priority
+              className="mt-6 w-full rounded-3xl"
+            />
           )}
 
           {takeaways.length >= 3 && (
@@ -398,25 +390,23 @@ export default async function BlogPostPage({
                   href={`/blog/${r.slug}`}
                   className="group overflow-hidden rounded-2xl border border-stone-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(124,45,18,0.12)]"
                 >
-                  <div className="relative h-28 overflow-hidden bg-stone-900">
-                    {r.coverUrl ? (
-                      <Image
-                        src={withBase(r.coverUrl)}
-                        alt=""
-                        fill
-                        sizes="(max-width: 640px) 100vw, 360px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-900 via-orange-600 to-amber-400">
-                        <Newspaper size={20} className="text-white/80" aria-hidden />
-                      </span>
-                    )}
-                    <span
-                      className="absolute inset-0 bg-[#F26419]/25 mix-blend-color"
-                      aria-hidden
-                    />
-                  </div>
+                  {/* The only 2-column grid using covers, so true ratios make
+                      the two cards differ in height. Capped so neither runs
+                      away; the slight raggedness is the cost of showing these
+                      whole, which is what was asked for. */}
+                  <PostCover
+                    url={r.coverUrl}
+                    width={r.coverWidth}
+                    height={r.coverHeight}
+                    maxW={360}
+                    maxH={240}
+                    sizes="(max-width: 640px) 100vw, 360px"
+                    fallbackBox="h-28"
+                    iconSize={20}
+                    zoom
+                    capClass="sm:max-w-[var(--cover-w)]"
+                    className="mx-auto w-full"
+                  />
                   <div className="p-4">
                     <p className="text-[11px] text-stone-400">
                       {i === 0 ? "Up next" : "Related"} ·{" "}
