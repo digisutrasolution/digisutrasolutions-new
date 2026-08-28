@@ -31,6 +31,7 @@ export default function PostCover({
   fallbackBox,
   iconSize = 20,
   zoom = false,
+  crop = false,
   className = "",
   capClass = "max-w-[var(--cover-w)]",
   priority = false,
@@ -49,6 +50,11 @@ export default function PostCover({
   iconSize?: number;
   /** The hover scale the cards use; off for the article hero. */
   zoom?: boolean;
+  /** Keep the fixed box even when the dimensions ARE known. For thumbnails so
+      small that a whole banner is unreadable anyway (~64-80px), where a column
+      of uniform boxes reads as a tidy list and ragged true-ratio ones read as
+      broken. Deliberate, not a fallback. */
+  crop?: boolean;
   className?: string;
   /** Where the width cap applies. Defaults to every breakpoint; a card that
       stacks on mobile passes "sm:max-w-[var(--cover-w)]" so the cover stays
@@ -60,7 +66,11 @@ export default function PostCover({
       be wider than it once a portrait cover is capped. */
   children?: React.ReactNode;
 }) {
-  const shell = `relative block overflow-hidden bg-stone-900 ${className}`;
+  /* self-start matters: in a flex row (a thumbnail beside a headline) the
+     default align-items:stretch grows this box to the row's height while the
+     image inside keeps its own, and the difference showed as a black band of
+     bare bg-stone-900 under the picture. */
+  const shell = `relative block self-start overflow-hidden bg-stone-900 ${className}`;
   const motion = zoom
     ? "transition-transform duration-500 group-hover:scale-[1.06]"
     : "";
@@ -78,8 +88,8 @@ export default function PostCover({
     );
   }
 
-  // 2 — a cover we could never measure.
-  if (!width || !height) {
+  // 2 — a cover we could never measure, or one deliberately kept in its box.
+  if (crop || !width || !height) {
     return (
       <span className={`${shell} ${fallbackBox}`}>
         <Image

@@ -189,6 +189,11 @@ export default async function Blog() {
                   fallbackBox="h-16 w-20"
                   iconSize={16}
                   zoom
+                  /* Restored to the uniform 80x64 box. Same reasoning as the
+                     article rail: too small to read a banner whole, and the
+                     even column is the point. The featured cover above still
+                     shows whole — that one is big enough to be worth reading. */
+                  crop
                   className="w-20 shrink-0 rounded-lg"
                 />
                 <span className="min-w-0">

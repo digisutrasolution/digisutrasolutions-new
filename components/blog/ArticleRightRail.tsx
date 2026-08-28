@@ -50,6 +50,11 @@ export default function ArticleRightRail({ posts }: { posts: RailPost[] }) {
                       fallbackBox="h-12 w-16"
                       iconSize={13}
                       zoom
+                      /* Back to the uniform 64x48 box these had before. At this
+                         size a whole banner is unreadable either way, and a
+                         column of equal boxes beside the headlines is what
+                         makes the rail scan as a list. */
+                      crop
                       className="w-16 shrink-0 rounded-lg"
                     />
                     <span className="min-w-0">
