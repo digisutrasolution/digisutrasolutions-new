@@ -41,7 +41,7 @@ export default function HomeSubscribe() {
 
   if (status === "done") {
     return (
-      <p className="mt-auto flex items-center gap-2.5 border-t border-dashed border-[#F0E2D6] px-3 pb-1 pt-4 text-sm font-semibold text-emerald-700">
+      <p className="mt-3 flex items-center gap-2.5 border-t border-dashed border-[#F0E2D6] px-3 pb-1 pt-4 text-sm font-semibold text-emerald-700">
         <Check size={15} className="shrink-0" aria-hidden />
         You&apos;re in — growth notes land monthly.
       </p>
@@ -51,7 +51,7 @@ export default function HomeSubscribe() {
   return (
     <form
       onSubmit={submit}
-      className="mt-auto border-t border-dashed border-[#F0E2D6] px-3 pb-1 pt-4"
+      className="mt-3 border-t border-dashed border-[#F0E2D6] px-3 pb-1 pt-4"
     >
       <label
         htmlFor="home-subscribe-email"
