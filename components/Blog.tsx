@@ -172,12 +172,21 @@ export default async function Blog() {
 
         {/* Recent list + subscribe nudge */}
         <Reveal delay={0.1}>
-          <div className="flex h-full flex-col gap-2">
-            {rest.map((post) => (
+          {/* justify-between spreads the rows to fill the featured card's
+              height so the column doesn't stop short and leave a hole above the
+              subscribe box; gap-2 is the floor when the column ISN'T stretched
+              (stacked on mobile). A dashed divider under each row makes that
+              breathing room read as a tidy list, not empty space. */}
+          <div className="flex h-full flex-col justify-between gap-2">
+            {rest.map((post, i) => (
               <Link
                 key={post.key}
                 href={post.href}
-                className="group flex gap-3.5 rounded-xl p-3 transition-colors hover:bg-[#FFF3E8]"
+                className={`group flex gap-3.5 rounded-xl p-3 transition-colors hover:bg-[#FFF3E8] ${
+                  i < rest.length - 1
+                    ? "border-b border-dashed border-[#F0E2D6]"
+                    : ""
+                }`}
               >
                 <PostCover
                   url={post.coverUrl}
