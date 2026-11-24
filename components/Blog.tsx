@@ -170,54 +170,51 @@ export default async function Blog() {
           </Reveal>
         )}
 
-        {/* Recent list + subscribe nudge */}
+        {/* Recent articles as a 2×2 card grid + subscribe nudge */}
         <Reveal delay={0.1}>
-          {/* justify-between spreads the rows to fill the featured card's
-              height so the column doesn't stop short and leave a hole above the
-              subscribe box; gap-2 is the floor when the column ISN'T stretched
-              (stacked on mobile). A dashed divider under each row makes that
-              breathing room read as a tidy list, not empty space. */}
-          <div className="flex h-full flex-col justify-between gap-2">
-            {rest.map((post, i) => (
-              <Link
-                key={post.key}
-                href={post.href}
-                className={`group flex gap-3.5 rounded-xl p-3 transition-colors hover:bg-[#FFF3E8] ${
-                  i < rest.length - 1
-                    ? "border-b border-dashed border-[#F0E2D6]"
-                    : ""
-                }`}
-              >
-                <PostCover
-                  url={post.coverUrl}
-                  width={post.coverWidth}
-                  height={post.coverHeight}
-                  maxW={80}
-                  maxH={80}
-                  sizes="80px"
-                  fallbackBox="h-16 w-20"
-                  iconSize={16}
-                  zoom
-                  /* Restored to the uniform 80x64 box. Same reasoning as the
-                     article rail: too small to read a banner whole, and the
-                     even column is the point. The featured cover above still
-                     shows whole — that one is big enough to be worth reading. */
-                  crop
-                  className="w-20 shrink-0 rounded-lg"
-                />
-                <span className="min-w-0">
-                  <span className="block text-xs text-stone-500">
-                    {post.category} · {post.date}
-                  </span>
-                  <span className="font-display mt-1 block text-sm font-bold leading-snug text-stone-900 transition-colors group-hover:text-orange-700">
-                    {post.title}
-                  </span>
-                  <span className="mt-1 block text-xs text-stone-500">
-                    {post.readingMinutes} min read
-                  </span>
-                </span>
-              </Link>
-            ))}
+          {/* flex-1 on the grid lets it absorb the extra height so the card
+              bottoms align with the tall featured card on the left; grid-rows-2
+              keeps all four cards the same size. gap-4 separates the grid from
+              the subscribe strip. On mobile the column isn't height-stretched,
+              so flex-1/grid-rows-2 go inert and cards fall to natural height. */}
+          <div className="flex h-full flex-col gap-4">
+            <div className="grid flex-1 grid-cols-2 grid-rows-2 gap-3">
+              {rest.map((post) => (
+                <Link
+                  key={post.key}
+                  href={post.href}
+                  className="group flex h-full flex-col overflow-hidden rounded-xl border border-stone-200 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(124,45,18,0.12)]"
+                >
+                  {/* Card banner via PostCover's crop path — a fixed h-24 box
+                      with the cover object-cover'd to fill it. maxW/maxH are
+                      required props but unused on the crop path. */}
+                  <PostCover
+                    url={post.coverUrl}
+                    width={post.coverWidth}
+                    height={post.coverHeight}
+                    crop
+                    maxW={210}
+                    maxH={120}
+                    sizes="(max-width: 1024px) 50vw, 210px"
+                    fallbackBox="h-24 w-full"
+                    iconSize={18}
+                    zoom
+                    className="w-full"
+                  />
+                  <div className="flex flex-1 flex-col p-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-orange-700">
+                      {post.category}
+                    </span>
+                    <span className="font-display mt-1 line-clamp-2 text-sm font-bold leading-snug text-stone-900 transition-colors group-hover:text-orange-700">
+                      {post.title}
+                    </span>
+                    <span className="mt-auto pt-2 text-xs text-stone-500">
+                      {post.readingMinutes} min read
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
             <HomeSubscribe />
           </div>
         </Reveal>
