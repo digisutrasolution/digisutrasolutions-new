@@ -9,9 +9,10 @@ import { db } from "@/lib/db";
  * first-party /api/track pageview counter stays: it works with no vendor,
  * no cookie and no consent prompt.
  *
- * Consent: Google tags are initialised with Consent Mode v2 set to denied
- * for ad and analytics storage. That keeps them cookieless until consent
- * is granted, which is the safe default for UK/EU visitors. Meta Pixel and
+ * Consent: Google tags initialise with Consent Mode v2 — ad storage denied,
+ * analytics_storage GRANTED (owner decision: GA4 is first-party measurement
+ * and must report normally; ads stay off). For EU/UK traffic, add a consent
+ * banner and default analytics_storage back to 'denied'. Meta Pixel and
  * Clarity have no equivalent switch, so enabling those without a consent
  * banner is a compliance decision the owner has to make deliberately.
  */

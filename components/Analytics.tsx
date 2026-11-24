@@ -6,9 +6,11 @@ import { hasAnyTag } from "@/lib/analytics";
  * Renders whichever measurement tags are configured — and nothing at all
  * when none are, so an unconfigured site makes zero third-party requests.
  *
- * Google tags boot with Consent Mode v2 denied. That is deliberate: the
- * tag still measures in a cookieless mode, and a consent banner can later
- * call gtag('consent','update',…) without any code change here.
+ * Google tags boot with Consent Mode v2: ad storage denied, but
+ * analytics_storage GRANTED so GA4 reports normally (owner decision —
+ * analytics is first-party measurement, ads stay off). If EU/UK consent
+ * becomes a requirement, add a banner that calls gtag('consent','update',…)
+ * and flip analytics_storage back to 'denied' here as the default.
  *
  * All tags use afterInteractive. beforeInteractive is invalid outside the
  * root layout in the App Router, and the consent default still executes
@@ -33,7 +35,7 @@ export default function Analytics({ settings }: { settings: AnalyticsSettings })
       {google && (
         <Script id="consent-default" strategy="afterInteractive">
           {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
-gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});`}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'granted'});`}
         </Script>
       )}
 
