@@ -88,6 +88,10 @@ export default async function Blog() {
 
   const featured = cards[0];
   const rest = cards.slice(1);
+  // Adapt the card grid to how many posts there are so cells are never left
+  // empty: a single secondary post fills one column; two or more use two
+  // columns, and an odd last card spans the full width to close the row.
+  const gridCols = rest.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <section id="blog" className="mx-auto max-w-[1280px] px-6 pt-20 sm:pt-24">
@@ -176,14 +180,24 @@ export default async function Blog() {
               bottoms align with the tall featured card on the left; grid-rows-2
               keeps all four cards the same size. gap-4 separates the grid from
               the subscribe strip. On mobile the column isn't height-stretched,
-              so flex-1/grid-rows-2 go inert and cards fall to natural height. */}
+              so flex-1/auto-rows-fr go inert and cards fall to natural height.
+              auto-rows-fr (not a fixed grid-rows-2) lets any number of rows
+              share the height evenly, so 2, 3 or 4 cards all fill the column. */}
           <div className="flex h-full flex-col gap-4">
-            <div className="grid flex-1 grid-cols-2 grid-rows-2 gap-3">
-              {rest.map((post) => (
+            <div className={`grid flex-1 auto-rows-fr ${gridCols} gap-3`}>
+              {rest.map((post, i) => {
+                // Odd last card spans both columns so the final row has no hole.
+                const spanFull =
+                  rest.length > 1 &&
+                  rest.length % 2 === 1 &&
+                  i === rest.length - 1;
+                return (
                 <Link
                   key={post.key}
                   href={post.href}
-                  className="group flex h-full flex-col overflow-hidden rounded-xl border border-stone-200 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(124,45,18,0.12)]"
+                  className={`group flex h-full flex-col overflow-hidden rounded-xl border border-stone-200 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(124,45,18,0.12)] ${
+                    spanFull ? "col-span-2" : ""
+                  }`}
                 >
                   {/* Card banner via PostCover's crop path — a fixed h-24 box
                       with the cover object-cover'd to fill it. maxW/maxH are
@@ -213,7 +227,8 @@ export default async function Blog() {
                     </span>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
             <HomeSubscribe />
           </div>
